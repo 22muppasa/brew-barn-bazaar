@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Navigation from "./Navigation";
 
 const Header = () => {
   return (
@@ -10,6 +11,7 @@ const Header = () => {
       transition={{ duration: 1 }}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-accent to-accent/90" />
+      <Navigation />
       <motion.div 
         className="relative z-10 text-center"
         initial={{ y: 50, opacity: 0 }}
