@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
+import CartIcon from "./CartIcon";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,8 +17,11 @@ const Navigation = () => {
     { title: "Home", href: "/" },
     { title: "Menu", href: "/menu" },
     { title: "About", href: "/about" },
-    { title: "Rewards", href: "/rewards" },
     { title: "Contact", href: "/contact" },
+    ...(session ? [
+      { title: "Profile", href: "/profile" },
+      { title: "Rewards", href: "/rewards" }
+    ] : [])
   ];
 
   const handleAuth = async () => {
@@ -30,44 +34,34 @@ const Navigation = () => {
     setIsOpen(false);
   };
 
-  const menuVariants = {
-    closed: {
-      opacity: 0,
-      x: "100%",
-      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-    },
-    open: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-    },
-  };
-
   return (
     <>
-      <motion.button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed right-6 top-6 z-50 rounded-full bg-primary/10 p-3 backdrop-blur-sm transition-all hover:bg-primary/20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <motion.div animate={{ rotate: isOpen ? 90 : 0 }}>
-          {isOpen ? (
-            <X className="h-6 w-6 text-primary-foreground" />
-          ) : (
-            <Menu className="h-6 w-6 text-primary-foreground" />
-          )}
-        </motion.div>
-      </motion.button>
+      <div className="fixed right-6 top-6 z-50 flex items-center gap-2">
+        {session && <CartIcon />}
+        <motion.button
+          onClick={() => setIsOpen(!isOpen)}
+          className="rounded-full bg-primary/10 p-3 backdrop-blur-sm transition-all hover:bg-primary/20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <motion.div animate={{ rotate: isOpen ? 90 : 0 }}>
+            {isOpen ? (
+              <X className="h-6 w-6 text-primary-foreground" />
+            ) : (
+              <Menu className="h-6 w-6 text-primary-foreground" />
+            )}
+          </motion.div>
+        </motion.button>
+      </div>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={menuVariants}
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
             className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-accent/95 px-6 py-24 backdrop-blur-sm"
           >
             <nav className="flex flex-col items-center space-y-8">

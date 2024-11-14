@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Menu from "./pages/Menu";
 import Cart from "./pages/Cart";
 import Rewards from "./pages/Rewards";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Rewards />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               } 
             />
