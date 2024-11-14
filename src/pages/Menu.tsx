@@ -5,9 +5,18 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Menu = () => {
   const session = useSession();
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { data: menuItems, isLoading } = useQuery({
     queryKey: ['menu-items'],
@@ -49,6 +58,11 @@ const Menu = () => {
     return <div>Loading...</div>;
   }
 
+  const categories = ["all", ...new Set(menuItems?.map((item: any) => item.category))];
+  const filteredItems = selectedCategory === "all" 
+    ? menuItems 
+    : menuItems?.filter((item: any) => item.category === selectedCategory);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -61,8 +75,23 @@ const Menu = () => {
           Our Menu
         </motion.h1>
         
+        <div className="mb-8">
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {menuItems?.map((item: any) => (
+          {filteredItems?.map((item: any) => (
             <motion.div
               key={item.id}
               className="bg-card rounded-lg shadow-lg overflow-hidden"

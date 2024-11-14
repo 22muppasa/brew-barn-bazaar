@@ -6,10 +6,12 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
   const session = useSession();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: cartItems, isLoading } = useQuery({
     queryKey: ['cart-items'],
@@ -58,6 +60,64 @@ const Cart = () => {
       toast.error("Failed to update quantity");
     },
   });
+
+  const handleCheckout = async () => {
+    if (!cartItems?.length) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    const total = cartItems.reduce((sum: number, item: any) => 
+      sum + (item.price * item.quantity), 0);
+
+    // Create order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        user_id: session?.user?.id,
+        total_amount: total,
+        status: 'completed'
+      })
+      .select()
+      .single();
+
+    if (orderError) {
+      toast.error("Failed to create order");
+      return;
+    }
+
+    // Create order items
+    const orderItems = cartItems.map((item: any) => ({
+      order_id: order.id,
+      product_name: item.product_name,
+      quantity: item.quantity,
+      price: item.price
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+
+    if (itemsError) {
+      toast.error("Failed to create order items");
+      return;
+    }
+
+    // Clear cart
+    const { error: clearError } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('user_id', session?.user?.id);
+
+    if (clearError) {
+      toast.error("Failed to clear cart");
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['cart-items'] });
+    toast.success("Order completed successfully!");
+    navigate('/profile');
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -133,8 +193,12 @@ const Cart = () => {
                 <span className="text-lg font-semibold">Total:</span>
                 <span className="text-lg font-bold">${total.toFixed(2)}</span>
               </div>
-              <Button className="w-full" size="lg">
-                Proceed to Checkout
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={handleCheckout}
+              >
+                Complete Order
               </Button>
             </div>
           </div>
