@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useSession } from "@supabase/auth-helpers-react";
 import Navigation from "@/components/Navigation";
 import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
 
 const Rewards = () => {
   const session = useSession();
@@ -30,24 +31,60 @@ const Rewards = () => {
     return { next: 'Maximum', progress: 100 };
   };
 
+  const tiers = [
+    {
+      name: 'Bronze',
+      points: 0,
+      benefits: ['Earn 1 point per dollar spent'],
+      color: 'bg-amber-700'
+    },
+    {
+      name: 'Silver',
+      points: 100,
+      benefits: ['Earn 1.2 points per dollar spent', 'Free drink on your birthday'],
+      color: 'bg-gray-400'
+    },
+    {
+      name: 'Gold',
+      points: 500,
+      benefits: ['Earn 1.5 points per dollar spent', 'Monthly free drink'],
+      color: 'bg-yellow-500'
+    },
+    {
+      name: 'Platinum',
+      points: 1000,
+      benefits: ['Earn 2 points per dollar spent', 'Priority ordering', 'Exclusive tastings'],
+      color: 'bg-gray-600'
+    }
+  ];
+
+  const getCurrentTierIndex = () => {
+    const points = rewards?.points || 0;
+    if (points >= 1000) return 3;
+    if (points >= 500) return 2;
+    if (points >= 100) return 1;
+    return 0;
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   const { next, progress } = getTierProgress();
+  const currentTierIndex = getCurrentTierIndex();
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto px-4 py-8">
         <motion.div
-          className="max-w-2xl mx-auto"
+          className="max-w-4xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <h1 className="text-4xl font-bold mb-8 text-center">Your Rewards</h1>
           
-          <div className="bg-card rounded-lg shadow-lg p-6 mb-8">
+          <Card className="p-6 mb-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-semibold mb-2">Current Tier</h2>
               <span className="text-4xl font-bold text-primary">
@@ -71,31 +108,62 @@ const Rewards = () => {
                 </span>
               </div>
             </div>
-          </div>
+          </Card>
           
-          <div className="bg-card rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-4">Tier Benefits</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold">Bronze</h4>
-                <p className="text-muted-foreground">• Earn 1 point per dollar spent</p>
-              </div>
-              <div>
-                <h4 className="font-semibold">Silver (100 points)</h4>
-                <p className="text-muted-foreground">• Earn 1.2 points per dollar spent</p>
-                <p className="text-muted-foreground">• Free drink on your birthday</p>
-              </div>
-              <div>
-                <h4 className="font-semibold">Gold (500 points)</h4>
-                <p className="text-muted-foreground">• Earn 1.5 points per dollar spent</p>
-                <p className="text-muted-foreground">• Monthly free drink</p>
-              </div>
-              <div>
-                <h4 className="font-semibold">Platinum (1000 points)</h4>
-                <p className="text-muted-foreground">• Earn 2 points per dollar spent</p>
-                <p className="text-muted-foreground">• Priority ordering</p>
-                <p className="text-muted-foreground">• Exclusive tastings</p>
-              </div>
+          <div className="relative mt-16">
+            {/* Timeline line */}
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-muted -translate-y-1/2" />
+            
+            {/* Timeline nodes */}
+            <div className="relative flex justify-between">
+              {tiers.map((tier, index) => (
+                <motion.div
+                  key={tier.name}
+                  className="relative"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.2 }}
+                >
+                  {/* Timeline node */}
+                  <div className={`
+                    w-8 h-8 rounded-full ${tier.color} 
+                    ${index <= currentTierIndex ? 'ring-4 ring-primary' : 'opacity-50'}
+                    relative z-10 mx-auto
+                  `} />
+                  
+                  {/* Tier name and points */}
+                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                    <p className="font-semibold">{tier.name}</p>
+                    <p className="text-sm text-muted-foreground">{tier.points} points</p>
+                  </div>
+                  
+                  {/* Benefits card */}
+                  <motion.div
+                    className={`absolute top-12 left-1/2 -translate-x-1/2 w-48 
+                      ${index <= currentTierIndex ? 'opacity-100' : 'opacity-50'}`}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: index * 0.2 + 0.2 }}
+                  >
+                    <Card className="p-4">
+                      <ul className="text-sm space-y-2">
+                        {tier.benefits.map((benefit, i) => (
+                          <motion.li
+                            key={i}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.2 + 0.4 + (i * 0.1) }}
+                            className="flex items-start"
+                          >
+                            <span className="mr-2">•</span>
+                            {benefit}
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </motion.div>
