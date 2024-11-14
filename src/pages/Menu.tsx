@@ -6,13 +6,6 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const Menu = () => {
   const session = useSession();
@@ -55,7 +48,11 @@ const Menu = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   const categories = ["all", ...new Set(menuItems?.map((item: any) => item.category))];
@@ -75,19 +72,19 @@ const Menu = () => {
           Our Menu
         </motion.h1>
         
-        <div className="mb-8">
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="mb-8 overflow-x-auto">
+          <div className="flex space-x-2 pb-4">
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category)}
+                className="whitespace-nowrap"
+              >
+                {category === "all" ? "All Items" : category}
+              </Button>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -98,20 +95,28 @@ const Menu = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               whileHover={{ scale: 1.02 }}
+              layout
             >
               {item.image_url && (
-                <img 
-                  src={item.image_url} 
-                  alt={item.name}
-                  className="w-full h-48 object-cover"
-                />
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={item.image_url} 
+                    alt={item.name}
+                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                  />
+                </div>
               )}
               <div className="p-4">
                 <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
                 <p className="text-muted-foreground mb-4">{item.description}</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold">${item.price}</span>
-                  <Button onClick={() => addToCart(item)}>Add to Cart</Button>
+                  <span className="text-lg font-bold">${item.price.toFixed(2)}</span>
+                  <Button 
+                    onClick={() => addToCart(item)}
+                    className="transition-all duration-300 hover:scale-105"
+                  >
+                    Add to Cart
+                  </Button>
                 </div>
               </div>
             </motion.div>

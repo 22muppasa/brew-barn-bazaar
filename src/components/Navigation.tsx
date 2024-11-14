@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
 import CartIcon from "./CartIcon";
@@ -16,8 +16,6 @@ const Navigation = () => {
   const menuItems = [
     { title: "Home", href: "/" },
     { title: "Menu", href: "/menu" },
-    { title: "About", href: "/about" },
-    { title: "Contact", href: "/contact" },
     ...(session ? [
       { title: "Profile", href: "/profile" },
       { title: "Rewards", href: "/rewards" }
@@ -28,6 +26,7 @@ const Navigation = () => {
     if (session) {
       await supabase.auth.signOut();
       toast.success("Successfully logged out");
+      navigate("/");
     } else {
       navigate("/auth");
     }
@@ -47,9 +46,9 @@ const Navigation = () => {
         >
           <motion.div animate={{ rotate: isOpen ? 90 : 0 }}>
             {isOpen ? (
-              <X className="h-6 w-6 text-primary-foreground" />
+              <X className="h-6 w-6 text-primary" />
             ) : (
-              <Menu className="h-6 w-6 text-primary-foreground" />
+              <Menu className="h-6 w-6 text-primary" />
             )}
           </motion.div>
         </motion.button>
@@ -66,15 +65,19 @@ const Navigation = () => {
           >
             <nav className="flex flex-col items-center space-y-8">
               {menuItems.map((item) => (
-                <motion.a
+                <Link
                   key={item.title}
-                  href={item.href}
-                  className="text-2xl font-medium text-primary-foreground transition-colors hover:text-primary"
-                  whileHover={{ x: 10 }}
-                  whileTap={{ scale: 0.95 }}
+                  to={item.href}
+                  className="text-2xl font-medium text-accent-foreground transition-colors hover:text-primary"
+                  onClick={() => setIsOpen(false)}
                 >
-                  {item.title}
-                </motion.a>
+                  <motion.span
+                    whileHover={{ x: 10 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {item.title}
+                  </motion.span>
+                </Link>
               ))}
               <Button 
                 variant="secondary"
