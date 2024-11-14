@@ -35,25 +35,41 @@ const Rewards = () => {
     {
       name: 'Bronze',
       points: 0,
-      benefits: ['Earn 1 point per dollar spent'],
+      benefits: ['Earn 1 point per dollar spent', 'Free Classic Espresso on signup'],
+      freeItem: {
+        name: 'Classic Espresso',
+        image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9'
+      },
       color: 'bg-amber-700'
     },
     {
       name: 'Silver',
       points: 100,
-      benefits: ['Earn 1.2 points per dollar spent', 'Free drink on your birthday'],
+      benefits: ['Earn 1.2 points per dollar spent', 'Free Cappuccino monthly'],
+      freeItem: {
+        name: 'Cappuccino',
+        image: 'https://images.unsplash.com/photo-1482938289607-e9573fc25ebb'
+      },
       color: 'bg-gray-400'
     },
     {
       name: 'Gold',
       points: 500,
-      benefits: ['Earn 1.5 points per dollar spent', 'Monthly free drink'],
+      benefits: ['Earn 1.5 points per dollar spent', 'Free Caramel Latte monthly'],
+      freeItem: {
+        name: 'Caramel Latte',
+        image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9'
+      },
       color: 'bg-yellow-500'
     },
     {
       name: 'Platinum',
       points: 1000,
-      benefits: ['Earn 2 points per dollar spent', 'Priority ordering', 'Exclusive tastings'],
+      benefits: ['Earn 2 points per dollar spent', 'Free Frappuccino weekly'],
+      freeItem: {
+        name: 'Frappuccino',
+        image: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21'
+      },
       color: 'bg-gray-600'
     }
   ];
@@ -137,29 +153,41 @@ const Rewards = () => {
                     <p className="text-sm text-muted-foreground">{tier.points} points</p>
                   </div>
                   
-                  {/* Benefits card */}
+                  {/* Benefits card with free item image */}
                   <motion.div
-                    className={`absolute top-12 left-1/2 -translate-x-1/2 w-48 
+                    className={`absolute top-12 left-1/2 -translate-x-1/2 w-64 
                       ${index <= currentTierIndex ? 'opacity-100' : 'opacity-50'}`}
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: index * 0.2 + 0.2 }}
                   >
                     <Card className="p-4">
-                      <ul className="text-sm space-y-2">
-                        {tier.benefits.map((benefit, i) => (
-                          <motion.li
-                            key={i}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.2 + 0.4 + (i * 0.1) }}
-                            className="flex items-start"
-                          >
-                            <span className="mr-2">•</span>
-                            {benefit}
-                          </motion.li>
-                        ))}
-                      </ul>
+                      <div className="flex items-start gap-4">
+                        {/* Free item image */}
+                        <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                          <img 
+                            src={tier.freeItem.image} 
+                            alt={tier.freeItem.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        
+                        {/* Benefits list */}
+                        <ul className="text-sm space-y-2 flex-grow">
+                          {tier.benefits.map((benefit, i) => (
+                            <motion.li
+                              key={i}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.2 + 0.4 + (i * 0.1) }}
+                              className="flex items-start"
+                            >
+                              <span className="mr-2">•</span>
+                              {benefit}
+                            </motion.li>
+                          ))}
+                        </ul>
+                      </div>
                     </Card>
                   </motion.div>
                 </motion.div>
