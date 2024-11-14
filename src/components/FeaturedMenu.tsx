@@ -1,7 +1,54 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 const FeaturedMenu = () => {
+  const seasonalItems = [
+    {
+      title: "Pumpkin Spice Latte",
+      price: "5.99",
+      image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e",
+      category: "Seasonal"
+    },
+    {
+      title: "Maple Pecan Cold Brew",
+      price: "4.99",
+      image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
+      category: "Seasonal"
+    },
+    {
+      title: "Cinnamon Roll",
+      price: "3.99",
+      image: "https://images.unsplash.com/photo-1509365465985-25d11c17e812",
+      category: "Seasonal"
+    }
+  ];
+
+  useEffect(() => {
+    const addSeasonalItems = async () => {
+      for (const item of seasonalItems) {
+        const { data } = await supabase
+          .from('menu_items')
+          .select()
+          .eq('name', item.title)
+          .single();
+
+        if (!data) {
+          await supabase.from('menu_items').insert({
+            name: item.title,
+            price: parseFloat(item.price),
+            image_url: item.image,
+            category: item.category
+          });
+        }
+      }
+    };
+
+    addSeasonalItems();
+  }, []);
+
   return (
     <section className="section-padding bg-background">
       <div className="container">
@@ -20,23 +67,7 @@ const FeaturedMenu = () => {
         </motion.div>
         
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              title: "Pumpkin Spice Latte",
-              price: "$5.99",
-              image: "https://images.unsplash.com/photo-1506619216599-9d16d0903dfd"
-            },
-            {
-              title: "Maple Pecan Cold Brew",
-              price: "$4.99",
-              image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735"
-            },
-            {
-              title: "Cinnamon Roll",
-              price: "$3.99",
-              image: "https://images.unsplash.com/photo-1509365465985-25d11c17e812"
-            }
-          ].map((item, index) => (
+          {seasonalItems.map((item, index) => (
             <motion.div
               key={index}
               className="menu-card"
@@ -50,11 +81,22 @@ const FeaturedMenu = () => {
               </div>
               <div className="mt-4">
                 <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="mt-2 text-primary">{item.price}</p>
+                <p className="mt-2 text-primary">${item.price}</p>
               </div>
             </motion.div>
           ))}
         </div>
+        
+        <motion.div 
+          className="mt-12 text-center"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+        >
+          <Link to="/menu">
+            <Button size="lg">View Full Menu</Button>
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navigation from "./Navigation";
+import { Link } from "react-router-dom";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const Header = () => {
+  const session = useSession();
+
   return (
     <motion.header 
       className="relative flex h-screen items-center justify-center overflow-hidden bg-accent"
@@ -28,13 +32,25 @@ const Header = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.5 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          <Button 
-            size="lg"
-            className="bg-primary text-white hover:bg-primary/90"
-          >
-            Explore Menu
-          </Button>
+          <Link to="/menu">
+            <Button 
+              size="lg"
+              className="bg-primary text-white hover:bg-primary/90"
+            >
+              Explore Menu
+            </Button>
+          </Link>
+          <Link to={session ? "/rewards" : "/auth"}>
+            <Button 
+              size="lg"
+              variant="secondary"
+              className="hover:bg-secondary/90"
+            >
+              {session ? "View Rewards" : "Join Now"}
+            </Button>
+          </Link>
         </motion.div>
       </motion.div>
       <motion.div 

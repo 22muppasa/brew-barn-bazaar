@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useSession } from "@supabase/auth-helpers-react";
+import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import RewardsHeader from "@/components/rewards/RewardsHeader";
 import TierBenefit from "@/components/rewards/TierBenefit";
@@ -16,7 +17,7 @@ const tiers = [
     ],
     freeItem: {
       name: 'Classic Espresso',
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9'
+      image: 'https://images.unsplash.com/photo-1610889556528-9a770e32642f'
     },
     color: 'bg-amber-700'
   },
@@ -29,7 +30,7 @@ const tiers = [
     ],
     freeItem: {
       name: 'Cappuccino',
-      image: 'https://images.unsplash.com/photo-1482938289607-e9573fc25ebb'
+      image: 'https://images.unsplash.com/photo-1534778101976-62847782c00e'
     },
     color: 'bg-gray-400'
   },
@@ -42,7 +43,7 @@ const tiers = [
     ],
     freeItem: {
       name: 'Caramel Latte',
-      image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9'
+      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735'
     },
     color: 'bg-yellow-500'
   },
@@ -55,7 +56,7 @@ const tiers = [
     ],
     freeItem: {
       name: 'Frappuccino',
-      image: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21'
+      image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699'
     },
     color: 'bg-gray-600'
   }
@@ -63,6 +64,8 @@ const tiers = [
 
 const Rewards = () => {
   const session = useSession();
+  const [previousTier, setPreviousTier] = useState<string | null>(null);
+  const [newlyAchievedTier, setNewlyAchievedTier] = useState<string | null>(null);
 
   const { data: rewards, isLoading } = useQuery({
     queryKey: ['rewards'],
@@ -77,6 +80,15 @@ const Rewards = () => {
       return data;
     },
   });
+
+  useEffect(() => {
+    if (rewards?.tier && previousTier && rewards.tier !== previousTier) {
+      setNewlyAchievedTier(rewards.tier);
+      const timer = setTimeout(() => setNewlyAchievedTier(null), 3000);
+      return () => clearTimeout(timer);
+    }
+    setPreviousTier(rewards?.tier || null);
+  }, [rewards?.tier]);
 
   const getTierProgress = () => {
     const points = rewards?.points || 0;
@@ -126,6 +138,7 @@ const Rewards = () => {
                 tier={tier}
                 isActive={index <= currentTierIndex}
                 index={index}
+                isNewlyAchieved={tier.name === newlyAchievedTier}
               />
             ))}
           </div>
