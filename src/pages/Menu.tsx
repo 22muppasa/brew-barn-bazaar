@@ -60,31 +60,31 @@ const Menu = () => {
     ? menuItems 
     : menuItems?.filter((item: any) => item.category === selectedCategory);
 
-  // New images for menu items
+  // Updated menu item images that match their names
   const menuItemImages = {
     // Hot Drinks
-    'Classic Espresso': 'https://images.unsplash.com/photo-1610889556528-9a770e32642f',
-    'Cappuccino': 'https://images.unsplash.com/photo-1534778101976-62847782c00e',
-    'Caramel Latte': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735',
-    'Americano': 'https://images.unsplash.com/photo-1581091226825-c6a89e7e4801',
+    'Classic Espresso': 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04',
+    'Cappuccino': 'https://images.unsplash.com/photo-1572442388796-11668a67e53d',
+    'Caramel Latte': 'https://images.unsplash.com/photo-1586347437004-8f2957d9c09e',
+    'Americano': 'https://images.unsplash.com/photo-1551030173-122aabc4489c',
     'Mocha': 'https://images.unsplash.com/photo-1578314675249-a6910f80239c',
     
     // Cold Drinks
-    'Iced Coffee': 'https://images.unsplash.com/photo-1578314675249-a6910f80239c',
-    'Frappuccino': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699',
-    'Cold Brew': 'https://images.unsplash.com/photo-1517959105821-eaf2591984ca',
+    'Iced Coffee': 'https://images.unsplash.com/photo-1517701604599-bb29b565090c',
+    'Frappuccino': 'https://images.unsplash.com/photo-1586347437004-8f2957d9c09e',
+    'Cold Brew': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735',
     'Iced Latte': 'https://images.unsplash.com/photo-1517701604599-bb29b565090c',
     
     // Seasonal Items
-    'Pumpkin Spice Latte': 'https://images.unsplash.com/photo-1502849394214-c4b6352145ee',
-    'Peppermint Mocha': 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd',
-    'Caramel Brulée Latte': 'https://images.unsplash.com/photo-1585494156145-1c60a4fe952b',
+    'Pumpkin Spice Latte': 'https://images.unsplash.com/photo-1572785031839-8d006462dcd4',
+    'Maple Pecan Cold Brew': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735',
+    'Cinnamon Roll': 'https://images.unsplash.com/photo-1509365465985-25d11c17e812',
     
     // Pastries
     'Croissant': 'https://images.unsplash.com/photo-1555507036-ab1f4038808a',
     'Chocolate Muffin': 'https://images.unsplash.com/photo-1607958996333-41aef7caefaa',
     'Blueberry Scone': 'https://images.unsplash.com/photo-1600180004657-cc8815d4fbd6',
-    'Cinnamon Roll': 'https://images.unsplash.com/photo-1509365465985-25d11c17e812'
+    'Danish Pastry': 'https://images.unsplash.com/photo-1509983165097-0c31a863e3f3'
   };
 
   return (
