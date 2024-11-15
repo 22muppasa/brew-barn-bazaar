@@ -25,12 +25,22 @@ const SYSTEM_PROMPT = `You are a friendly and knowledgeable virtual barista at T
 Always maintain a warm, welcoming tone while being informative and helpful.`;
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key is not configured');
+    }
+
     const { message } = await req.json();
+    if (!message) {
+      throw new Error('No message provided');
+    }
+
+    console.log('Sending request to OpenAI with message:', message);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -49,16 +59,34 @@ serve(async (req) => {
       }),
     });
 
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('OpenAI API error:', error);
+      throw new Error(`OpenAI API error: ${error}`);
+    }
+
     const data = await response.json();
+    console.log('OpenAI API response:', data);
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response format from OpenAI API');
+    }
+
     const reply = data.choices[0].message.content;
 
     return new Response(JSON.stringify({ reply }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Error in virtual-barista function:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'An error occurred while processing your request'
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
