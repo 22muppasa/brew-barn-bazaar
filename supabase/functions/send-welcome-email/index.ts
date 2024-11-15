@@ -40,9 +40,9 @@ const getEmailTemplate = (email: string) => `
     </div>
     
     <div style="text-align: center;">
-      <a href="https://thebrewbarn.netlify.app/menu" 
+      <a href="https://thebrewbarn.netlify.app" 
          style="display: inline-block; background-color: #8B7355; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: 500;">
-        Explore Our Menu
+        Visit Brew Barn
       </a>
     </div>
     
