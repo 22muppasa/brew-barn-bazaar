@@ -40,7 +40,7 @@ const getEmailTemplate = (email: string) => `
     </div>
     
     <div style="text-align: center;">
-      <a href="http://localhost:5173/menu" 
+      <a href="https://thebrewbarn.netlify.app/menu" 
          style="display: inline-block; background-color: #8B7355; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: 500;">
         Explore Our Menu
       </a>
@@ -51,9 +51,9 @@ const getEmailTemplate = (email: string) => `
         Follow us on social media for daily updates and coffee inspiration!
       </p>
       <div style="margin-top: 10px;">
-        <a href="#" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Instagram</a>
-        <a href="#" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Facebook</a>
-        <a href="#" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Twitter</a>
+        <a href="https://thebrewbarn.netlify.app" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Instagram</a>
+        <a href="https://thebrewbarn.netlify.app" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Facebook</a>
+        <a href="https://thebrewbarn.netlify.app" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Twitter</a>
       </div>
     </div>
   </div>
