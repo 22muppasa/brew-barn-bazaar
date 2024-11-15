@@ -37,7 +37,7 @@ const SeasonalDecorations = () => {
             ease: "easeInOut"
           }}
         >
-          ❄️
+          🌸
         </motion.div>
       ))}
       <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent pointer-events-none" />
@@ -52,7 +52,7 @@ const SeasonalDecorations = () => {
       />
       {Array.from({ length: 8 }).map((_, i) => (
         <motion.div
-          key={`summer-${i}`}
+          key={`butterfly-${i}`}
           className="absolute text-white text-2xl"
           style={{ 
             left: `${Math.random() * 100}%`,
@@ -71,7 +71,7 @@ const SeasonalDecorations = () => {
             delay: i * 0.5
           }}
         >
-          ❄️
+          🦋
         </motion.div>
       ))}
     </>
@@ -88,7 +88,7 @@ const SeasonalDecorations = () => {
             animationDelay: `${Math.random() * 5}s`
           }}
         >
-          ❄️
+          {Math.random() > 0.5 ? '🍂' : '🍁'}
         </motion.div>
       ))}
       <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
