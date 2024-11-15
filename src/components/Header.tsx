@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Navigation from "./Navigation";
 import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
+import SeasonalDecorations from "./SeasonalDecorations";
 
 const Header = () => {
   const session = useSession();
@@ -15,6 +16,7 @@ const Header = () => {
       transition={{ duration: 1 }}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-accent to-accent/90" />
+      <SeasonalDecorations />
       <Navigation />
       <motion.div 
         className="relative z-10 text-center"
