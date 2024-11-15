@@ -46,9 +46,9 @@ const Navigation = () => {
         >
           <motion.div animate={{ rotate: isOpen ? 90 : 0 }}>
             {isOpen ? (
-              <X className="h-6 w-6 text-primary" />
+              <X className="h-6 w-6 text-black" />
             ) : (
-              <Menu className="h-6 w-6 text-primary" />
+              <Menu className="h-6 w-6 text-black" />
             )}
           </motion.div>
         </motion.button>
