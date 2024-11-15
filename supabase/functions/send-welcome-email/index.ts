@@ -12,6 +12,53 @@ interface EmailRequest {
   email: string;
 }
 
+const getEmailTemplate = (email: string) => `
+  <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAF7F2; border-radius: 8px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <h1 style="color: #8B7355; margin-bottom: 10px; font-size: 28px;">Welcome to Brew Barn! ☕</h1>
+      <p style="color: #4A3C32; font-size: 16px; line-height: 1.6;">
+        Thank you for joining our newsletter community!
+      </p>
+    </div>
+    
+    <div style="background-color: #FFFFFF; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+      <h2 style="color: #8B7355; font-size: 20px; margin-bottom: 15px;">What to Expect</h2>
+      <ul style="color: #4A3C32; list-style-type: none; padding: 0; margin: 0;">
+        <li style="margin-bottom: 10px; padding-left: 24px; position: relative;">
+          <span style="position: absolute; left: 0;">✨</span> Exclusive promotions and discounts
+        </li>
+        <li style="margin-bottom: 10px; padding-left: 24px; position: relative;">
+          <span style="position: absolute; left: 0;">🆕</span> First access to new menu items
+        </li>
+        <li style="margin-bottom: 10px; padding-left: 24px; position: relative;">
+          <span style="position: absolute; left: 0;">📝</span> Coffee brewing tips and tricks
+        </li>
+        <li style="margin-bottom: 10px; padding-left: 24px; position: relative;">
+          <span style="position: absolute; left: 0;">🎉</span> Seasonal offerings and events
+        </li>
+      </ul>
+    </div>
+    
+    <div style="text-align: center;">
+      <a href="http://localhost:5173/menu" 
+         style="display: inline-block; background-color: #8B7355; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: 500;">
+        Explore Our Menu
+      </a>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #D4C5B9;">
+      <p style="color: #8B7355; font-size: 14px;">
+        Follow us on social media for daily updates and coffee inspiration!
+      </p>
+      <div style="margin-top: 10px;">
+        <a href="#" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Instagram</a>
+        <a href="#" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Facebook</a>
+        <a href="#" style="color: #8B7355; text-decoration: none; margin: 0 10px;">Twitter</a>
+      </div>
+    </div>
+  </div>
+`;
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,10 +66,6 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { email }: EmailRequest = await req.json();
-
-    if (!email) {
-      throw new Error("Email is required");
-    }
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -33,36 +76,13 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Brew Barn <onboarding@resend.dev>",
         to: [email],
-        subject: "Welcome to Brew Barn's Newsletter!",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #8B7355; text-align: center;">Welcome to Brew Barn! ☕</h1>
-            <p style="font-size: 18px; line-height: 1.6;">
-              Thank you for subscribing to our newsletter! We're excited to share our latest updates,
-              exclusive offers, and coffee tips with you.
-            </p>
-            <p style="font-size: 18px; line-height: 1.6;">
-              Stay tuned for:
-              <ul>
-                <li>Special promotions and discounts</li>
-                <li>New menu items</li>
-                <li>Coffee brewing tips and tricks</li>
-                <li>Seasonal offerings</li>
-              </ul>
-            </p>
-            <div style="text-align: center; margin-top: 30px;">
-              <a href="http://localhost:5173/menu" 
-                 style="background-color: #8B7355; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
-                Browse Our Menu
-              </a>
-            </div>
-          </div>
-        `,
+        subject: "Welcome to Brew Barn's Newsletter! ☕",
+        html: getEmailTemplate(email),
       }),
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to send email: ${await res.text()}`);
+      throw new Error(await res.text());
     }
 
     const data = await res.json();

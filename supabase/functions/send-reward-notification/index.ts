@@ -19,19 +19,31 @@ interface EmailData {
 }
 
 const getEmailTemplate = (data: EmailData, userProfile: any) => {
+  const baseStyles = `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAF7F2; border-radius: 8px;">
+  `;
+
   const templates = {
     tier_upgrade: {
-      subject: `🎉 Congratulations! You've reached ${data.newTier} Tier!`,
+      subject: `🎉 Congratulations on Reaching ${data.newTier} Tier!`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #8B7355; text-align: center;">Congratulations ${userProfile.full_name}! 🎉</h1>
-          <p style="font-size: 18px; line-height: 1.6;">
-            You've just reached our ${data.newTier} Tier! This means you'll now enjoy even more amazing benefits:
-          </p>
-          ${getTierBenefits(data.newTier)}
-          <div style="text-align: center; margin-top: 30px;">
+        ${baseStyles}
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #8B7355; margin-bottom: 10px; font-size: 28px;">
+              Congratulations ${userProfile.full_name}! 🎉
+            </h1>
+            <p style="color: #4A3C32; font-size: 16px; line-height: 1.6;">
+              You've reached our ${data.newTier} Tier! Here are your enhanced benefits:
+            </p>
+          </div>
+          
+          <div style="background-color: #FFFFFF; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            ${getTierBenefits(data.newTier)}
+          </div>
+          
+          <div style="text-align: center;">
             <a href="http://localhost:5173/rewards" 
-               style="background-color: #8B7355; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
+               style="display: inline-block; background-color: #8B7355; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: 500;">
               View Your Rewards
             </a>
           </div>
@@ -39,17 +51,24 @@ const getEmailTemplate = (data: EmailData, userProfile: any) => {
       `
     },
     points_reminder: {
-      subject: "Don't forget about your reward points!",
+      subject: "Don't Forget Your Reward Points! ⭐",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #8B7355; text-align: center;">Hello ${userProfile.full_name}! ☕</h1>
-          <p style="font-size: 18px; line-height: 1.6;">
-            You currently have ${data.points} points! 
-            ${getNextTierMessage(data.points)}
-          </p>
-          <div style="text-align: center; margin-top: 30px;">
+        ${baseStyles}
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #8B7355; margin-bottom: 10px; font-size: 28px;">
+              Hello ${userProfile.full_name}! ☕
+            </h1>
+            <p style="color: #4A3C32; font-size: 16px; line-height: 1.6;">
+              You currently have <strong>${data.points} points</strong>!
+            </p>
+            <p style="color: #4A3C32; font-size: 16px; line-height: 1.6;">
+              ${getNextTierMessage(data.points)}
+            </p>
+          </div>
+          
+          <div style="text-align: center;">
             <a href="http://localhost:5173/menu" 
-               style="background-color: #8B7355; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
+               style="display: inline-block; background-color: #8B7355; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: 500;">
               Order Now
             </a>
           </div>
@@ -57,17 +76,22 @@ const getEmailTemplate = (data: EmailData, userProfile: any) => {
       `
     },
     reward_available: {
-      subject: "🎁 You have a reward waiting!",
+      subject: "🎁 Your Free Reward is Waiting!",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #8B7355; text-align: center;">Hello ${userProfile.full_name}! 🎁</h1>
-          <p style="font-size: 18px; line-height: 1.6;">
-            You have a free reward waiting to be claimed! Don't forget to use it on your next visit.
-          </p>
-          <div style="text-align: center; margin-top: 30px;">
+        ${baseStyles}
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #8B7355; margin-bottom: 10px; font-size: 28px;">
+              Hello ${userProfile.full_name}! 🎁
+            </h1>
+            <p style="color: #4A3C32; font-size: 16px; line-height: 1.6;">
+              You have a free reward waiting to be claimed! Don't miss out on your special treat.
+            </p>
+          </div>
+          
+          <div style="text-align: center;">
             <a href="http://localhost:5173/rewards" 
-               style="background-color: #8B7355; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
-              View Your Rewards
+               style="display: inline-block; background-color: #8B7355; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: 500;">
+              Claim Your Reward
             </a>
           </div>
         </div>
@@ -99,9 +123,9 @@ const getTierBenefits = (tier: string) => {
 
   const tierBenefits = benefits[tier as keyof typeof benefits] || [];
   return `
-    <ul style="list-style-type: none; padding: 0;">
+    <ul style="list-style-type: none; padding: 0; margin: 0;">
       ${tierBenefits.map(benefit => `
-        <li style="margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
+        <li style="margin-bottom: 12px; padding: 12px; background-color: #FAF7F2; border-radius: 4px; color: #4A3C32;">
           ✨ ${benefit}
         </li>
       `).join('')}
