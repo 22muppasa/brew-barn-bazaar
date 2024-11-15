@@ -41,7 +41,7 @@ const VirtualBarista = () => {
     <>
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg"
+        className="fixed bottom-24 right-6 h-12 w-12 rounded-full shadow-lg"
         size="icon"
       >
         <Coffee className="h-6 w-6" />
@@ -53,7 +53,7 @@ const VirtualBarista = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 right-6 w-full max-w-sm rounded-lg bg-card shadow-xl"
+            className="fixed bottom-40 right-6 w-full max-w-sm rounded-lg bg-card shadow-xl"
           >
             <div className="flex items-center justify-between border-b p-4">
               <h2 className="text-lg font-semibold">Virtual Barista</h2>
