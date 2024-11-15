@@ -17,7 +17,7 @@ const SeasonalDecorations = () => {
       {Array.from({ length: 15 }).map((_, i) => (
         <motion.div
           key={`blossom-${i}`}
-          className="absolute text-pink-200 text-2xl animate-sway"
+          className="absolute text-white text-2xl animate-sway"
           style={{ 
             left: `${Math.random() * 100}%`,
             top: `-20px`,
@@ -37,23 +37,23 @@ const SeasonalDecorations = () => {
             ease: "easeInOut"
           }}
         >
-          🌸
+          ❄️
         </motion.div>
       ))}
-      <div className="absolute inset-0 bg-gradient-to-t from-pink-100/10 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent pointer-events-none" />
     </>
   );
 
   const renderSummer = () => (
     <>
       <motion.div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-yellow-300/20 rounded-full blur-3xl animate-sun-rays"
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-white/20 rounded-full blur-3xl"
         style={{ transformOrigin: 'center' }}
       />
       {Array.from({ length: 8 }).map((_, i) => (
         <motion.div
-          key={`butterfly-${i}`}
-          className="absolute text-2xl"
+          key={`summer-${i}`}
+          className="absolute text-white text-2xl"
           style={{ 
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`
@@ -71,7 +71,7 @@ const SeasonalDecorations = () => {
             delay: i * 0.5
           }}
         >
-          🦋
+          ❄️
         </motion.div>
       ))}
     </>
@@ -82,16 +82,16 @@ const SeasonalDecorations = () => {
       {Array.from({ length: 20 }).map((_, i) => (
         <motion.div
           key={`leaf-${i}`}
-          className="absolute text-2xl animate-fall-and-spin"
+          className="absolute text-white text-2xl animate-fall-and-spin"
           style={{ 
             left: `${Math.random() * 100}%`,
             animationDelay: `${Math.random() * 5}s`
           }}
         >
-          {Math.random() > 0.5 ? '🍂' : '🍁'}
+          ❄️
         </motion.div>
       ))}
-      <div className="absolute inset-0 bg-gradient-to-b from-orange-100/10 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
     </>
   );
 
@@ -100,7 +100,7 @@ const SeasonalDecorations = () => {
       {Array.from({ length: 30 }).map((_, i) => (
         <motion.div
           key={`snow-${i}`}
-          className="absolute text-white text-opacity-80 text-lg"
+          className="absolute text-white text-lg"
           style={{ 
             left: `${Math.random() * 100}%`,
             top: `-20px`,
@@ -133,7 +133,7 @@ const SeasonalDecorations = () => {
           />
         ))}
       </div>
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-100/10 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
     </>
   );
 
