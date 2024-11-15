@@ -7,10 +7,14 @@ import { Instagram, Facebook, Twitter } from "lucide-react";
 import ScrollToTop from "@/components/ScrollToTop";
 import Header from "@/components/Header";
 import FeaturedMenu from "@/components/FeaturedMenu";
+import { useNavigate } from "react-router-dom";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const Index = () => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const session = useSession();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +23,14 @@ const Index = () => {
       description: "Thank you for joining our newsletter.",
     });
     setEmail("");
+  };
+
+  const handleJoinClick = () => {
+    if (!session) {
+      navigate("/auth");
+    } else {
+      navigate("/rewards");
+    }
   };
 
   const fadeInUp = {
@@ -49,7 +61,12 @@ const Index = () => {
                 Join our rewards program and earn points with every purchase. 
                 Redeem them for free drinks, pastries, and exclusive merchandise.
               </p>
-              <Button variant="secondary">Join Now</Button>
+              <Button 
+                variant="secondary"
+                onClick={handleJoinClick}
+              >
+                {session ? "View Rewards" : "Join Now"}
+              </Button>
             </div>
             <div className="relative">
               <img 
