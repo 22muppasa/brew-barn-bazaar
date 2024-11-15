@@ -9,20 +9,41 @@ import Header from "@/components/Header";
 import FeaturedMenu from "@/components/FeaturedMenu";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const session = useSession();
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Successfully subscribed!",
-      description: "Thank you for joining our newsletter.",
-    });
-    setEmail("");
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-welcome-email', {
+        body: { email }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Successfully subscribed!",
+        description: "Thank you for joining our newsletter. Check your email for a welcome message!",
+      });
+      setEmail("");
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      toast({
+        title: "Subscription failed",
+        description: "There was an error subscribing to the newsletter. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleJoinClick = () => {
@@ -127,9 +148,14 @@ const Index = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-white/10 text-white placeholder:text-white/60"
                 required
+                disabled={isLoading}
               />
-              <Button type="submit" variant="secondary">
-                Subscribe
+              <Button 
+                type="submit" 
+                variant="secondary"
+                disabled={isLoading}
+              >
+                {isLoading ? "Subscribing..." : "Subscribe"}
               </Button>
             </form>
           </motion.div>
