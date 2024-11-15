@@ -12,95 +12,137 @@ const SeasonalDecorations = () => {
     else setSeason('winter');
   }, []);
 
-  const renderDecorations = () => {
-    switch (season) {
-      case 'spring':
-        return Array.from({ length: 10 }).map((_, i) => (
+  const renderSpring = () => (
+    <>
+      {Array.from({ length: 15 }).map((_, i) => (
+        <motion.div
+          key={`blossom-${i}`}
+          className="absolute text-pink-200 text-2xl animate-sway"
+          style={{ 
+            left: `${Math.random() * 100}%`,
+            top: `-20px`,
+            animationDelay: `${Math.random() * 3}s`
+          }}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{
+            opacity: [0, 1, 0],
+            y: ['0vh', '100vh'],
+            x: [0, Math.random() * 100 - 50],
+            rotate: [0, 360]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            delay: i * 0.3,
+            ease: "easeInOut"
+          }}
+        >
+          🌸
+        </motion.div>
+      ))}
+      <div className="absolute inset-0 bg-gradient-to-t from-pink-100/10 to-transparent pointer-events-none" />
+    </>
+  );
+
+  const renderSummer = () => (
+    <>
+      <motion.div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-yellow-300/20 rounded-full blur-3xl animate-sun-rays"
+        style={{ transformOrigin: 'center' }}
+      />
+      {Array.from({ length: 8 }).map((_, i) => (
+        <motion.div
+          key={`butterfly-${i}`}
+          className="absolute text-2xl"
+          style={{ 
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`
+          }}
+          animate={{
+            x: [0, Math.random() * 100 - 50],
+            y: [0, Math.random() * 50 - 25],
+            scale: [1, 1.2, 1],
+            rotate: [0, Math.random() * 30 - 15]
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            repeatType: "reverse",
+            delay: i * 0.5
+          }}
+        >
+          🦋
+        </motion.div>
+      ))}
+    </>
+  );
+
+  const renderAutumn = () => (
+    <>
+      {Array.from({ length: 20 }).map((_, i) => (
+        <motion.div
+          key={`leaf-${i}`}
+          className="absolute text-2xl animate-fall-and-spin"
+          style={{ 
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 5}s`
+          }}
+        >
+          {Math.random() > 0.5 ? '🍂' : '🍁'}
+        </motion.div>
+      ))}
+      <div className="absolute inset-0 bg-gradient-to-b from-orange-100/10 to-transparent pointer-events-none" />
+    </>
+  );
+
+  const renderWinter = () => (
+    <>
+      {Array.from({ length: 30 }).map((_, i) => (
+        <motion.div
+          key={`snow-${i}`}
+          className="absolute text-white text-opacity-80 text-lg"
+          style={{ 
+            left: `${Math.random() * 100}%`,
+            top: `-20px`,
+            animationDelay: `${Math.random() * 5}s`
+          }}
+          animate={{
+            y: ['0vh', '100vh'],
+            x: [0, Math.random() * 50 - 25],
+            opacity: [0, 1, 0]
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            delay: i * 0.2,
+            ease: "linear"
+          }}
+        >
+          ❄️
+        </motion.div>
+      ))}
+      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
+        {Array.from({ length: 5 }).map((_, i) => (
           <motion.div
-            key={i}
-            className="absolute"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-              opacity: [0, 1, 0],
-              scale: [0, 1, 0],
-              x: Math.random() * window.innerWidth,
-              y: [0, window.innerHeight]
-            }}
-            transition={{ 
-              duration: 10,
-              repeat: Infinity,
-              delay: i * 0.5
-            }}
-          >
-            🌸
-          </motion.div>
-        ));
-      case 'summer':
-        return (
-          <motion.div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-yellow-300 rounded-full blur-xl"
-            initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: [0, 0.15, 0],
-              scale: [1, 1.2, 1]
-            }}
-            transition={{ 
-              duration: 4,
-              repeat: Infinity
+            key={`steam-${i}`}
+            className="absolute bottom-0 left-1/2 w-3 h-12 bg-white/20 rounded-full animate-float-up"
+            style={{ 
+              animationDelay: `${i * 0.8}s`,
+              filter: 'blur(4px)'
             }}
           />
-        );
-      case 'autumn':
-        return Array.from({ length: 15 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-2xl animate-fall"
-            style={{ 
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`
-            }}
-          >
-            🍂
-          </motion.div>
-        ));
-      case 'winter':
-        return (
-          <>
-            {Array.from({ length: 20 }).map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute text-white text-opacity-80"
-                style={{ 
-                  left: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 5}s`
-                }}
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ 
-                  y: window.innerHeight,
-                  opacity: [0, 1, 0]
-                }}
-                transition={{ 
-                  duration: 6,
-                  repeat: Infinity,
-                  delay: i * 0.2
-                }}
-              >
-                ❄️
-              </motion.div>
-            ))}
-            <div className="absolute bottom-20 left-1/2 -translate-x-1/2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute bottom-0 left-1/2 w-3 h-8 bg-white/20 rounded-full animate-steam"
-                  style={{ 
-                    animationDelay: `${i * 0.5}s`
-                  }}
-                />
-              ))}
-            </div>
-          </>
-        );
+        ))}
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-100/10 to-transparent pointer-events-none" />
+    </>
+  );
+
+  const renderDecorations = () => {
+    switch (season) {
+      case 'spring': return renderSpring();
+      case 'summer': return renderSummer();
+      case 'autumn': return renderAutumn();
+      case 'winter': return renderWinter();
     }
   };
 

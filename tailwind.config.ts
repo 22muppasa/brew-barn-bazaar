@@ -78,45 +78,54 @@ export default {
           },
         },
         "fade-in": {
-          "0%": {
-            opacity: "0",
-          },
-          "100%": {
-            opacity: "1",
-          },
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
-        "fall": {
+        "fall-and-spin": {
           "0%": {
             transform: "translateY(-10px) rotate(0deg)",
             opacity: "0",
           },
+          "10%": { opacity: "1" },
+          "100%": {
+            transform: "translateY(100vh) rotate(720deg)",
+            opacity: "0",
+          },
+        },
+        "sway": {
+          "0%, 100%": {
+            transform: "translateX(0) rotate(0deg)",
+          },
           "50%": {
-            opacity: "1",
+            transform: "translateX(20px) rotate(15deg)",
+          },
+        },
+        "float-up": {
+          "0%": {
+            transform: "translateY(0) scale(1)",
+            opacity: "0",
+          },
+          "50%": {
+            opacity: "0.8",
+            transform: "translateY(-40px) scale(1.2)",
           },
           "100%": {
-            transform: "translateY(100vh) rotate(360deg)",
+            transform: "translateY(-80px) scale(0.8)",
             opacity: "0",
           },
         },
-        "float": {
-          "0%, 100%": {
-            transform: "translateY(0)",
-          },
-          "50%": {
-            transform: "translateY(-20px)",
-          },
-        },
-        "steam": {
+        "sun-rays": {
           "0%": {
-            transform: "translateY(0) translateX(-50%) scale(1)",
-            opacity: "0",
-          },
-          "50%": {
+            transform: "scale(1) rotate(0deg)",
             opacity: "0.5",
           },
+          "50%": {
+            transform: "scale(1.5) rotate(180deg)",
+            opacity: "0.8",
+          },
           "100%": {
-            transform: "translateY(-50px) translateX(-30px) scale(1.5)",
-            opacity: "0",
+            transform: "scale(1) rotate(360deg)",
+            opacity: "0.5",
           },
         },
       },
@@ -125,9 +134,10 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-up": "fade-up 0.5s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
-        "fall": "fall 10s linear infinite",
-        "float": "float 6s ease-in-out infinite",
-        "steam": "steam 3s ease-out infinite",
+        "fall-and-spin": "fall-and-spin 8s linear infinite",
+        "sway": "sway 3s ease-in-out infinite",
+        "float-up": "float-up 4s ease-out infinite",
+        "sun-rays": "sun-rays 10s linear infinite",
       },
     },
   },
