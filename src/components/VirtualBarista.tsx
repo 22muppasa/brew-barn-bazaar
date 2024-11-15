@@ -53,9 +53,9 @@ const VirtualBarista = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-40 right-6 w-full max-w-sm rounded-lg bg-card shadow-xl"
+            className="fixed bottom-40 right-6 w-80 rounded-lg bg-card shadow-xl"
           >
-            <div className="flex items-center justify-between border-b p-4">
+            <div className="flex items-center justify-between border-b p-3">
               <h2 className="text-lg font-semibold">Virtual Barista</h2>
               <Button
                 variant="ghost"
@@ -66,17 +66,17 @@ const VirtualBarista = () => {
               </Button>
             </div>
 
-            <div className="h-[400px] overflow-y-auto p-4">
+            <div className="h-[300px] overflow-y-auto p-3">
               <AnimatePresence>
                 {messages.map((msg, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`mb-4 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    className={`mb-3 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`rounded-lg px-4 py-2 ${
+                      className={`rounded-lg px-3 py-2 ${
                         msg.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
@@ -92,7 +92,7 @@ const VirtualBarista = () => {
                     animate={{ opacity: 1 }}
                     className="flex justify-start"
                   >
-                    <div className="bg-muted rounded-lg px-4 py-2">
+                    <div className="bg-muted rounded-lg px-3 py-2">
                       Thinking...
                     </div>
                   </motion.div>
@@ -100,12 +100,12 @@ const VirtualBarista = () => {
               </AnimatePresence>
             </div>
 
-            <form onSubmit={handleSubmit} className="border-t p-4">
+            <form onSubmit={handleSubmit} className="border-t p-3">
               <div className="flex gap-2">
                 <Input
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask me anything about our coffee..."
+                  placeholder="Ask me anything..."
                   className="flex-1"
                 />
                 <Button type="submit" size="icon" disabled={isLoading}>
