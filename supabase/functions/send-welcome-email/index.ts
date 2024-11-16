@@ -9,7 +9,6 @@ const corsHeaders = {
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -40,7 +39,7 @@ const handler = async (req: Request): Promise<Response> => {
             to: [{ email }],
           },
         ],
-        from: { email: "no-reply@brewbarn.com", name: "Brew Barn" },
+        from: { email: "onboarding@resend.dev", name: "Brew Barn" }, // Using Resend's verified domain
         subject: "Welcome to Brew Barn! ☕",
         content: [
           {
@@ -81,12 +80,11 @@ const handler = async (req: Request): Promise<Response> => {
       }),
     });
 
-    console.log("SendGrid API response status:", res.status);
-    
+    const responseText = await res.text();
+    console.log("SendGrid API Response Status:", res.status);
+    console.log("SendGrid API Response Body:", responseText);
+
     if (!res.ok) {
-      const error = await res.text();
-      console.error("SendGrid API error:", error);
-      
       // Check if it's a rate limit error
       if (res.status === 429) {
         return new Response(
@@ -98,11 +96,8 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       
-      throw new Error(`Failed to send email: ${error}`);
+      throw new Error(`Failed to send email: ${responseText}`);
     }
-
-    const data = await res.json();
-    console.log("Email sent successfully:", data);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
