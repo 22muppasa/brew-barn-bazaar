@@ -13,29 +13,21 @@ const AuthPage = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         navigate("/");
-      }
-      if (event === "USER_UPDATED") {
         toast.success("Successfully signed in!");
       }
       if (event === "SIGNED_OUT") {
         toast.success("Successfully signed out!");
       }
-    });
-
-    // Handle auth errors
-    const handleAuthError = (error: any) => {
-      if (error?.message?.includes("User already registered")) {
-        toast.error("This email is already registered. Please sign in instead.");
-      } else {
-        toast.error(error?.message || "An error occurred during authentication");
+      if (event === "USER_DELETED") {
+        toast.success("Account successfully deleted");
       }
-    };
-
-    const authListener = supabase.auth.onError(handleAuthError);
+      if (event === "PASSWORD_RECOVERY") {
+        toast.info("Password recovery email sent");
+      }
+    });
 
     return () => {
       subscription.unsubscribe();
-      authListener.data.subscription.unsubscribe();
     };
   }, [navigate]);
 
@@ -63,6 +55,13 @@ const AuthPage = () => {
               },
             }}
             providers={[]}
+            onError={(error) => {
+              if (error.message.includes("User already registered")) {
+                toast.error("This email is already registered. Please sign in instead.");
+              } else {
+                toast.error(error.message || "An error occurred during authentication");
+              }
+            }}
           />
         </div>
       </motion.div>
