@@ -40,19 +40,26 @@ const getEmailContent = (type: "signup" | "reset", actionUrl: string) => {
 };
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log("Function invoked with method:", req.method);
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not set");
       throw new Error("RESEND_API_KEY is not set");
     }
 
-    const { email, type, token } = await req.json() as EmailRequest;
-    console.log("Received request:", { email, type, token });
+    const body = await req.text();
+    console.log("Raw request body:", body);
+    
+    const { email, type, token } = JSON.parse(body) as EmailRequest;
+    console.log("Parsed request:", { email, type, token });
     
     if (!email || !type || !token) {
+      console.error("Missing required fields:", { email, type, token });
       throw new Error("Missing required fields");
     }
 
@@ -61,9 +68,11 @@ const handler = async (req: Request): Promise<Response> => {
       ? `${baseUrl}/auth/confirm?token=${token}`
       : `${baseUrl}/auth/reset?token=${token}`;
 
+    console.log("Action URL generated:", actionUrl);
     const emailContent = getEmailContent(type, actionUrl);
-    console.log("Preparing to send email to:", email);
+    console.log("Email content prepared:", emailContent);
 
+    console.log("Sending request to Resend API...");
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -83,6 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Resend API Response Body:", resBody);
 
     if (!res.ok) {
+      console.error("Resend API error:", resBody);
       throw new Error(`Resend API error: ${resBody}`);
     }
 
@@ -91,7 +101,7 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in handler:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

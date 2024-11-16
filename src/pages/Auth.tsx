@@ -13,6 +13,8 @@ const AuthPage = () => {
   useEffect(() => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email);
+      
       if (event === "SIGNED_IN") {
         // Send welcome email
         try {
@@ -37,19 +39,29 @@ const AuthPage = () => {
     // Set up custom email handler
     const setupEmailHandler = async () => {
       await supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
+        console.log("Email handler triggered:", event);
         if (event === "USER_UPDATED" || event === "SIGNED_IN") {
           const token = new URL(window.location.href).searchParams.get("token");
+          console.log("Token found:", token);
           if (token) {
             try {
-              await supabase.functions.invoke('send-auth-email', {
+              console.log("Invoking send-auth-email function");
+              const { data, error } = await supabase.functions.invoke('send-auth-email', {
                 body: { 
                   email: session?.user?.email,
                   type: event === "USER_UPDATED" ? "signup" : "reset",
                   token
                 },
               });
+              
+              console.log("Send auth email response:", { data, error });
+              
+              if (error) {
+                console.error('Error sending auth email:', error);
+                toast.error('Failed to send authentication email');
+              }
             } catch (error) {
-              console.error('Error sending auth email:', error);
+              console.error('Error invoking auth email function:', error);
               toast.error('Failed to send authentication email');
             }
           }
