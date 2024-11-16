@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const GMAIL_USER = Deno.env.get("GMAIL_USER");
+const GMAIL_PASSWORD = Deno.env.get("GMAIL_PASSWORD");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,8 +23,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not configured");
+    if (!GMAIL_USER || !GMAIL_PASSWORD) {
+      throw new Error("SMTP credentials are not configured");
     }
 
     const { email, type } = await req.json() as EmailRequest;
@@ -65,30 +67,26 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `;
 
-    console.log("Sending email via Resend");
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Brew Barn <onboarding@resend.dev>",
-        to: [email],
-        subject,
-        html,
-      }),
+    const client = new SmtpClient();
+
+    await client.connectTLS({
+      hostname: "smtp.gmail.com",
+      port: 465,
+      username: GMAIL_USER,
+      password: GMAIL_PASSWORD,
     });
 
-    const responseText = await res.text();
-    console.log("Resend API response:", {
-      status: res.status,
-      body: responseText
+    await client.send({
+      from: GMAIL_USER,
+      to: email,
+      subject,
+      content: html,
+      html,
     });
 
-    if (!res.ok) {
-      throw new Error(`Failed to send email: ${responseText}`);
-    }
+    await client.close();
+
+    console.log("Email sent successfully");
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
