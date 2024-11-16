@@ -69,16 +69,19 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Brew Barn <onboarding@resend.dev>",
-        to: ["onboarding@resend.dev"],
+        from: "Brew Barn <brewbarn@resend.dev>",
+        to: [email], // Send to the actual user's email
         subject: emailContent.subject,
         html: emailContent.html,
       }),
     });
 
+    const resBody = await res.text();
+    console.log(`Resend API Response Status: ${res.status}`);
+    console.log(`Resend API Response Body: ${resBody}`);
+
     if (!res.ok) {
-      const error = await res.text();
-      throw new Error(`Resend API error: ${error}`);
+      throw new Error(`Resend API error: ${resBody}`);
     }
 
     return new Response(JSON.stringify({ success: true }), {
