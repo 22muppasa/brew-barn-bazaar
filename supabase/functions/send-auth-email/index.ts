@@ -9,38 +9,41 @@ const corsHeaders = {
 
 interface EmailRequest {
   email: string;
-  type: "signup" | "reset";
-  token: string;
+  type: "signup" | "signin";
 }
 
-const getEmailContent = (type: "signup" | "reset", actionUrl: string) => {
-  return type === "signup" 
+const getEmailContent = (type: "signup" | "signin", email: string) => {
+  return type === "signup"
     ? {
-        subject: "Welcome to Brew Barn - Confirm Your Email",
+        subject: "Welcome to Brew Barn - Thanks for signing up!",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h1 style="color: #8B7355;">Welcome to Brew Barn!</h1>
-            <p>Please confirm your email address by clicking the button below:</p>
-            <a href="${actionUrl}" style="display: inline-block; background-color: #8B7355; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">Confirm Email</a>
-            <p>If you didn't create an account with Brew Barn, you can safely ignore this email.</p>
+            <p>Thank you for signing up! We're excited to have you join our coffee community.</p>
+            <p>You can now enjoy:</p>
+            <ul>
+              <li>Exclusive coffee deals</li>
+              <li>Reward points on every purchase</li>
+              <li>Special member-only events</li>
+            </ul>
+            <p>Start exploring our menu and earn rewards today!</p>
           </div>
         `
       }
     : {
-        subject: "Reset Your Brew Barn Password",
+        subject: "Welcome Back to Brew Barn!",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #8B7355;">Reset Your Password</h1>
-            <p>Click the button below to reset your password:</p>
-            <a href="${actionUrl}" style="display: inline-block; background-color: #8B7355; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">Reset Password</a>
-            <p>If you didn't request a password reset, you can safely ignore this email.</p>
+            <h1 style="color: #8B7355;">Welcome Back!</h1>
+            <p>We're glad to see you again at Brew Barn.</p>
+            <p>Don't forget to check out our latest seasonal offerings!</p>
           </div>
         `
       };
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log("Function invoked with method:", req.method);
+  console.log("Auth email function invoked");
   
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -48,31 +51,19 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     if (!RESEND_API_KEY) {
-      console.error("RESEND_API_KEY is not set");
       throw new Error("RESEND_API_KEY is not set");
     }
 
-    const body = await req.text();
-    console.log("Raw request body:", body);
-    
-    const { email, type, token } = JSON.parse(body) as EmailRequest;
-    console.log("Parsed request:", { email, type, token });
-    
-    if (!email || !type || !token) {
-      console.error("Missing required fields:", { email, type, token });
+    const { email, type } = await req.json() as EmailRequest;
+    console.log("Processing email request:", { email, type });
+
+    if (!email || !type) {
       throw new Error("Missing required fields");
     }
 
-    const baseUrl = "https://thebrewbarn.netlify.app";
-    const actionUrl = type === "signup" 
-      ? `${baseUrl}/auth/confirm?token=${token}`
-      : `${baseUrl}/auth/reset?token=${token}`;
+    const emailContent = getEmailContent(type, email);
+    console.log("Email content prepared");
 
-    console.log("Action URL generated:", actionUrl);
-    const emailContent = getEmailContent(type, actionUrl);
-    console.log("Email content prepared:", emailContent);
-
-    console.log("Sending request to Resend API...");
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -80,20 +71,18 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "onboarding@resend.dev",
-        to: email,
+        from: "Brew Barn <onboarding@resend.dev>",
+        to: [email],
         subject: emailContent.subject,
         html: emailContent.html,
       }),
     });
 
-    const resBody = await res.text();
-    console.log("Resend API Response Status:", res.status);
-    console.log("Resend API Response Body:", resBody);
+    const data = await res.text();
+    console.log("Resend API Response:", { status: res.status, data });
 
     if (!res.ok) {
-      console.error("Resend API error:", resBody);
-      throw new Error(`Resend API error: ${resBody}`);
+      throw new Error(`Resend API error: ${data}`);
     }
 
     return new Response(JSON.stringify({ success: true }), {
@@ -101,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
     });
   } catch (error) {
-    console.error("Error in handler:", error);
+    console.error("Error in send-auth-email function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

@@ -15,61 +15,29 @@ const AuthPage = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.email);
       
-      if (event === "SIGNED_IN") {
-        // Send welcome email
+      if (event === "SIGNED_IN" || event === "SIGNED_UP") {
         try {
-          const { error } = await supabase.functions.invoke('send-welcome-email', {
-            body: { email: session?.user?.email },
+          const { error } = await supabase.functions.invoke('send-auth-email', {
+            body: { 
+              email: session?.user?.email,
+              type: event === "SIGNED_UP" ? "signup" : "signin"
+            },
           });
           
           if (error) {
-            console.error('Error sending welcome email:', error);
-            if (error.status !== 429) {
-              toast.error('Failed to send welcome email');
-            }
+            console.error('Error sending auth email:', error);
+            toast.error('Failed to send welcome email');
+          } else {
+            toast.success('Welcome email sent successfully!');
           }
         } catch (error) {
-          console.error('Error invoking welcome email function:', error);
+          console.error('Error invoking auth email function:', error);
+          toast.error('Failed to send welcome email');
         }
         
         navigate("/");
       }
     });
-
-    // Set up custom email handler
-    const setupEmailHandler = async () => {
-      await supabase.auth.onAuthStateChange(async (event: string, session: Session | null) => {
-        console.log("Email handler triggered:", event);
-        if (event === "SIGNED_UP") {
-          const token = new URL(window.location.href).searchParams.get("token");
-          console.log("Token found:", token);
-          if (token) {
-            try {
-              console.log("Invoking send-auth-email function");
-              const { data, error } = await supabase.functions.invoke('send-auth-email', {
-                body: { 
-                  email: session?.user?.email,
-                  type: "signup",
-                  token
-                },
-              });
-              
-              console.log("Send auth email response:", { data, error });
-              
-              if (error) {
-                console.error('Error sending auth email:', error);
-                toast.error('Failed to send authentication email');
-              }
-            } catch (error) {
-              console.error('Error invoking auth email function:', error);
-              toast.error('Failed to send authentication email');
-            }
-          }
-        }
-      });
-    };
-
-    setupEmailHandler();
 
     return () => {
       subscription.unsubscribe();
