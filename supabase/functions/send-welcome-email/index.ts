@@ -9,13 +9,25 @@ const corsHeaders = {
 };
 
 const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log("Received request to send welcome email");
     const { email } = await req.json();
+    console.log("Email to send to:", email);
     
+    if (!SENDGRID_API_KEY) {
+      throw new Error("SENDGRID_API_KEY is not set");
+    }
+
+    if (!email) {
+      throw new Error("Email is required");
+    }
+    
+    console.log("Sending welcome email via SendGrid API");
     const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
       method: "POST",
       headers: {
@@ -69,24 +81,30 @@ const handler = async (req: Request): Promise<Response> => {
       }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      return new Response(JSON.stringify(data), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    } else {
+    console.log("SendGrid API response status:", res.status);
+    
+    if (!res.ok) {
       const error = await res.text();
-      return new Response(JSON.stringify({ error }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error("SendGrid API error:", error);
+      throw new Error(`Failed to send email: ${error}`);
     }
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+
+    const data = await res.json();
+    console.log("Email sent successfully:", data);
+
+    return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
     });
+  } catch (error) {
+    console.error("Error sending welcome email:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 };
 
