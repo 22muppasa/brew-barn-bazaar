@@ -4,36 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
-import type { AuthChangeEvent } from "@supabase/supabase-js";
 
 const AuthPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
-      console.log("Auth state changed:", event, session?.user?.email);
-      
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
-        try {
-          const { error } = await supabase.functions.invoke('send-auth-email', {
-            body: { 
-              email: session?.user?.email,
-              type: "signin"
-            },
-          });
-          
-          if (error) {
-            console.error('Error sending auth email:', error);
-            toast.error('Failed to send welcome email');
-          } else {
-            toast.success('Welcome email sent!');
-          }
-        } catch (error) {
-          console.error('Error invoking auth email function:', error);
-          toast.error('Failed to send welcome email');
-        }
-        
         navigate("/");
       }
     });
