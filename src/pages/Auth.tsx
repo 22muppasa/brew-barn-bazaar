@@ -38,7 +38,7 @@ const AuthPage = () => {
 
     // Set up custom email handler
     const setupEmailHandler = async () => {
-      await supabase.auth.onAuthStateChange(async (event, session: Session | null) => {
+      await supabase.auth.onAuthStateChange(async (event: string, session: Session | null) => {
         console.log("Email handler triggered:", event);
         if (event === "SIGNED_UP") {
           const token = new URL(window.location.href).searchParams.get("token");
