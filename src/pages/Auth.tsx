@@ -10,17 +10,17 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN") {
         // Send welcome email
         try {
-          const { error, data } = await supabase.functions.invoke('send-welcome-email', {
+          const { error } = await supabase.functions.invoke('send-welcome-email', {
             body: { email: session?.user?.email },
           });
           
           if (error) {
             console.error('Error sending welcome email:', error);
-            // Only show error toast for non-rate-limit errors
             if (error.status !== 429) {
               toast.error('Failed to send welcome email');
             }
@@ -33,7 +33,34 @@ const AuthPage = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Set up custom email handler
+    const setupEmailHandler = async () => {
+      await supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_UP") {
+          const token = new URL(window.location.href).searchParams.get("token");
+          if (token) {
+            try {
+              await supabase.functions.invoke('send-auth-email', {
+                body: { 
+                  email: session?.user?.email,
+                  type: event === "SIGNED_UP" ? "signup" : "reset",
+                  token
+                },
+              });
+            } catch (error) {
+              console.error('Error sending auth email:', error);
+              toast.error('Failed to send authentication email');
+            }
+          }
+        }
+      });
+    };
+
+    setupEmailHandler();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
