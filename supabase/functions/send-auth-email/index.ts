@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
-const GMAIL_USER = Deno.env.get("GMAIL_USER");
-const GMAIL_PASSWORD = Deno.env.get("GMAIL_PASSWORD");
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,8 +21,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    if (!GMAIL_USER || !GMAIL_PASSWORD) {
-      throw new Error("SMTP credentials are not configured");
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not configured");
     }
 
     const { email, type } = await req.json() as EmailRequest;
@@ -67,34 +65,29 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `;
 
-    console.log("Initializing SMTP client");
-    const client = new SmtpClient();
-
-    try {
-      console.log("Connecting to SMTP server");
-      await client.connectTLS({
-        hostname: "smtp.gmail.com",
-        port: 465,
-        username: GMAIL_USER,
-        password: GMAIL_PASSWORD,
-      });
-
-      console.log("Sending email");
-      await client.send({
-        from: GMAIL_USER,
-        to: email,
+    console.log("Sending email via Resend");
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "Brew Barn <onboarding@resend.dev>",
+        to: [email],
         subject,
-        content: html,
         html,
-      });
+      }),
+    });
 
-      console.log("Email sent successfully");
-      await client.close();
-    } catch (smtpError) {
-      console.error("SMTP Error:", smtpError);
-      await client.close().catch(console.error);
-      throw smtpError;
+    if (!res.ok) {
+      const error = await res.text();
+      console.error("Resend API Error:", error);
+      throw new Error(`Failed to send email: ${error}`);
     }
+
+    const data = await res.json();
+    console.log("Email sent successfully:", data);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
