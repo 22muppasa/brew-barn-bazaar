@@ -52,6 +52,13 @@ const AuthPage = () => {
               },
             }}
             providers={[]}
+            onError={(error) => {
+              if (error.message.includes("User already registered")) {
+                toast.error("This email is already registered. Please sign in instead.");
+              } else {
+                toast.error(error.message || "An error occurred during authentication");
+              }
+            }}
           />
         </div>
       </motion.div>
