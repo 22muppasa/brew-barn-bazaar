@@ -4,19 +4,38 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 const AuthPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         navigate("/");
       }
+      if (event === "USER_UPDATED") {
+        toast.success("Successfully signed in!");
+      }
+      if (event === "SIGNED_OUT") {
+        toast.success("Successfully signed out!");
+      }
     });
+
+    // Handle auth errors
+    const handleAuthError = (error: any) => {
+      if (error?.message?.includes("User already registered")) {
+        toast.error("This email is already registered. Please sign in instead.");
+      } else {
+        toast.error(error?.message || "An error occurred during authentication");
+      }
+    };
+
+    const authListener = supabase.auth.onError(handleAuthError);
 
     return () => {
       subscription.unsubscribe();
+      authListener.data.subscription.unsubscribe();
     };
   }, [navigate]);
 
