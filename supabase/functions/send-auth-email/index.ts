@@ -15,17 +15,23 @@ interface EmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     console.log("Received request to send auth email");
-    const { email, type, token } = await req.json() as EmailRequest;
-    console.log("Email details:", { email, type });
     
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY is not set");
+    }
+
+    const { email, type, token } = await req.json() as EmailRequest;
+    console.log("Email details:", { email, type, token });
+
+    if (!email || !type || !token) {
+      throw new Error("Missing required fields");
     }
 
     const baseUrl = "https://thebrewbarn.netlify.app";
@@ -62,7 +68,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
           `
         };
-    
+
     console.log("Sending email via Resend API");
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -72,28 +78,32 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "Brew Barn <onboarding@resend.dev>",
-        to: [email],
+        to: ["onboarding@resend.dev"], // Using Resend's test email
         subject: emailContent.subject,
         html: emailContent.html,
       }),
     });
 
-    const responseText = await res.text();
-    console.log("Resend API Response Status:", res.status);
-    console.log("Resend API Response Body:", responseText);
-
     if (!res.ok) {
-      throw new Error(`Failed to send email: ${responseText}`);
+      const errorText = await res.text();
+      console.error("Resend API error:", errorText);
+      throw new Error(`Resend API error: ${errorText}`);
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    const data = await res.json();
+    console.log("Email sent successfully:", data);
+
+    return new Response(JSON.stringify({ success: true, data }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    console.error("Error sending auth email:", error);
+    console.error("Error in send-auth-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
