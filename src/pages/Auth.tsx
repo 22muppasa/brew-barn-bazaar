@@ -14,13 +14,16 @@ const AuthPage = () => {
       if (event === "SIGNED_IN") {
         // Send welcome email
         try {
-          const { error } = await supabase.functions.invoke('send-welcome-email', {
+          const { error, data } = await supabase.functions.invoke('send-welcome-email', {
             body: { email: session?.user?.email },
           });
           
           if (error) {
             console.error('Error sending welcome email:', error);
-            toast.error('Failed to send welcome email');
+            // Only show error toast for non-rate-limit errors
+            if (error.status !== 429) {
+              toast.error('Failed to send welcome email');
+            }
           }
         } catch (error) {
           console.error('Error invoking welcome email function:', error);

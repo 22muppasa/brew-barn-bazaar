@@ -86,6 +86,18 @@ const handler = async (req: Request): Promise<Response> => {
     if (!res.ok) {
       const error = await res.text();
       console.error("SendGrid API error:", error);
+      
+      // Check if it's a rate limit error
+      if (res.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Too many emails sent. Please try again later." }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
       throw new Error(`Failed to send email: ${error}`);
     }
 
