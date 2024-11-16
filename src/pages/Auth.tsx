@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import type { Session } from "@supabase/supabase-js";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const AuthPage = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.email);
       
-      if (event === AuthChangeEvent.SIGNED_IN) {
+      if (event === "SIGNED_IN") {
         // Send welcome email
         try {
           const { error } = await supabase.functions.invoke('send-welcome-email', {
@@ -38,9 +38,9 @@ const AuthPage = () => {
 
     // Set up custom email handler
     const setupEmailHandler = async () => {
-      await supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+      await supabase.auth.onAuthStateChange(async (event, session: Session | null) => {
         console.log("Email handler triggered:", event);
-        if (event === AuthChangeEvent.SIGNED_UP) {
+        if (event === "SIGNED_UP") {
           const token = new URL(window.location.href).searchParams.get("token");
           console.log("Token found:", token);
           if (token) {
