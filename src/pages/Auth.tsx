@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { AuthChangeEvent } from "@supabase/supabase-js";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -35,15 +36,15 @@ const AuthPage = () => {
 
     // Set up custom email handler
     const setupEmailHandler = async () => {
-      await supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_UP") {
+      await supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
+        if (event === "USER_UPDATED" || event === "SIGNED_IN") {
           const token = new URL(window.location.href).searchParams.get("token");
           if (token) {
             try {
               await supabase.functions.invoke('send-auth-email', {
                 body: { 
                   email: session?.user?.email,
-                  type: event === "SIGNED_UP" ? "signup" : "reset",
+                  type: event === "USER_UPDATED" ? "signup" : "reset",
                   token
                 },
               });
