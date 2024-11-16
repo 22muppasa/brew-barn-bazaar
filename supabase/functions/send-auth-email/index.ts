@@ -4,43 +4,14 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface EmailRequest {
   email: string;
-  type: "signup" | "signin";
+  type: "signin" | "signup";
 }
-
-const getEmailContent = (type: "signup" | "signin", email: string) => {
-  return type === "signup"
-    ? {
-        subject: "Welcome to Brew Barn - Thanks for signing up!",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #8B7355;">Welcome to Brew Barn!</h1>
-            <p>Thank you for signing up! We're excited to have you join our coffee community.</p>
-            <p>You can now enjoy:</p>
-            <ul>
-              <li>Exclusive coffee deals</li>
-              <li>Reward points on every purchase</li>
-              <li>Special member-only events</li>
-            </ul>
-            <p>Start exploring our menu and earn rewards today!</p>
-          </div>
-        `
-      }
-    : {
-        subject: "Welcome Back to Brew Barn!",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #8B7355;">Welcome Back!</h1>
-            <p>We're glad to see you again at Brew Barn.</p>
-            <p>Don't forget to check out our latest seasonal offerings!</p>
-          </div>
-        `
-      };
-};
 
 const handler = async (req: Request): Promise<Response> => {
   console.log("Auth email function invoked");
@@ -51,19 +22,50 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not set");
+      throw new Error("RESEND_API_KEY is not configured");
     }
 
     const { email, type } = await req.json() as EmailRequest;
     console.log("Processing email request:", { email, type });
 
-    if (!email || !type) {
-      throw new Error("Missing required fields");
+    if (!email) {
+      throw new Error("Email is required");
     }
 
-    const emailContent = getEmailContent(type, email);
-    console.log("Email content prepared");
+    const subject = type === "signup" 
+      ? "Welcome to Brew Barn! ☕" 
+      : "Welcome Back to Brew Barn! ☕";
 
+    const html = type === "signup"
+      ? `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #8B7355;">Welcome to Brew Barn! ☕</h1>
+          <p>Thank you for signing up! We're excited to have you join our coffee community.</p>
+          <p>You can now:</p>
+          <ul>
+            <li>Browse our delicious menu</li>
+            <li>Earn rewards on every purchase</li>
+            <li>Access exclusive member benefits</li>
+          </ul>
+          <a href="https://thebrewbarn.netlify.app/menu" 
+             style="display: inline-block; background-color: #8B7355; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            Explore Our Menu
+          </a>
+        </div>
+      `
+      : `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #8B7355;">Welcome Back! ☕</h1>
+          <p>We're glad to see you again at Brew Barn.</p>
+          <p>Don't forget to check out our latest seasonal offerings!</p>
+          <a href="https://thebrewbarn.netlify.app/menu" 
+             style="display: inline-block; background-color: #8B7355; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            View Menu
+          </a>
+        </div>
+      `;
+
+    console.log("Sending email via Resend");
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -73,16 +75,19 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Brew Barn <onboarding@resend.dev>",
         to: [email],
-        subject: emailContent.subject,
-        html: emailContent.html,
+        subject,
+        html,
       }),
     });
 
-    const data = await res.text();
-    console.log("Resend API Response:", { status: res.status, data });
+    const responseText = await res.text();
+    console.log("Resend API response:", {
+      status: res.status,
+      body: responseText
+    });
 
     if (!res.ok) {
-      throw new Error(`Resend API error: ${data}`);
+      throw new Error(`Failed to send email: ${responseText}`);
     }
 
     return new Response(JSON.stringify({ success: true }), {

@@ -11,16 +11,15 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
       console.log("Auth state changed:", event, session?.user?.email);
       
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+      if (event === "SIGNED_IN") {
         try {
           const { error } = await supabase.functions.invoke('send-auth-email', {
             body: { 
               email: session?.user?.email,
-              type: event === "SIGNED_IN" ? "signin" : "signup"
+              type: "signin"
             },
           });
           
@@ -28,7 +27,7 @@ const AuthPage = () => {
             console.error('Error sending auth email:', error);
             toast.error('Failed to send welcome email');
           } else {
-            toast.success('Welcome email sent successfully!');
+            toast.success('Welcome email sent!');
           }
         } catch (error) {
           console.error('Error invoking auth email function:', error);
