@@ -10,7 +10,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         navigate("/");
         toast.success("Successfully signed in!");
@@ -20,6 +20,9 @@ const AuthPage = () => {
       }
       if (event === "PASSWORD_RECOVERY") {
         toast.info("Password recovery email sent");
+      }
+      if (event === "USER_UPDATED" && !session?.user.email_confirmed_at) {
+        toast.error("This email is already registered. Please sign in instead.");
       }
     });
 
@@ -52,13 +55,6 @@ const AuthPage = () => {
               },
             }}
             providers={[]}
-            onError={(error) => {
-              if (error.message.includes("User already registered")) {
-                toast.error("This email is already registered. Please sign in instead.");
-              } else {
-                toast.error(error.message || "An error occurred during authentication");
-              }
-            }}
           />
         </div>
       </motion.div>
