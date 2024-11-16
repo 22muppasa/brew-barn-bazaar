@@ -40,7 +40,7 @@ const AuthPage = () => {
     const setupEmailHandler = async () => {
       await supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
         console.log("Email handler triggered:", event);
-        if (event === "USER_UPDATED" || event === "SIGNED_IN") {
+        if (event === "SIGNED_UP") {  // Changed from USER_UPDATED to SIGNED_UP
           const token = new URL(window.location.href).searchParams.get("token");
           console.log("Token found:", token);
           if (token) {
@@ -49,7 +49,7 @@ const AuthPage = () => {
               const { data, error } = await supabase.functions.invoke('send-auth-email', {
                 body: { 
                   email: session?.user?.email,
-                  type: event === "USER_UPDATED" ? "signup" : "reset",
+                  type: "signup",
                   token
                 },
               });
