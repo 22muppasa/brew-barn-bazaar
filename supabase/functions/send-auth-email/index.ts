@@ -67,26 +67,34 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `;
 
+    console.log("Initializing SMTP client");
     const client = new SmtpClient();
 
-    await client.connectTLS({
-      hostname: "smtp.gmail.com",
-      port: 465,
-      username: GMAIL_USER,
-      password: GMAIL_PASSWORD,
-    });
+    try {
+      console.log("Connecting to SMTP server");
+      await client.connectTLS({
+        hostname: "smtp.gmail.com",
+        port: 465,
+        username: GMAIL_USER,
+        password: GMAIL_PASSWORD,
+      });
 
-    await client.send({
-      from: GMAIL_USER,
-      to: email,
-      subject,
-      content: html,
-      html,
-    });
+      console.log("Sending email");
+      await client.send({
+        from: GMAIL_USER,
+        to: email,
+        subject,
+        content: html,
+        html,
+      });
 
-    await client.close();
-
-    console.log("Email sent successfully");
+      console.log("Email sent successfully");
+      await client.close();
+    } catch (smtpError) {
+      console.error("SMTP Error:", smtpError);
+      await client.close().catch(console.error);
+      throw smtpError;
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
