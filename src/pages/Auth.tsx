@@ -5,22 +5,22 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import type { Session } from "@supabase/supabase-js";
+import type { AuthChangeEvent } from "@supabase/supabase-js";
 
 const AuthPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
       console.log("Auth state changed:", event, session?.user?.email);
       
-      if (event === "SIGNED_IN" || event === "SIGNED_UP") {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
         try {
           const { error } = await supabase.functions.invoke('send-auth-email', {
             body: { 
               email: session?.user?.email,
-              type: event === "SIGNED_UP" ? "signup" : "signin"
+              type: event === "SIGNED_IN" ? "signin" : "signup"
             },
           });
           
