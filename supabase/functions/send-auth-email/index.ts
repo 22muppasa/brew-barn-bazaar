@@ -50,6 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { email, type, token } = await req.json() as EmailRequest;
+    console.log("Received request:", { email, type, token });
     
     if (!email || !type || !token) {
       throw new Error("Missing required fields");
@@ -61,6 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
       : `${baseUrl}/auth/reset?token=${token}`;
 
     const emailContent = getEmailContent(type, actionUrl);
+    console.log("Preparing to send email to:", email);
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -70,15 +72,15 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "onboarding@resend.dev",
-        to: [email],
+        to: email,
         subject: emailContent.subject,
         html: emailContent.html,
       }),
     });
 
     const resBody = await res.text();
-    console.log(`Resend API Response Status: ${res.status}`);
-    console.log(`Resend API Response Body: ${resBody}`);
+    console.log("Resend API Response Status:", res.status);
+    console.log("Resend API Response Body:", resBody);
 
     if (!res.ok) {
       throw new Error(`Resend API error: ${resBody}`);
