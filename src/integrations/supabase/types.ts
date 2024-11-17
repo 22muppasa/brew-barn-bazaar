@@ -41,36 +41,36 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       custom_drinks: {
         Row: {
-          id: string
-          user_id: string | null
-          name: string
           base_drink: string
-          milk_type: string
-          sweetness_level: number
           created_at: string
+          id: string
+          milk_type: string
+          name: string
+          sweetness_level: number
+          user_id: string | null
         }
         Insert: {
-          id?: string
-          user_id?: string | null
-          name: string
           base_drink: string
-          milk_type: string
-          sweetness_level: number
           created_at?: string
+          id?: string
+          milk_type: string
+          name: string
+          sweetness_level: number
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          user_id?: string | null
-          name?: string
           base_drink?: string
-          milk_type?: string
-          sweetness_level?: number
           created_at?: string
+          id?: string
+          milk_type?: string
+          name?: string
+          sweetness_level?: number
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -79,30 +79,30 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       drink_addons: {
         Row: {
-          id: string
-          custom_drink_id: string
-          addon_type: string
           addon_name: string
+          addon_type: string
           created_at: string
+          custom_drink_id: string | null
+          id: string
         }
         Insert: {
-          id?: string
-          custom_drink_id: string
-          addon_type: string
           addon_name: string
+          addon_type: string
           created_at?: string
+          custom_drink_id?: string | null
+          id?: string
         }
         Update: {
-          id?: string
-          custom_drink_id?: string
-          addon_type?: string
           addon_name?: string
+          addon_type?: string
           created_at?: string
+          custom_drink_id?: string | null
+          id?: string
         }
         Relationships: [
           {
@@ -111,7 +111,104 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "custom_drinks"
             referencedColumns: ["id"]
-          }
+          },
+        ]
+      }
+      menu_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          price: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          price: number
+          product_name: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          price: number
+          product_name: string
+          quantity: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          price?: number
+          product_name?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          total_amount: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          total_amount: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          total_amount?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
