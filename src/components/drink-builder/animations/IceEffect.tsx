@@ -8,23 +8,45 @@ const IceEffect = () => {
           key={`ice-${i}`}
           className="absolute w-8 h-8"
           style={{
-            left: `${20 + (i * 20)}%`,
-            top: `${20 + (i * 15)}%`,
+            left: `${15 + (i * 22)}%`,
+            top: `${25 + (i * 12)}%`,
             background: "linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.2) 100%)",
             borderRadius: "20%",
-            boxShadow: "inset 0 0 10px rgba(255,255,255,0.5)",
+            boxShadow: "inset 0 0 10px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.1)",
             backdropFilter: "blur(2px)",
+            transform: `rotate(${i * 45}deg)`,
           }}
-          initial={{ rotate: 0, y: -20 }}
           animate={{
-            rotate: [0, 10, -10, 0],
-            y: [-20, 0, -10, -20],
+            y: [
+              -(5 + i * 2), // Start position
+              0, // Middle position
+              -(3 + i * 2), // Slight bounce
+              -(5 + i * 2), // Back to start
+            ],
+            x: [
+              0,
+              3 + i, 
+              -2,
+              0,
+            ],
+            rotate: [
+              i * 45,
+              i * 45 + 15,
+              i * 45 - 10,
+              i * 45,
+            ],
+            scale: [
+              1,
+              1.02,
+              0.98,
+              1,
+            ],
           }}
           transition={{
-            duration: 3,
-            delay: i * 0.5,
+            duration: 4 + i * 0.5,
             repeat: Infinity,
             ease: "easeInOut",
+            times: [0, 0.4, 0.7, 1],
           }}
         />
       ))}
