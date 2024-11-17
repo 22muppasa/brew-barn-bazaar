@@ -1,12 +1,13 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DrinkPreviewProps {
   baseColor: string;
   toppings: string[];
   milkType: string;
+  sweetness: number;
 }
 
-const DrinkPreview = ({ baseColor, toppings, milkType }: DrinkPreviewProps) => {
+const DrinkPreview = ({ baseColor, toppings, milkType, sweetness }: DrinkPreviewProps) => {
   return (
     <div className="relative w-48 h-64 mx-auto">
       {/* Steam effect */}
@@ -41,7 +42,7 @@ const DrinkPreview = ({ baseColor, toppings, milkType }: DrinkPreviewProps) => {
       >
         <div className="absolute bottom-0 w-full h-[90%] bg-white/10 backdrop-blur-sm rounded-b-3xl border-2 border-white/20 shadow-lg" />
         
-        {/* Liquid */}
+        {/* Base Liquid */}
         <motion.div
           className="absolute bottom-0 w-full h-[85%] rounded-b-3xl overflow-hidden"
           initial={{ height: "0%" }}
@@ -62,6 +63,40 @@ const DrinkPreview = ({ baseColor, toppings, milkType }: DrinkPreviewProps) => {
           />
         </motion.div>
 
+        {/* Milk Pour Animation */}
+        <AnimatePresence>
+          {milkType && (
+            <motion.div
+              className="absolute w-8 bg-white/80"
+              initial={{ height: 0, top: 0 }}
+              animate={{ 
+                height: ["0%", "100%", "0%"],
+                top: ["0%", "85%", "85%"],
+                opacity: [0, 1, 0]
+              }}
+              transition={{ duration: 2 }}
+              style={{ left: "calc(50% - 1rem)" }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Sweetness Swirl */}
+        {sweetness > 0 && (
+          <motion.div
+            className="absolute bottom-[15%] w-full h-[70%]"
+            initial={{ opacity: 0, rotate: 0 }}
+            animate={{ 
+              opacity: sweetness / 100,
+              rotate: 360,
+              background: `conic-gradient(from 0deg at 50% 50%, 
+                transparent 0%, 
+                rgba(255,255,255,0.2) ${sweetness}%, 
+                transparent ${sweetness}%)`
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          />
+        )}
+
         {/* Toppings */}
         <motion.div
           className="absolute top-[15%] w-full"
@@ -72,15 +107,19 @@ const DrinkPreview = ({ baseColor, toppings, milkType }: DrinkPreviewProps) => {
           {toppings.map((topping, index) => (
             <motion.div
               key={topping}
-              className="absolute w-full h-4 bg-opacity-80"
+              className="absolute w-full h-4"
               style={{
-                backgroundImage: `url(${topping})`,
-                backgroundSize: "cover",
+                background: `rgba(255,255,255,${0.3 + index * 0.1})`,
                 top: `${index * 8}px`,
               }}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 1.5 + index * 0.2 }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ 
+                delay: 1.5 + index * 0.2,
+                type: "spring",
+                stiffness: 200,
+                damping: 10
+              }}
             />
           ))}
         </motion.div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import DrinkPreview from "./DrinkPreview";
 import DrinkOptions from "./DrinkOptions";
 import SavedDrinks from "./SavedDrinks";
+import { useAddToCart } from "@/hooks/useAddToCart";
 
 const DrinkBuilder = () => {
   const session = useSession();
@@ -18,6 +19,7 @@ const DrinkBuilder = () => {
   const [sweetness, setSweetness] = useState(50);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [drinkName, setDrinkName] = useState("");
+  const addToCart = useAddToCart();
 
   const { data: savedDrinks } = useQuery({
     queryKey: ["custom-drinks"],
@@ -76,59 +78,16 @@ const DrinkBuilder = () => {
     },
   });
 
-  const orderDrinkMutation = useMutation({
-    mutationFn: async () => {
-      if (!session?.user?.id) throw new Error("Must be logged in");
-
-      // Calculate price based on components
-      const basePrice = 4.99;
-      const addonPrice = selectedAddons.length * 0.75;
-      const totalPrice = basePrice + addonPrice;
-
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          user_id: session.user.id,
-          total_amount: totalPrice,
-          status: "pending",
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      const { error: orderItemError } = await supabase
-        .from("order_items")
-        .insert({
-          order_id: order.id,
-          product_name: drinkName || "Custom Drink",
-          quantity: 1,
-          price: totalPrice,
-        });
-
-      if (orderItemError) throw orderItemError;
-
-      return order;
-    },
-    onSuccess: () => {
-      toast.success("Order placed successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to place order");
-    },
-  });
-
-  const getPreviewColor = () => {
-    switch (baseDrink) {
-      case "espresso":
-        return "rgb(86, 45, 29)";
-      case "tea":
-        return "rgb(173, 114, 87)";
-      case "matcha":
-        return "rgb(134, 187, 106)";
-      default:
-        return "rgb(121, 85, 61)";
-    }
+  const handleAddToCart = async () => {
+    const basePrice = 4.99;
+    const addonPrice = selectedAddons.length * 0.75;
+    const totalPrice = basePrice + addonPrice;
+    
+    await addToCart({
+      productName: drinkName || "Custom Drink",
+      price: totalPrice,
+      quantity: 1
+    });
   };
 
   return (
@@ -163,9 +122,10 @@ const DrinkBuilder = () => {
           transition={{ delay: 0.4 }}
         >
           <DrinkPreview
-            baseColor={getPreviewColor()}
+            baseColor={getPreviewColor(baseDrink)}
             toppings={selectedAddons.filter(a => a.includes("_cream"))}
             milkType={milkType}
+            sweetness={sweetness}
           />
           
           <motion.div
@@ -193,23 +153,34 @@ const DrinkBuilder = () => {
               <Button
                 className="w-full"
                 variant="secondary"
-                onClick={() => orderDrinkMutation.mutate()}
+                onClick={handleAddToCart}
                 disabled={!session}
               >
-                Order Now
+                Add to Cart
               </Button>
             </div>
           </motion.div>
         </motion.div>
       </motion.div>
 
-      <AnimatePresence>
-        {savedDrinks && savedDrinks.length > 0 && (
-          <SavedDrinks savedDrinks={savedDrinks} />
-        )}
-      </AnimatePresence>
+      {savedDrinks && savedDrinks.length > 0 && (
+        <SavedDrinks savedDrinks={savedDrinks} />
+      )}
     </div>
   );
+};
+
+const getPreviewColor = (baseDrink: string) => {
+  switch (baseDrink) {
+    case "espresso":
+      return "rgb(86, 45, 29)";
+    case "tea":
+      return "rgb(173, 114, 87)";
+    case "matcha":
+      return "rgb(134, 187, 106)";
+    default:
+      return "rgb(121, 85, 61)";
+  }
 };
 
 export default DrinkBuilder;
