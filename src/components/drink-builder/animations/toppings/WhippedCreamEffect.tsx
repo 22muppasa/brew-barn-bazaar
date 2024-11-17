@@ -14,13 +14,12 @@ export const WhippedCreamEffect = ({ index }: { index: number }) => (
       }}
       initial={{ scale: 0, opacity: 0 }}
       animate={{
-        scale: [1, 1.05, 1],
+        scale: 1,
         opacity: 1,
       }}
       transition={{
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
+        duration: 0.5,
+        ease: "easeOut",
       }}
     />
   </motion.div>
