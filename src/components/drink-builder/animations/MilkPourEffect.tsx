@@ -28,8 +28,29 @@ const MilkPourEffect = ({ isPouring }: MilkPourEffectProps) => {
             }}
           />
           
-          {/* Splash particles */}
-          {[...Array(12)].map((_, i) => (
+          {/* Dispersion effect at bottom */}
+          <motion.div
+            className="absolute bottom-[15%] left-1/2 -translate-x-1/2"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{
+              scale: [0, 2.5],
+              opacity: [0, 0.6, 0],
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              repeatDelay: 0.1,
+            }}
+            style={{
+              width: "20px",
+              height: "20px",
+              background: "radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)",
+              filter: "blur(2px)",
+            }}
+          />
+          
+          {/* Splash particles with improved animation */}
+          {[...Array(16)].map((_, i) => (
             <motion.div
               key={`splash-${i}`}
               className="absolute w-1 h-1"
@@ -39,20 +60,24 @@ const MilkPourEffect = ({ isPouring }: MilkPourEffectProps) => {
                 filter: "blur(1px)",
               }}
               initial={{ 
-                top: "85%",
+                bottom: "15%",
                 scale: 0,
                 x: 0,
                 opacity: 0,
               }}
               animate={{
-                top: ["85%", `${75 + Math.random() * 15}%`],
-                x: [(i % 2 === 0 ? 10 : -10) * Math.random() * 4, 0],
+                bottom: ["15%", `${25 + Math.random() * 15}%`],
+                x: [
+                  0,
+                  (i % 2 === 0 ? 1 : -1) * (10 + Math.random() * 15),
+                  (i % 2 === 0 ? 0.5 : -0.5) * (5 + Math.random() * 10)
+                ],
                 scale: [0, 1.5, 0],
-                opacity: [0, 1, 0],
+                opacity: [0, 0.8, 0],
               }}
               transition={{
-                duration: 0.8,
-                delay: 0.8 + (i * 0.06),
+                duration: 1 + Math.random() * 0.5,
+                delay: 0.8 + (i * 0.04),
                 ease: "easeOut",
               }}
             />
