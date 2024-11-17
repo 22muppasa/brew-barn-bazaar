@@ -19,6 +19,7 @@ const DrinkBuilder = () => {
   const [sweetness, setSweetness] = useState(50);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [drinkName, setDrinkName] = useState("");
+  const [isIced, setIsIced] = useState(false);
   const addToCart = useAddToCart();
 
   const { data: savedDrinks } = useQuery({
@@ -112,6 +113,8 @@ const DrinkBuilder = () => {
             setSweetness={setSweetness}
             selectedAddons={selectedAddons}
             setSelectedAddons={setSelectedAddons}
+            isIced={isIced}
+            setIsIced={setIsIced}
           />
         </motion.div>
 
@@ -126,6 +129,7 @@ const DrinkBuilder = () => {
             toppings={selectedAddons.filter(a => a.includes("_cream"))}
             milkType={milkType}
             sweetness={sweetness}
+            isIced={isIced}
           />
           
           <motion.div

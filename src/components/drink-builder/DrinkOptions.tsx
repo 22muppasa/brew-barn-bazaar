@@ -32,6 +32,8 @@ interface DrinkOptionsProps {
   setSweetness: (value: number) => void;
   selectedAddons: string[];
   setSelectedAddons: (value: string[]) => void;
+  isIced: boolean;
+  setIsIced: (value: boolean) => void;
 }
 
 const DrinkOptions = ({
@@ -43,6 +45,8 @@ const DrinkOptions = ({
   setSweetness,
   selectedAddons,
   setSelectedAddons,
+  isIced,
+  setIsIced,
 }: DrinkOptionsProps) => {
   return (
     <div className="space-y-6">
@@ -58,6 +62,26 @@ const DrinkOptions = ({
             <SelectItem value="matcha">Matcha</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-medium mb-2">Temperature</h3>
+        <div className="flex gap-2">
+          <Button
+            variant={!isIced ? "default" : "outline"}
+            onClick={() => setIsIced(false)}
+            className="w-full"
+          >
+            Hot
+          </Button>
+          <Button
+            variant={isIced ? "default" : "outline"}
+            onClick={() => setIsIced(true)}
+            className="w-full"
+          >
+            Iced
+          </Button>
+        </div>
       </div>
 
       <div>

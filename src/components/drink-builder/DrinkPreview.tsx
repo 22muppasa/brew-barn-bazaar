@@ -4,15 +4,17 @@ import SteamEffect from "./animations/SteamEffect";
 import LiquidEffect from "./animations/LiquidEffect";
 import MilkPourEffect from "./animations/MilkPourEffect";
 import ToppingsEffect from "./animations/ToppingsEffect";
+import IceEffect from "./animations/IceEffect";
 
 interface DrinkPreviewProps {
   baseColor: string;
   toppings: string[];
   milkType: string;
   sweetness: number;
+  isIced: boolean;
 }
 
-const DrinkPreview = ({ baseColor, toppings, milkType, sweetness }: DrinkPreviewProps) => {
+const DrinkPreview = ({ baseColor, toppings, milkType, sweetness, isIced }: DrinkPreviewProps) => {
   const [isPouring, setIsPouring] = useState(false);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ const DrinkPreview = ({ baseColor, toppings, milkType, sweetness }: DrinkPreview
 
   return (
     <div className="relative w-48 h-64 mx-auto">
-      <SteamEffect />
+      {!isIced && <SteamEffect />}
 
       {/* Cup */}
       <motion.div
@@ -56,6 +58,9 @@ const DrinkPreview = ({ baseColor, toppings, milkType, sweetness }: DrinkPreview
           
           <LiquidEffect baseColor={baseColor} milkType={milkType} />
           <MilkPourEffect isPouring={isPouring} />
+          
+          {/* Ice cubes effect */}
+          {isIced && <IceEffect />}
           
           {/* Sweetness sparkles */}
           {sweetness > 0 && (
