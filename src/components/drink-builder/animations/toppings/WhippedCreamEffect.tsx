@@ -8,15 +8,14 @@ export const WhippedCreamEffect = ({ index }: { index: number }) => (
     <motion.div
       className="w-full h-12"
       style={{
-        background: "rgba(255, 255, 255, 0.9)",
+        background: "rgba(255, 255, 255, 0.7)",
         borderRadius: "8px",
-        boxShadow: "0 2px 10px rgba(255, 255, 255, 0.3)",
+        boxShadow: "0 2px 10px rgba(255, 255, 255, 0.2)",
       }}
       initial={{ scale: 0, opacity: 0 }}
       animate={{
         scale: [1, 1.05, 1],
         opacity: 1,
-        rotateZ: [0, 2, -2, 0],
       }}
       transition={{
         duration: 2,
