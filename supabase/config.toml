@@ -1,4 +1,11 @@
 project_id = "tuhiarimuvrqczjjuwfo"
 
+[functions]
 [functions.send-auth-email]
+verify_jwt = false
+[functions.send-reward-notification]
+verify_jwt = false
+[functions.send-welcome-email]
+verify_jwt = false
+[functions.virtual-barista]
 verify_jwt = false
