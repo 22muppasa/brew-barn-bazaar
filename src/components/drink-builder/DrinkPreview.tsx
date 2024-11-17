@@ -35,13 +35,16 @@ const DrinkPreview = ({ baseColor, toppings, milkType, sweetness }: DrinkPreview
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
         {/* Cup outline and shadow */}
-        <div className="absolute bottom-0 w-full h-[90%] rounded-b-3xl border-2 border-black/50 shadow-[0_0_15px_rgba(0,0,0,0.2),inset_0_0_10px_rgba(0,0,0,0.1)] overflow-hidden bg-white/5 backdrop-blur-sm">
+        <div className="absolute bottom-0 w-full h-[90%] rounded-b-3xl border-[3px] border-black shadow-[0_0_20px_rgba(0,0,0,0.3),inset_0_0_15px_rgba(0,0,0,0.2)] overflow-hidden bg-white/10 backdrop-blur-sm">
+          {/* Glass reflection effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
+          
           {/* Cup shine effect */}
           <motion.div 
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
             animate={{
               x: [-200, 200],
-              opacity: [0, 0.4, 0]
+              opacity: [0, 0.5, 0]
             }}
             transition={{
               duration: 3,
@@ -89,10 +92,13 @@ const DrinkPreview = ({ baseColor, toppings, milkType, sweetness }: DrinkPreview
           <ToppingsEffect toppings={toppings} />
         </div>
 
-        {/* Cup handle */}
-        <div className="absolute right-[-20px] top-1/2 transform -translate-y-1/2 w-8 h-16">
-          <div className="w-full h-full border-2 border-black/50 rounded-r-full" />
+        {/* Enhanced Cup handle */}
+        <div className="absolute right-[-24px] top-1/2 transform -translate-y-1/2 w-10 h-20">
+          <div className="w-full h-full border-[3px] border-black rounded-r-full shadow-lg bg-white/10 backdrop-blur-sm" />
         </div>
+
+        {/* Cup rim highlight */}
+        <div className="absolute top-[10%] w-full h-[2px] bg-white/40" />
       </motion.div>
     </div>
   );
