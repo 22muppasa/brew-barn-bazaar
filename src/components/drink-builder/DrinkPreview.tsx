@@ -97,11 +97,6 @@ const DrinkPreview = ({ baseColor, toppings, milkType, sweetness, isIced }: Drin
           <ToppingsEffect toppings={toppings} />
         </div>
 
-        {/* Cup handle */}
-        <div className="absolute right-[-20px] top-1/2 transform -translate-y-1/2 w-8 h-20">
-          <div className="w-full h-full border-[3px] border-black rounded-r-full shadow-lg bg-white/10 backdrop-blur-sm" />
-        </div>
-
         {/* Cup rim highlight */}
         <div className="absolute top-[10%] w-full h-[2px] bg-white/40" />
       </motion.div>

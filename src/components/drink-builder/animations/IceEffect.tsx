@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 
 const IceEffect = () => {
   // Generate random positions for ice cubes
-  const icePositions = Array(4).fill(0).map(() => ({
-    left: 15 + Math.random() * 60, // Random position between 15% and 75%
-    top: 20 + Math.random() * 50,  // Random position between 20% and 70%
+  const icePositions = Array(5).fill(0).map(() => ({
+    left: 20 + Math.random() * 50, // Random position between 20% and 70%
+    top: 10 + Math.random() * 60,  // Random position between 10% and 70%
     rotation: Math.random() * 360,  // Random initial rotation
-    size: 6 + Math.random() * 4,    // Random size between 6 and 10
+    size: 2.5 + Math.random() * 1.5,    // Random size between 2.5 and 4rem
   }));
 
   return (
@@ -28,32 +28,32 @@ const IceEffect = () => {
           }}
           animate={{
             y: [
-              -(5 + Math.random() * 5),
-              Math.random() * 3,
-              -(3 + Math.random() * 4),
-              -(5 + Math.random() * 5),
+              -2 - Math.random() * 3,
+              Math.random() * 2,
+              -1 - Math.random() * 2,
+              -2 - Math.random() * 3,
             ],
             x: [
               0,
-              3 + Math.random() * 4,
-              -(2 + Math.random() * 3),
+              1 + Math.random() * 2,
+              -(1 + Math.random() * 1.5),
               0,
             ],
             rotate: [
               pos.rotation,
-              pos.rotation + 15 + Math.random() * 10,
-              pos.rotation - 10 - Math.random() * 10,
+              pos.rotation + 10 + Math.random() * 5,
+              pos.rotation - 5 - Math.random() * 5,
               pos.rotation,
             ],
             scale: [
               1,
-              1 + Math.random() * 0.04,
-              1 - Math.random() * 0.02,
+              1 + Math.random() * 0.02,
+              1 - Math.random() * 0.01,
               1,
             ],
           }}
           transition={{
-            duration: 4 + Math.random() * 2,
+            duration: 3 + Math.random() * 1.5,
             repeat: Infinity,
             ease: "easeInOut",
             times: [0, 0.4, 0.7, 1],
