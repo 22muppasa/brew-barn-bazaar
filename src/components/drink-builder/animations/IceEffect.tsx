@@ -1,13 +1,19 @@
 import { motion } from "framer-motion";
 
 const IceEffect = () => {
-  // Generate random positions for ice cubes
-  const icePositions = Array(5).fill(0).map(() => ({
-    left: 20 + Math.random() * 50, // Random position between 20% and 70%
-    top: 10 + Math.random() * 60,  // Random position between 10% and 70%
-    rotation: Math.random() * 360,  // Random initial rotation
-    size: 2.5 + Math.random() * 1.5,    // Random size between 2.5 and 4rem
-  }));
+  // Generate random positions for ice cubes with better distribution
+  const icePositions = Array(5).fill(0).map((_, index) => {
+    // Divide the cup into sections for better distribution
+    const section = index / 5;
+    return {
+      // Distribute across width while keeping some randomness
+      left: 15 + (section * 40) + (Math.random() * 20),
+      // Stagger vertical positions
+      top: 15 + (Math.random() * 50),
+      rotation: Math.random() * 360,
+      size: 2.5 + Math.random() * 1.2,
+    };
+  });
 
   return (
     <div className="absolute inset-0 pointer-events-none">
@@ -28,35 +34,35 @@ const IceEffect = () => {
           }}
           animate={{
             y: [
-              -2 - Math.random() * 3,
-              Math.random() * 2,
+              0,
+              -3 - Math.random() * 2,
               -1 - Math.random() * 2,
-              -2 - Math.random() * 3,
+              0,
             ],
             x: [
               0,
-              1 + Math.random() * 2,
-              -(1 + Math.random() * 1.5),
+              1 + Math.random(),
+              -(1 + Math.random()),
               0,
             ],
             rotate: [
               pos.rotation,
-              pos.rotation + 10 + Math.random() * 5,
-              pos.rotation - 5 - Math.random() * 5,
+              pos.rotation + 5 + Math.random() * 3,
+              pos.rotation - 3 - Math.random() * 3,
               pos.rotation,
             ],
             scale: [
               1,
-              1 + Math.random() * 0.02,
-              1 - Math.random() * 0.01,
+              1.02,
+              0.98,
               1,
             ],
           }}
           transition={{
-            duration: 3 + Math.random() * 1.5,
+            duration: 4 + Math.random() * 2,
             repeat: Infinity,
             ease: "easeInOut",
-            times: [0, 0.4, 0.7, 1],
+            delay: i * 0.2, // Stagger the animation start
           }}
         />
       ))}
