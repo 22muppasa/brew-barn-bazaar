@@ -41,104 +41,77 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
-      menu_items: {
+      custom_drinks: {
         Row: {
-          category: string
-          created_at: string
-          description: string | null
           id: string
-          image_url: string | null
-          name: string
-          price: number
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name: string
-          price: number
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name?: string
-          price?: number
-        }
-        Relationships: []
-      }
-      order_items: {
-        Row: {
-          created_at: string
-          id: string
-          order_id: string | null
-          price: number
-          product_name: string
-          quantity: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          order_id?: string | null
-          price: number
-          product_name: string
-          quantity: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          order_id?: string | null
-          price?: number
-          product_name?: string
-          quantity?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      orders: {
-        Row: {
-          created_at: string
-          id: string
-          status: string
-          total_amount: number
           user_id: string | null
+          name: string
+          base_drink: string
+          milk_type: string
+          sweetness_level: number
+          created_at: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          status?: string
-          total_amount: number
           user_id?: string | null
+          name: string
+          base_drink: string
+          milk_type: string
+          sweetness_level: number
+          created_at?: string
         }
         Update: {
-          created_at?: string
           id?: string
-          status?: string
-          total_amount?: number
           user_id?: string | null
+          name?: string
+          base_drink?: string
+          milk_type?: string
+          sweetness_level?: number
+          created_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "orders_user_id_fkey"
+            foreignKeyName: "custom_drinks_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
+        ]
+      }
+      drink_addons: {
+        Row: {
+          id: string
+          custom_drink_id: string
+          addon_type: string
+          addon_name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          custom_drink_id: string
+          addon_type: string
+          addon_name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          custom_drink_id?: string
+          addon_type?: string
+          addon_name?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drink_addons_custom_drink_id_fkey"
+            columns: ["custom_drink_id"]
+            isOneToOne: false
+            referencedRelation: "custom_drinks"
+            referencedColumns: ["id"]
+          }
         ]
       }
       profiles: {
