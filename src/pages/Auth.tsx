@@ -55,6 +55,7 @@ const AuthPage = () => {
               },
             }}
             providers={[]}
+            captchaSize="normal"
           />
         </div>
       </motion.div>
