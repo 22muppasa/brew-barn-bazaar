@@ -9,7 +9,6 @@ export const WhippedCreamEffect = ({ index }: { index: number }) => (
       className="w-full h-12"
       style={{
         background: "rgba(255, 255, 255, 0.7)",
-        borderRadius: "8px",
         boxShadow: "0 2px 10px rgba(255, 255, 255, 0.2)",
       }}
       initial={{ scale: 0, opacity: 0 }}
