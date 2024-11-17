@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { useState } from "react";
 import DrinkBuilder from "@/components/drink-builder/DrinkBuilder";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const Menu = () => {
   const session = useSession();
@@ -65,9 +66,9 @@ const Menu = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pt-20">
         <motion.h1 
-          className="text-4xl font-bold mb-8 text-center"
+          className="text-3xl md:text-4xl font-bold mb-8 text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -87,51 +88,51 @@ const Menu = () => {
         {showDrinkBuilder ? (
           <DrinkBuilder />
         ) : (
-          <div className="flex gap-6">
-            <motion.div 
-              className="w-48 flex-shrink-0 space-y-2 sticky top-24 self-start"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  onClick={() => setSelectedCategory(category)}
-                  className="w-full justify-start text-left capitalize"
-                >
-                  {category === "all" ? "All Items" : category}
-                </Button>
-              ))}
-            </motion.div>
+          <div className="flex flex-col md:flex-row gap-6">
+            <ScrollArea className="w-full md:w-48 md:flex-shrink-0 mb-6 md:mb-0">
+              <div className="flex md:flex-col gap-2 pb-4 md:pb-0">
+                {categories.map((category) => (
+                  <Button
+                    key={category}
+                    variant={selectedCategory === category ? "default" : "outline"}
+                    onClick={() => setSelectedCategory(category)}
+                    className="flex-shrink-0 whitespace-nowrap justify-start text-left capitalize"
+                  >
+                    {category === "all" ? "All Items" : category}
+                  </Button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" className="md:hidden" />
+            </ScrollArea>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-grow">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filteredItems?.map((item: any) => (
                 <motion.div
                   key={item.id}
-                  className="bg-card rounded-lg shadow-lg overflow-hidden"
+                  className="bg-card rounded-lg shadow-lg overflow-hidden h-full"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   whileHover={{ scale: 1.02 }}
                   layout
                 >
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-40 sm:h-48 overflow-hidden">
                     <img 
                       src={item.image_url} 
                       alt={item.name}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                       onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1497636577773-f1231844b336'; // fallback image
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1497636577773-f1231844b336';
                       }}
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
-                    <p className="text-muted-foreground mb-4">{item.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold">${item.price.toFixed(2)}</span>
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2">{item.name}</h3>
+                    <p className="text-muted-foreground mb-4 text-sm sm:text-base">{item.description}</p>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-base sm:text-lg font-bold">${item.price.toFixed(2)}</span>
                       <Button 
                         onClick={() => addToCart(item)}
+                        size="sm"
                         className="transition-all duration-300 hover:scale-105"
                       >
                         Add to Cart
