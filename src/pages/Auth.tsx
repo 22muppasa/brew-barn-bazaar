@@ -55,6 +55,9 @@ const AuthPage = () => {
               },
             }}
             providers={[]}
+            captchaProps={{
+              provider: 'hcaptcha'
+            }}
           />
         </div>
       </motion.div>
