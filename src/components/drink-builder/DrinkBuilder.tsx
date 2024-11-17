@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import DrinkPreview from "./DrinkPreview";
 import DrinkOptions from "./DrinkOptions";
@@ -75,6 +76,48 @@ const DrinkBuilder = () => {
     },
   });
 
+  const orderDrinkMutation = useMutation({
+    mutationFn: async () => {
+      if (!session?.user?.id) throw new Error("Must be logged in");
+
+      // Calculate price based on components
+      const basePrice = 4.99;
+      const addonPrice = selectedAddons.length * 0.75;
+      const totalPrice = basePrice + addonPrice;
+
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          user_id: session.user.id,
+          total_amount: totalPrice,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      const { error: orderItemError } = await supabase
+        .from("order_items")
+        .insert({
+          order_id: order.id,
+          product_name: drinkName || "Custom Drink",
+          quantity: 1,
+          price: totalPrice,
+        });
+
+      if (orderItemError) throw orderItemError;
+
+      return order;
+    },
+    onSuccess: () => {
+      toast.success("Order placed successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to place order");
+    },
+  });
+
   const getPreviewColor = () => {
     switch (baseDrink) {
       case "espresso":
@@ -90,46 +133,81 @@ const DrinkBuilder = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid md:grid-cols-2 gap-8">
-        <DrinkOptions
-          baseDrink={baseDrink}
-          setBaseDrink={setBaseDrink}
-          milkType={milkType}
-          setMilkType={setMilkType}
-          sweetness={sweetness}
-          setSweetness={setSweetness}
-          selectedAddons={selectedAddons}
-          setSelectedAddons={setSelectedAddons}
-        />
+      <motion.div 
+        className="grid md:grid-cols-2 gap-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <DrinkOptions
+            baseDrink={baseDrink}
+            setBaseDrink={setBaseDrink}
+            milkType={milkType}
+            setMilkType={setMilkType}
+            sweetness={sweetness}
+            setSweetness={setSweetness}
+            selectedAddons={selectedAddons}
+            setSelectedAddons={setSelectedAddons}
+          />
+        </motion.div>
 
-        <div className="flex flex-col items-center justify-center">
+        <motion.div 
+          className="flex flex-col items-center justify-center space-y-6"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+        >
           <DrinkPreview
             baseColor={getPreviewColor()}
             toppings={selectedAddons.filter(a => a.includes("_cream"))}
             milkType={milkType}
           />
+          
           <motion.div
-            className="mt-4 text-center"
+            className="w-full max-w-md space-y-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
           >
-            <p className="text-lg font-medium">Your Custom Drink</p>
-            <p className="text-sm text-muted-foreground">
-              {baseDrink} with {milkType} milk
-            </p>
+            <Input
+              placeholder="Name your drink"
+              value={drinkName}
+              onChange={(e) => setDrinkName(e.target.value)}
+              className="text-center"
+            />
+            
+            <div className="flex gap-4">
+              <Button
+                className="w-full"
+                onClick={() => saveDrinkMutation.mutate()}
+                disabled={!session}
+              >
+                {session ? "Save Drink" : "Login to Save"}
+              </Button>
+              
+              <Button
+                className="w-full"
+                variant="secondary"
+                onClick={() => orderDrinkMutation.mutate()}
+                disabled={!session}
+              >
+                Order Now
+              </Button>
+            </div>
           </motion.div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      <Button
-        className="w-full mt-8"
-        onClick={() => saveDrinkMutation.mutate()}
-        disabled={!session}
-      >
-        {session ? "Save Custom Drink" : "Login to Save"}
-      </Button>
-
-      <SavedDrinks savedDrinks={savedDrinks} />
+      <AnimatePresence>
+        {savedDrinks && savedDrinks.length > 0 && (
+          <SavedDrinks savedDrinks={savedDrinks} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
