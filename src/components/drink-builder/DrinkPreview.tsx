@@ -97,8 +97,8 @@ const DrinkPreview = ({ baseColor, toppings, milkType, sweetness, isIced }: Drin
           <ToppingsEffect toppings={toppings} />
         </div>
 
-        {/* Enhanced Cup handle */}
-        <div className="absolute right-[-24px] top-1/2 transform -translate-y-1/2 w-10 h-20">
+        {/* Cup handle */}
+        <div className="absolute right-[-20px] top-1/2 transform -translate-y-1/2 w-8 h-20">
           <div className="w-full h-full border-[3px] border-black rounded-r-full shadow-lg bg-white/10 backdrop-blur-sm" />
         </div>
 
