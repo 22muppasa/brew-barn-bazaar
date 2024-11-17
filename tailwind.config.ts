@@ -52,60 +52,39 @@ const config = {
         },
       },
       keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+        "fall-and-spin": {
+          "0%": {
+            transform: "translateY(-10%) rotate(0deg)",
+            opacity: "0",
+          },
+          "10%": {
+            opacity: "1",
+          },
+          "100%": {
+            transform: "translateY(100vh) rotate(720deg)",
+            opacity: "0",
+          },
         },
         "float-up": {
-          "0%": {
-            transform: "translateY(0) scale(1)",
-            opacity: "0",
-          },
-          "50%": {
-            opacity: "0.8",
-            transform: "translateY(-40px) scale(1.2)",
-          },
-          "100%": {
-            transform: "translateY(-80px) scale(0.8)",
-            opacity: "0",
-          },
+          "0%": { transform: "translateY(0) scale(1)", opacity: "0" },
+          "50%": { opacity: "0.8", transform: "translateY(-40px) scale(1.2)" },
+          "100%": { transform: "translateY(-80px) scale(0.8)", opacity: "0" },
         },
         "ripple": {
-          "0%": {
-            transform: "scale(0)",
-            opacity: "1",
-          },
-          "100%": {
-            transform: "scale(4)",
-            opacity: "0",
-          },
+          "0%": { transform: "scale(0)", opacity: "1" },
+          "100%": { transform: "scale(4)", opacity: "0" },
         },
         "bubble": {
-          "0%, 100%": {
-            transform: "translateY(0) scale(1)",
-          },
-          "50%": {
-            transform: "translateY(-20px) scale(1.1)",
-          },
+          "0%, 100%": { transform: "translateY(0) scale(1)" },
+          "50%": { transform: "translateY(-20px) scale(1.1)" },
         },
         "sparkle": {
-          "0%, 100%": {
-            transform: "scale(0) rotate(0deg)",
-            opacity: "0",
-          },
-          "50%": {
-            transform: "scale(1) rotate(180deg)",
-            opacity: "1",
-          },
+          "0%, 100%": { transform: "scale(0) rotate(0deg)", opacity: "0" },
+          "50%": { transform: "scale(1) rotate(180deg)", opacity: "1" },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "fall-and-spin": "fall-and-spin 10s linear infinite",
         "float-up": "float-up 4s ease-out infinite",
         "ripple": "ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite",
         "bubble": "bubble 2s ease-in-out infinite",

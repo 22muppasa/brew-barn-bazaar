@@ -80,16 +80,18 @@ const SeasonalDecorations = () => {
   const renderAutumn = () => (
     <>
       {Array.from({ length: 20 }).map((_, i) => (
-        <motion.div
+        <div
           key={`leaf-${i}`}
-          className="absolute text-white text-2xl animate-fall-and-spin"
+          className="absolute text-2xl animate-fall-and-spin"
           style={{ 
             left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`
+            top: `-50px`,
+            animationDelay: `${Math.random() * 5}s`,
+            willChange: 'transform'
           }}
         >
           {Math.random() > 0.5 ? '🍂' : '🍁'}
-        </motion.div>
+        </div>
       ))}
       <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
     </>
