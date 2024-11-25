@@ -9,7 +9,7 @@ const FeaturedMenu = () => {
     {
       title: "Pumpkin Spice Latte",
       price: "5.99",
-      image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e",
+      image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d",
       category: "Seasonal"
     },
     {
