@@ -30,7 +30,7 @@ const tiers = [
     ],
     freeItem: {
       name: 'Cappuccino',
-      image: 'https://images.unsplash.com/photo-1534778101976-62847782c00e'
+      image: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d'
     },
     color: 'bg-gray-400'
   },
