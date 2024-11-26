@@ -20,7 +20,7 @@ const Menu = () => {
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
-        .order('category')
+        .order('category', { ascending: false }) // This puts 'Seasonal' first
         .order('name');
       
       if (error) throw error;
