@@ -2,52 +2,22 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 const FeaturedMenu = () => {
-  const seasonalItems = [
-    {
-      title: "Pumpkin Spice Latte",
-      price: "5.99",
-      image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d",
-      category: "Seasonal"
-    },
-    {
-      title: "Maple Pecan Cold Brew",
-      price: "4.99",
-      image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
-      category: "Seasonal"
-    },
-    {
-      title: "Cinnamon Roll",
-      price: "3.99",
-      image: "https://images.unsplash.com/photo-1509365465985-25d11c17e812",
-      category: "Seasonal"
+  const { data: seasonalItems } = useQuery({
+    queryKey: ['seasonal-menu-items'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select()
+        .eq('category', 'Seasonal')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
     }
-  ];
-
-  useEffect(() => {
-    const addSeasonalItems = async () => {
-      for (const item of seasonalItems) {
-        const { data } = await supabase
-          .from('menu_items')
-          .select()
-          .eq('name', item.title)
-          .single();
-
-        if (!data) {
-          await supabase.from('menu_items').insert({
-            name: item.title,
-            price: parseFloat(item.price),
-            image_url: item.image,
-            category: item.category
-          });
-        }
-      }
-    };
-
-    addSeasonalItems();
-  }, []);
+  });
 
   return (
     <section className="section-padding bg-background">
@@ -67,9 +37,9 @@ const FeaturedMenu = () => {
         </motion.div>
         
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {seasonalItems.map((item, index) => (
+          {seasonalItems?.map((item, index) => (
             <motion.div
-              key={index}
+              key={item.id}
               className="menu-card"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -77,11 +47,14 @@ const FeaturedMenu = () => {
               viewport={{ once: true }}
             >
               <div className="menu-image">
-                <img src={item.image} alt={item.title} />
+                <img 
+                  src={item.image_url || "https://images.unsplash.com/photo-1497636577773-f1231844b336"} 
+                  alt={item.name} 
+                />
               </div>
               <div className="mt-4">
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="mt-2 text-primary">${item.price}</p>
+                <h3 className="text-xl font-semibold">{item.name}</h3>
+                <p className="mt-2 text-primary">${item.price.toFixed(2)}</p>
               </div>
             </motion.div>
           ))}
