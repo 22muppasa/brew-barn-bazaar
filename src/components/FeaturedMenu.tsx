@@ -49,11 +49,15 @@ const FeaturedMenu = () => {
               <div className="menu-image">
                 <img 
                   src={item.image_url || "https://images.unsplash.com/photo-1497636577773-f1231844b336"} 
-                  alt={item.name} 
+                  alt={item.name}
+                  className="w-full h-48 object-cover rounded-lg" 
                 />
               </div>
               <div className="mt-4">
                 <h3 className="text-xl font-semibold">{item.name}</h3>
+                {item.description && (
+                  <p className="mt-2 text-muted-foreground">{item.description}</p>
+                )}
                 <p className="mt-2 text-primary">${item.price.toFixed(2)}</p>
               </div>
             </motion.div>
