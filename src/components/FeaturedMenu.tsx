@@ -32,10 +32,9 @@ const FeaturedMenu = () => {
         const { data } = await supabase
           .from('menu_items')
           .select()
-          .eq('name', item.title)
-          .single();
+          .eq('name', item.title);
 
-        if (!data) {
+        if (!data || data.length === 0) {
           await supabase.from('menu_items').insert({
             name: item.title,
             price: parseFloat(item.price),
