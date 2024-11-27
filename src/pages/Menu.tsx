@@ -20,8 +20,7 @@ const Menu = () => {
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
-        .order('category', { ascending: false }) // This puts 'Seasonal' first
-        .order('name');
+        .order('category');
       
       if (error) throw error;
       return data;
@@ -59,16 +58,7 @@ const Menu = () => {
     );
   }
 
-  // Get unique categories and sort them alphabetically, with "Seasonal" first if it exists
-  const categories = ["all", ...new Set(menuItems?.map((item: any) => item.category))]
-    .sort((a, b) => {
-      if (a === "all") return -1;
-      if (b === "all") return 1;
-      if (a === "Seasonal") return -1;
-      if (b === "Seasonal") return 1;
-      return a.localeCompare(b);
-    });
-
+  const categories = ["all", ...new Set(menuItems?.map((item: any) => item.category))];
   const filteredItems = selectedCategory === "all" 
     ? menuItems 
     : menuItems?.filter((item: any) => item.category === selectedCategory);
@@ -119,7 +109,7 @@ const Menu = () => {
               {filteredItems?.map((item: any) => (
                 <motion.div
                   key={item.id}
-                  className="bg-card rounded-lg shadow-lg overflow-hidden h-full group"
+                  className="bg-card rounded-lg shadow-lg overflow-hidden h-full"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   whileHover={{ scale: 1.02 }}
@@ -129,22 +119,15 @@ const Menu = () => {
                     <img 
                       src={item.image_url} 
                       alt={item.name}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                       onError={(e) => {
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1497636577773-f1231844b336';
                       }}
                     />
-                    {item.category === 'Seasonal' && (
-                      <div className="absolute top-2 right-2">
-                        <span className="bg-primary text-white px-2 py-1 rounded-full text-sm font-medium">
-                          Seasonal
-                        </span>
-                      </div>
-                    )}
                   </div>
                   <div className="p-4">
                     <h3 className="text-lg sm:text-xl font-semibold mb-2">{item.name}</h3>
-                    <p className="text-muted-foreground mb-4 text-sm sm:text-base line-clamp-2">{item.description}</p>
+                    <p className="text-muted-foreground mb-4 text-sm sm:text-base">{item.description}</p>
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-base sm:text-lg font-bold">${item.price.toFixed(2)}</span>
                       <Button 
