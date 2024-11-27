@@ -20,6 +20,7 @@ const Menu = () => {
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
+        .neq('category', 'seasonal')
         .order('category');
       
       if (error) throw error;
