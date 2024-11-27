@@ -29,13 +29,13 @@ const FeaturedMenu = () => {
   useEffect(() => {
     const addSeasonalItems = async () => {
       for (const item of seasonalItems) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('menu_items')
           .select()
           .eq('name', item.title)
-          .single();
+          .limit(1);
 
-        if (!data) {
+        if (!data?.length) {
           await supabase.from('menu_items').insert({
             name: item.title,
             price: parseFloat(item.price),
