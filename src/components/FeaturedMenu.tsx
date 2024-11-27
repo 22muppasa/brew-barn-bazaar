@@ -9,20 +9,20 @@ const FeaturedMenu = () => {
     {
       title: "Pumpkin Spice Latte",
       price: "5.99",
-      image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e",
-      category: "Seasonal"
+      image: "https://i.ibb.co/7ykDWbb/DALL-E-2024-11-27-13-25-39-A-pumpkin-spice-latte-served-in-a-white-ceramic-cup-with-a-saucer-topped.webp",
+      category: "Seasonal Specials"
     },
     {
       title: "Maple Pecan Cold Brew",
       price: "4.99",
       image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
-      category: "Seasonal"
+      category: "Seasonal Specials"
     },
     {
       title: "Cinnamon Roll",
       price: "3.99",
       image: "https://images.unsplash.com/photo-1509365465985-25d11c17e812",
-      category: "Seasonal"
+      category: "Seasonal Specials"
     }
   ];
 
