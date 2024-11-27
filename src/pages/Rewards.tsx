@@ -26,7 +26,7 @@ const tiers = [
     points: 100,
     benefits: [
       'Earn 1.2 points per dollar spent',
-      'Free Cappuccino monthly'
+      'Free Cappuccino'
     ],
     freeItem: {
       name: 'Cappuccino',
@@ -39,7 +39,7 @@ const tiers = [
     points: 500,
     benefits: [
       'Earn 1.5 points per dollar spent',
-      'Free Caramel Latte monthly'
+      'Free Caramel Latte'
     ],
     freeItem: {
       name: 'Caramel Latte',
@@ -52,7 +52,7 @@ const tiers = [
     points: 1000,
     benefits: [
       'Earn 2 points per dollar spent',
-      'Free Frappuccino weekly'
+      'Free Frappuccino monthly'
     ],
     freeItem: {
       name: 'Frappuccino',
