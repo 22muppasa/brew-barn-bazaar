@@ -1,6 +1,6 @@
 # The Brew Barn(Mockup for BPA)
 
-The Brew Barn is an innovative and interactive web project aimed at creating a captivating online platform that combines modern design with engaging user experiences. Built using React, the website leverages advanced animations and interactive features to showcase the essence of The Brew Barn brand—whether it be a coffee shop, brewery, or creative concept.
+The Brew Barn is an innovative and interactive web project aimed at creating a captivating online platform that combines modern design with engaging user experiences. Built using Typescript, the website leverages advanced animations and interactive features to showcase the essence of The Brew Barn brand—whether it be a coffee shop, brewery, or creative concept.
 
 The project is focused on delivering a sleek, user-friendly interface that incorporates dynamic content, smooth transitions, and responsive design to ensure seamless accessibility across all devices. The Brew Barn serves as both a digital storefront and a hub for sharing the unique story, values, and offerings of the brand.
 
