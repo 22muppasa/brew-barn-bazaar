@@ -4,12 +4,12 @@ The Brew Barn is an innovative and interactive web project aimed at creating a c
 
 The project is focused on delivering a sleek, user-friendly interface that incorporates dynamic content, smooth transitions, and responsive design to ensure seamless accessibility across all devices. The Brew Barn serves as both a digital storefront and a hub for sharing the unique story, values, and offerings of the brand.
 
-Key Features:
+# Key Features:
 
 Dynamic Animations: Smooth transitions, hover effects, and scrolling animations to bring the website to life.
 Interactive Components: Engaging elements such as menus, event showcases, and gallery sliders.
 Modern Aesthetics: A clean, visually appealing design with intuitive navigation.
 Responsive Design: Compatibility across various devices, including desktops, tablets, and smartphones.
 Scalability: Easily extendable for future updates, new features, or integrations.
-Purpose:
+# Purpose:
 The Brew Barn is designed to attract and engage visitors, leaving a lasting impression while effectively communicating the brand’s story. It combines creativity, technical expertise, and user-focused design to provide an exceptional digital experience.
