@@ -4,6 +4,16 @@ The Brew Barn is an innovative and interactive web project aimed at creating a c
 
 The project is focused on delivering a sleek, user-friendly interface that incorporates dynamic content, smooth transitions, and responsive design to ensure seamless accessibility across all devices. The Brew Barn serves as both a digital storefront and a hub for sharing the unique story, values, and offerings of the brand.
 
+### Built With
+
+This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
+
+* [![Next][Next.js]][Next-url]
+* [![React][React.js]][React-url]
+* [![Typescript][Typescript.js]][Typescript-url]
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 # Key Features:
 
 Dynamic Animations: Smooth transitions, hover effects, and scrolling animations to bring the website to life.
