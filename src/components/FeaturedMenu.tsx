@@ -1,34 +1,108 @@
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const FeaturedMenu = () => {
-  const seasonalItems = [
-    {
-      title: "Pumpkin Spice Latte",
-      price: "5.99",
-      image: "https://i.ibb.co/7ykDWbb/DALL-E-2024-11-27-13-25-39-A-pumpkin-spice-latte-served-in-a-white-ceramic-cup-with-a-saucer-topped.webp",
-      category: "Seasonal Specials"
-    },
-    {
-      title: "Maple Pecan Cold Brew",
-      price: "4.99",
-      image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
-      category: "Seasonal Specials"
-    },
-    {
-      title: "Cinnamon Roll",
-      price: "3.99",
-      image: "https://images.unsplash.com/photo-1509365465985-25d11c17e812",
-      category: "Seasonal Specials"
-    }
-  ];
+  const [currentSeason, setCurrentSeason] = useState<'spring' | 'summer' | 'autumn' | 'winter'>('winter');
+
+  useEffect(() => {
+    const month = new Date().getMonth();
+    if (month >= 2 && month <= 4) setCurrentSeason('spring');
+    else if (month >= 5 && month <= 7) setCurrentSeason('summer');
+    else if (month >= 8 && month <= 10) setCurrentSeason('autumn');
+    else setCurrentSeason('winter');
+  }, []);
+
+  const seasonalItems = {
+    winter: [
+      {
+        title: "Peppermint Mocha",
+        price: "5.99",
+        image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd",
+        category: "Seasonal"
+      },
+      {
+        title: "Hot Chocolate Supreme",
+        price: "4.99",
+        image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed",
+        category: "Seasonal"
+      },
+      {
+        title: "Gingerbread Latte",
+        price: "5.49",
+        image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd",
+        category: "Seasonal"
+      }
+    ],
+    spring: [
+      {
+        title: "Cherry Blossom Latte",
+        price: "5.99",
+        image: "https://images.unsplash.com/photo-1586195831814-c0a6f6310b40",
+        category: "Seasonal"
+      },
+      {
+        title: "Lavender Tea",
+        price: "4.49",
+        image: "https://images.unsplash.com/photo-1594631252845-29fc4cc8cde9",
+        category: "Seasonal"
+      },
+      {
+        title: "Spring Berry Refresher",
+        price: "4.99",
+        image: "https://images.unsplash.com/photo-1595981267035-7b04ca84a82d",
+        category: "Seasonal"
+      }
+    ],
+    summer: [
+      {
+        title: "Iced Passion Fruit Tea",
+        price: "4.99",
+        image: "https://images.unsplash.com/photo-1499638673689-79a0b5115d87",
+        category: "Seasonal"
+      },
+      {
+        title: "Coconut Cold Brew",
+        price: "5.49",
+        image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
+        category: "Seasonal"
+      },
+      {
+        title: "Mango Dragonfruit Refresher",
+        price: "5.99",
+        image: "https://images.unsplash.com/photo-1546173159-315724a31696",
+        category: "Seasonal"
+      }
+    ],
+    autumn: [
+      {
+        title: "Pumpkin Spice Latte",
+        price: "5.99",
+        image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e",
+        category: "Seasonal"
+      },
+      {
+        title: "Maple Pecan Cold Brew",
+        price: "4.99",
+        image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
+        category: "Seasonal"
+      },
+      {
+        title: "Cinnamon Roll",
+        price: "3.99",
+        image: "https://images.unsplash.com/photo-1509365465985-25d11c17e812",
+        category: "Seasonal"
+      }
+    ]
+  };
 
   useEffect(() => {
     const addSeasonalItems = async () => {
-      for (const item of seasonalItems) {
+      const currentItems = seasonalItems[currentSeason];
+      for (const item of currentItems) {
         const { data, error } = await supabase
           .from('menu_items')
           .select()
@@ -47,7 +121,14 @@ const FeaturedMenu = () => {
     };
 
     addSeasonalItems();
-  }, []);
+  }, [currentSeason]);
+
+  const seasonTitles = {
+    winter: "Winter Warmers",
+    spring: "Spring Blossoms",
+    summer: "Summer Refreshers",
+    autumn: "Fall Favorites"
+  };
 
   return (
     <section className="section-padding bg-background">
@@ -63,11 +144,11 @@ const FeaturedMenu = () => {
           }}
         >
           <span className="badge mb-4">Seasonal Specials</span>
-          <h2 className="mb-12 text-4xl font-bold">Fall Favorites</h2>
+          <h2 className="mb-12 text-4xl font-bold">{seasonTitles[currentSeason]}</h2>
         </motion.div>
         
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {seasonalItems.map((item, index) => (
+          {seasonalItems[currentSeason].map((item, index) => (
             <motion.div
               key={index}
               className="menu-card"
