@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -24,21 +23,21 @@ const Menu = () => {
           name: "Peppermint Mocha",
           price: 5.99,
           image_url: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd",
-          category: "Hot Drinks",
+          category: "Seasonal",
           description: "A festive blend of rich chocolate and cool peppermint"
         },
         {
           name: "Hot Chocolate Supreme",
           price: 4.99,
           image_url: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed",
-          category: "Hot Drinks",
+          category: "Seasonal",
           description: "Luxurious hot chocolate topped with whipped cream"
         },
         {
           name: "Gingerbread Latte",
           price: 5.49,
           image_url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd",
-          category: "Hot Drinks",
+          category: "Seasonal",
           description: "Warm spiced latte with gingerbread flavoring"
         }
       ];
@@ -58,11 +57,10 @@ const Menu = () => {
         }
       }
 
-      // Get all menu items excluding seasonal category
+      // Get all menu items
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
-        .neq('category', 'Seasonal')
         .order('category');
       
       if (error) throw error;
