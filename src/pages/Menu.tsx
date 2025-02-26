@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -57,10 +58,11 @@ const Menu = () => {
         }
       }
 
-      // Get all menu items
+      // Get all menu items excluding seasonal category
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
+        .neq('category', 'Seasonal')
         .order('category');
       
       if (error) throw error;
