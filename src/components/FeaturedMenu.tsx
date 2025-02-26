@@ -27,7 +27,7 @@ const FeaturedMenu = () => {
       {
         title: "Hot Chocolate Supreme",
         price: "4.99",
-        image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed",
+        image: "https://i.ibb.co/hJrYVkFN/b1f2e493-3e79-4793-a80e-ca029364c6dc.webp",
         category: "Seasonal"
       },
       {
