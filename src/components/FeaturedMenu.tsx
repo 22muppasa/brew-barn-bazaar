@@ -21,7 +21,7 @@ const FeaturedMenu = () => {
       {
         title: "Peppermint Mocha",
         price: "5.99",
-        image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd",
+        image: "https://i.ibb.co/W4mTVTgD/0466c5dd-5dd6-414d-abe5-f26f1088cace.webp",
         category: "Seasonal"
       },
       {
@@ -33,7 +33,7 @@ const FeaturedMenu = () => {
       {
         title: "Gingerbread Latte",
         price: "5.49",
-        image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd",
+        image: "https://i.ibb.co/TDqQcJqx/a0a8e33f-1d52-47b5-b07b-2d7142a2d897.webp",
         category: "Seasonal"
       }
     ],
