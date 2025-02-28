@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -29,6 +30,10 @@ const TierBenefit = ({ tier, isActive, index, isNewlyAchieved }: TierBenefitProp
     }
   }, [isNewlyAchieved]);
 
+  const handleDismissCelebration = () => {
+    setShowCelebration(false);
+  };
+
   return (
     <>
       {showCelebration && (
@@ -36,7 +41,8 @@ const TierBenefit = ({ tier, isActive, index, isNewlyAchieved }: TierBenefitProp
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 cursor-pointer"
+          onClick={handleDismissCelebration}
         >
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
@@ -65,6 +71,7 @@ const TierBenefit = ({ tier, isActive, index, isNewlyAchieved }: TierBenefitProp
             >
               You've reached {tier.name} Tier!
             </motion.p>
+            <p className="mt-6 text-white/70 text-sm">Click anywhere to dismiss</p>
           </motion.div>
         </motion.div>
       )}
