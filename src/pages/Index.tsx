@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -112,9 +113,11 @@ const Index = () => {
             <span className="badge mb-4">Connect With Us</span>
             <h2 className="mb-8 text-4xl font-bold">Follow Our Journey</h2>
             <div className="flex justify-center space-x-6">
-              <Button variant="ghost" size="icon">
-                <Instagram className="h-6 w-6" />
-              </Button>
+              <a href="https://www.instagram.com/brewbarnvh" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" size="icon">
+                  <Instagram className="h-6 w-6" />
+                </Button>
+              </a>
               <Button variant="ghost" size="icon">
                 <Facebook className="h-6 w-6" />
               </Button>
