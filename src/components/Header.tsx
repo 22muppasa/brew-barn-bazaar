@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navigation from "./Navigation";
@@ -28,6 +29,50 @@ const Header = () => {
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
         allowFullScreen
       />
+      
+      {/* Blur and sepia overlay */}
+      <div 
+        className="absolute inset-0 bg-amber-900/50 backdrop-blur-sm z-[1]"
+        style={{ 
+          mixBlendMode: "multiply",
+          backgroundImage: "linear-gradient(to bottom, rgba(139, 69, 19, 0.3), rgba(165, 115, 67, 0.5))"
+        }}
+      />
+      
+      {/* Coffee bean decorations */}
+      <div className="absolute inset-0 z-[2] overflow-hidden">
+        {[...Array(8)].map((_, i) => (
+          <motion.img 
+            key={i}
+            src="/lovable-uploads/0a04de15-9f9a-4dc6-af39-0e4041e2226f.png"
+            alt="Coffee Bean"
+            className="absolute w-16 h-auto opacity-80"
+            style={{
+              top: `${Math.random() * 80 + 10}%`,
+              left: `${Math.random() * 80 + 10}%`,
+              transform: `rotate(${Math.random() * 360}deg) scale(${0.7 + Math.random() * 0.6})`,
+            }}
+            initial={{ 
+              y: -100, 
+              opacity: 0,
+              rotate: 0
+            }}
+            animate={{ 
+              y: 0, 
+              opacity: 0.8,
+              rotate: 360,
+              transition: {
+                duration: 15 + Math.random() * 10,
+                repeat: Infinity,
+                repeatType: "loop",
+                ease: "linear",
+                delay: i * 1.5
+              }
+            }}
+          />
+        ))}
+      </div>
+
       <Navigation />
       <motion.div 
         className="relative z-10 text-center"
@@ -35,10 +80,10 @@ const Header = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.8 }}
       >
-        <h1 className="mb-6 text-7xl font-bold text-white sm:text-8xl lg:text-9xl">
+        <h1 className="mb-6 text-7xl font-bold text-amber-200 sm:text-8xl lg:text-9xl">
           The Brew Barn
         </h1>
-        <p className="mb-8 text-xl text-white/90">
+        <p className="mb-8 text-xl text-amber-100/90">
           Artisanal coffee & community
         </p>
         <motion.div
@@ -50,7 +95,7 @@ const Header = () => {
           <Link to="/menu">
             <Button 
               size="lg"
-              className="bg-primary text-white hover:bg-primary/90"
+              className="bg-amber-700 text-amber-100 hover:bg-amber-800 border border-amber-600"
             >
               Explore Menu
             </Button>
@@ -58,8 +103,8 @@ const Header = () => {
           <Link to={session ? "/rewards" : "/auth"}>
             <Button 
               size="lg"
-              variant="secondary"
-              className="hover:bg-secondary/90"
+              variant="outline"
+              className="border-amber-400 text-amber-200 hover:bg-amber-800/30"
             >
               {session ? "View Rewards" : "Join Now"}
             </Button>
@@ -67,12 +112,12 @@ const Header = () => {
         </motion.div>
       </motion.div>
       <motion.div 
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.5 }}
       >
-        <div className="animate-bounce text-white">
+        <div className="animate-bounce text-amber-200">
           <svg 
             className="h-6 w-6"
             fill="none"
