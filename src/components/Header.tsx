@@ -38,40 +38,6 @@ const Header = () => {
           backgroundImage: "linear-gradient(to bottom, rgba(139, 69, 19, 0.3), rgba(165, 115, 67, 0.5))"
         }}
       />
-      
-      {/* Coffee bean decorations */}
-      <div className="absolute inset-0 z-[2] overflow-hidden">
-        {[...Array(8)].map((_, i) => (
-          <motion.img 
-            key={i}
-            src="/lovable-uploads/0a04de15-9f9a-4dc6-af39-0e4041e2226f.png"
-            alt="Coffee Bean"
-            className="absolute w-16 h-auto opacity-80"
-            style={{
-              top: `${Math.random() * 80 + 10}%`,
-              left: `${Math.random() * 80 + 10}%`,
-              transform: `rotate(${Math.random() * 360}deg) scale(${0.7 + Math.random() * 0.6})`,
-            }}
-            initial={{ 
-              y: -100, 
-              opacity: 0,
-              rotate: 0
-            }}
-            animate={{ 
-              y: 0, 
-              opacity: 0.8,
-              rotate: 360,
-              transition: {
-                duration: 15 + Math.random() * 10,
-                repeat: Infinity,
-                repeatType: "loop",
-                ease: "linear",
-                delay: i * 1.5
-              }
-            }}
-          />
-        ))}
-      </div>
 
       <Navigation />
       <motion.div 
