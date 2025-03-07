@@ -59,16 +59,16 @@ const Header = () => {
 
       <Navigation />
       <motion.div 
-        className="relative z-10 text-center"
+        className="relative z-10 text-center px-4"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.8 }}
       >
-        <h1 className="mb-6 text-7xl font-bold text-amber-200 sm:text-8xl lg:text-9xl">
+        <h1 className="mb-6 text-6xl font-bold text-amber-200 sm:text-7xl lg:text-8xl tracking-tight">
           The Brew Barn
         </h1>
-        <p className="mb-8 text-xl text-amber-100/90">
-          Artisanal coffee & community
+        <p className="mb-8 text-xl text-amber-100/90 font-light max-w-2xl mx-auto">
+          Artisanal coffee crafted with passion, served in a community worth savoring
         </p>
         <motion.div
           initial={{ opacity: 0 }}
@@ -79,7 +79,7 @@ const Header = () => {
           <Link to="/menu">
             <Button 
               size="lg"
-              className="bg-amber-700 text-amber-100 hover:bg-amber-800 border border-amber-600"
+              className="bg-amber-700 text-amber-100 hover:bg-amber-800 border border-amber-600 shadow-lg"
             >
               Explore Menu
             </Button>
@@ -88,7 +88,7 @@ const Header = () => {
             <Button 
               size="lg"
               variant="outline"
-              className="border-amber-400 text-amber-200 hover:bg-amber-800/30"
+              className="border-amber-400 text-amber-200 hover:bg-amber-800/30 shadow-lg"
             >
               {session ? "View Rewards" : "Join Now"}
             </Button>
