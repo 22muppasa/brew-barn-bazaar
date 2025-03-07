@@ -1,74 +1,34 @@
-
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navigation from "./Navigation";
 import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
+import SeasonalDecorations from "./SeasonalDecorations";
 
 const Header = () => {
   const session = useSession();
 
   return (
     <motion.header 
-      className="relative flex h-screen items-center justify-center overflow-hidden"
+      className="relative flex h-screen items-center justify-center overflow-hidden bg-accent"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
-      <iframe 
-        className="absolute"
-        style={{
-          top: "50%",
-          left: "50%",
-          width: "120%",
-          height: "120%",
-          transform: "translate(-50%, -50%) scale(1.2)",
-        }}
-        src="https://player.vimeo.com/video/1062622357?h=616a82d686&badge=0&autopause=0&player_id=0&app_id=58479&background=1&autoplay=1&loop=1&muted=1"
-        frameBorder="0"
-        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
-        allowFullScreen
-      />
-      
-      {/* Blur and sepia overlay */}
-      <div 
-        className="absolute inset-0 bg-amber-900/50 backdrop-blur-sm z-[1]"
-        style={{ 
-          mixBlendMode: "multiply",
-          backgroundImage: "linear-gradient(to bottom, rgba(139, 69, 19, 0.3), rgba(165, 115, 67, 0.5))"
-        }}
-      />
-
-      {/* Grain texture overlay - now with increased opacity and double layering for more noise */}
-      <div 
-        className="absolute inset-0 z-[2] opacity-40 pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          mixBlendMode: "multiply"
-        }}
-      />
-      
-      {/* Second grain layer for more intensity */}
-      <div 
-        className="absolute inset-0 z-[2] opacity-20 pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          mixBlendMode: "overlay"
-        }}
-      />
-
+      <div className="absolute inset-0 bg-gradient-to-r from-accent to-accent/90" />
+      <SeasonalDecorations />
       <Navigation />
       <motion.div 
-        className="relative z-10 text-center px-4"
+        className="relative z-10 text-center"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.8 }}
       >
-        <h1 className="mb-6 text-6xl font-bold text-amber-200 sm:text-7xl lg:text-8xl tracking-tight">
+        <h1 className="mb-6 text-7xl font-bold text-white sm:text-8xl lg:text-9xl">
           The Brew Barn
         </h1>
-        <p className="mb-8 text-xl text-amber-100/90 font-light max-w-2xl mx-auto">
-          Artisanal coffee crafted with passion, served in a community worth savoring
+        <p className="mb-8 text-xl text-white/90">
+          Artisanal coffee & community
         </p>
         <motion.div
           initial={{ opacity: 0 }}
@@ -79,7 +39,7 @@ const Header = () => {
           <Link to="/menu">
             <Button 
               size="lg"
-              className="bg-amber-700 text-amber-100 hover:bg-amber-800 border border-amber-600 shadow-lg"
+              className="bg-primary text-white hover:bg-primary/90"
             >
               Explore Menu
             </Button>
@@ -87,8 +47,8 @@ const Header = () => {
           <Link to={session ? "/rewards" : "/auth"}>
             <Button 
               size="lg"
-              variant="outline"
-              className="border-amber-400 text-amber-200 hover:bg-amber-800/30 shadow-lg"
+              variant="secondary"
+              className="hover:bg-secondary/90"
             >
               {session ? "View Rewards" : "Join Now"}
             </Button>
@@ -96,12 +56,12 @@ const Header = () => {
         </motion.div>
       </motion.div>
       <motion.div 
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.5 }}
       >
-        <div className="animate-bounce text-amber-200">
+        <div className="animate-bounce text-white">
           <svg 
             className="h-6 w-6"
             fill="none"

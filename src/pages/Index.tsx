@@ -67,7 +67,7 @@ const Index = () => {
       <FeaturedMenu />
 
       {/* Rewards Section */}
-      <section className="section-padding bg-amber-50">
+      <section className="section-padding bg-muted">
         <div className="container">
           <motion.div 
             className="grid gap-12 lg:grid-cols-2 lg:items-center"
@@ -77,14 +77,14 @@ const Index = () => {
             variants={fadeInUp}
           >
             <div>
-              <span className="badge mb-4 bg-amber-100 text-amber-800">Rewards Program</span>
-              <h2 className="mb-6 text-4xl font-bold text-amber-900">Earn While You Sip</h2>
-              <p className="mb-8 text-lg text-amber-800/80">
+              <span className="badge mb-4">Rewards Program</span>
+              <h2 className="mb-6 text-4xl font-bold">Earn While You Sip</h2>
+              <p className="mb-8 text-lg text-foreground/80">
                 Join our rewards program and earn points with every purchase. 
                 Redeem them for free drinks, pastries, and exclusive merchandise.
               </p>
               <Button 
-                className="bg-amber-700 text-amber-100 hover:bg-amber-800 border border-amber-600"
+                variant="secondary"
                 onClick={handleJoinClick}
               >
                 {session ? "View Rewards" : "Join Now"}
@@ -110,18 +110,18 @@ const Index = () => {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <span className="badge mb-4 bg-amber-100 text-amber-800">Connect With Us</span>
-            <h2 className="mb-8 text-4xl font-bold text-amber-900">Follow Our Journey</h2>
+            <span className="badge mb-4">Connect With Us</span>
+            <h2 className="mb-8 text-4xl font-bold">Follow Our Journey</h2>
             <div className="flex justify-center space-x-6">
               <a href="https://www.instagram.com/brewbarnvh" target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="icon" className="text-amber-700 hover:text-amber-800 hover:bg-amber-100">
+                <Button variant="ghost" size="icon">
                   <Instagram className="h-6 w-6" />
                 </Button>
               </a>
-              <Button variant="ghost" size="icon" className="text-amber-700 hover:text-amber-800 hover:bg-amber-100">
+              <Button variant="ghost" size="icon">
                 <Facebook className="h-6 w-6" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-amber-700 hover:text-amber-800 hover:bg-amber-100">
+              <Button variant="ghost" size="icon">
                 <Twitter className="h-6 w-6" />
               </Button>
             </div>
@@ -130,7 +130,7 @@ const Index = () => {
       </section>
 
       {/* Newsletter Section */}
-      <section className="section-padding bg-amber-800 text-white">
+      <section className="section-padding bg-accent text-white">
         <div className="container">
           <motion.div 
             className="mx-auto max-w-2xl text-center"
@@ -140,7 +140,7 @@ const Index = () => {
             variants={fadeInUp}
           >
             <h2 className="mb-6 text-4xl font-bold">Stay Updated</h2>
-            <p className="mb-8 text-amber-100">
+            <p className="mb-8 text-white/90">
               Subscribe to our newsletter for exclusive offers and updates
             </p>
             <form onSubmit={handleSubscribe} className="flex gap-4">
@@ -149,13 +149,13 @@ const Index = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-amber-700/60 border-amber-600 text-white placeholder:text-amber-200/60"
+                className="bg-white/10 text-white placeholder:text-white/60"
                 required
                 disabled={isLoading}
               />
               <Button 
                 type="submit" 
-                className="bg-amber-100 text-amber-900 hover:bg-white border border-amber-300"
+                variant="secondary"
                 disabled={isLoading}
               >
                 {isLoading ? "Subscribing..." : "Subscribe"}
