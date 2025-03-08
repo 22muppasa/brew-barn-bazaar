@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { WhippedCreamEffect } from "./toppings/WhippedCreamEffect";
 import { CinnamonEffect } from "./toppings/CinnamonEffect";
