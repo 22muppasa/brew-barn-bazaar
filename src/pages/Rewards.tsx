@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
-import Navigation from "@/components/Navigation";
+import HamburgerMenu from "@/components/HamburgerMenu";
 import RewardsHeader from "@/components/rewards/RewardsHeader";
 import TierBenefit from "@/components/rewards/TierBenefit";
 
@@ -116,8 +116,8 @@ const Rewards = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
+      <HamburgerMenu />
+      <div className="container mx-auto px-4 py-8 pt-20">
         <motion.div
           className="max-w-4xl mx-auto"
           initial={{ opacity: 0, y: 20 }}

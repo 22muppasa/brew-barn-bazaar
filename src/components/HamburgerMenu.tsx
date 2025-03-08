@@ -85,9 +85,18 @@ const HamburgerMenu = () => {
               transition={{ type: "spring", damping: 25 }}
             >
               <div className="p-6 flex flex-col h-full">
-                <div className="flex items-center gap-3 mb-8">
-                  <Coffee className="h-8 w-8 text-primary" />
-                  <span className="text-xl font-bold">Brew Barn</span>
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <Coffee className="h-8 w-8 text-primary" />
+                    <span className="text-xl font-bold">Brew Barn</span>
+                  </div>
+                  <button 
+                    onClick={() => setIsOpen(false)} 
+                    className="rounded-full p-2 hover:bg-muted transition-colors"
+                    aria-label="Close menu"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
                 </div>
 
                 <nav className="flex-1">
