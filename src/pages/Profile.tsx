@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "@supabase/auth-helpers-react";
-import Navigation from "@/components/Navigation";
+import HamburgerMenu from "@/components/HamburgerMenu";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -70,7 +70,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
+      <HamburgerMenu />
       <div className="container mx-auto px-4 py-8">
         <motion.div
           className="max-w-4xl mx-auto space-y-8"
