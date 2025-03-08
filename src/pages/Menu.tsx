@@ -9,11 +9,15 @@ import Navigation from "@/components/Navigation";
 import { useState } from "react";
 import DrinkBuilder from "@/components/drink-builder/DrinkBuilder";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useGuestCart, useLocalStorage } from "@/hooks/useLocalStorage";
 
 const Menu = () => {
   const session = useSession();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showDrinkBuilder, setShowDrinkBuilder] = useState(false);
+  const { getValue } = useLocalStorage();
+  const isGuest = getValue("isGuest") === "true";
+  const { addToCart } = useGuestCart();
 
   const { data: menuItems, isLoading } = useQuery({
     queryKey: ['menu-items'],
@@ -70,23 +74,32 @@ const Menu = () => {
     },
   });
 
-  const addToCart = async (item: any) => {
-    if (!session) {
-      toast.error("Please login to add items to cart");
-      return;
-    }
+  const addToCartHandler = async (item: any) => {
+    if (session) {
+      // For logged in users, use Supabase cart
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: session.user.id,
+          product_name: item.name,
+          quantity: 1,
+          price: item.price,
+        });
 
-    const { error } = await supabase
-      .from('cart_items')
-      .insert({
-        user_id: session.user.id,
-        product_name: item.name,
-        quantity: 1,
+      if (error) {
+        toast.error("Failed to add item to cart");
+        return;
+      }
+    } else if (isGuest) {
+      // For guests, use local storage cart
+      addToCart({
+        productName: item.name,
         price: item.price,
+        quantity: 1
       });
-
-    if (error) {
-      toast.error("Failed to add item to cart");
+    } else {
+      // Not logged in or guest
+      toast.error("Please login or continue as guest to add items to cart");
       return;
     }
 
@@ -117,6 +130,34 @@ const Menu = () => {
         >
           Our Menu
         </motion.h1>
+
+        {!session && !isGuest && (
+          <motion.div 
+            className="mb-8 p-4 bg-secondary/20 rounded-lg text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <p className="mb-3">Create an account to earn rewards with every purchase!</p>
+            <div className="flex justify-center gap-3">
+              <Button 
+                variant="default" 
+                onClick={() => {
+                  localStorage.setItem("isGuest", "true");
+                  window.location.reload();
+                }}
+              >
+                Continue as Guest
+              </Button>
+              <Button 
+                variant="secondary"
+                onClick={() => window.location.href = "/auth"}
+              >
+                Sign Up
+              </Button>
+            </div>
+          </motion.div>
+        )}
 
         <div className="flex justify-center mb-8">
           <Button
@@ -174,7 +215,7 @@ const Menu = () => {
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-base sm:text-lg font-bold">${item.price.toFixed(2)}</span>
                       <Button 
-                        onClick={() => addToCart(item)}
+                        onClick={() => addToCartHandler(item)}
                         size="sm"
                         className="transition-all duration-300 hover:scale-105"
                       >

@@ -1,11 +1,20 @@
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navigation from "./Navigation";
 import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const Header = () => {
   const session = useSession();
+  const { getValue, setValue } = useLocalStorage();
+  const isGuest = getValue("isGuest") === "true";
+
+  const continueAsGuest = () => {
+    setValue("isGuest", "true");
+    window.location.href = "/menu";
+  };
 
   return (
     <motion.header 
@@ -14,6 +23,14 @@ const Header = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
+      <div className="absolute inset-0 bg-black/50 z-0"></div>
+      <svg className="absolute top-0 left-0 w-full h-full z-10 opacity-30 pointer-events-none">
+        <filter id="grain">
+          <feTurbulence baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" type="fractalNoise"></feTurbulence>
+          <feColorMatrix type="saturate" values="0"></feColorMatrix>
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain)"></rect>
+      </svg>
       <iframe 
         className="absolute"
         style={{
@@ -55,15 +72,37 @@ const Header = () => {
               Explore Menu
             </Button>
           </Link>
-          <Link to={session ? "/rewards" : "/auth"}>
-            <Button 
-              size="lg"
-              variant="secondary"
-              className="hover:bg-secondary/90"
-            >
-              {session ? "View Rewards" : "Join Now"}
-            </Button>
-          </Link>
+          {!session && !isGuest ? (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link to="/auth">
+                <Button 
+                  size="lg"
+                  variant="secondary"
+                  className="hover:bg-secondary/90"
+                >
+                  Join for Rewards
+                </Button>
+              </Link>
+              <Button 
+                size="lg"
+                variant="outline"
+                className="text-white border-white hover:bg-white/20"
+                onClick={continueAsGuest}
+              >
+                Continue as Guest
+              </Button>
+            </div>
+          ) : (
+            <Link to={session ? "/rewards" : "/cart"}>
+              <Button 
+                size="lg"
+                variant="secondary"
+                className="hover:bg-secondary/90"
+              >
+                {session ? "View Rewards" : "View Cart"}
+              </Button>
+            </Link>
+          )}
         </motion.div>
       </motion.div>
       <motion.div 
