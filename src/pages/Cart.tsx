@@ -5,11 +5,12 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
-import Navigation from "@/components/Navigation";
-import { Trash2, LogIn } from "lucide-react";
+import { Trash2, LogIn, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGuestCart, useLocalStorage } from "@/hooks/useLocalStorage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import HamburgerMenu from "@/components/HamburgerMenu";
+import GuestCheckoutForm from "@/components/checkout/GuestCheckoutForm";
 
 const Cart = () => {
   const session = useSession();
@@ -24,6 +25,7 @@ const Cart = () => {
     clearCart: clearGuestCart,
     getCartTotal: getGuestCartTotal
   } = useGuestCart();
+  const [checkoutMode, setCheckoutMode] = React.useState(false);
 
   // Query for authenticated user cart
   const { data: cartItems, isLoading } = useQuery({
@@ -136,16 +138,8 @@ const Cart = () => {
       toast.success("Order completed successfully!");
       navigate('/profile');
     } else if (isGuest) {
-      // Guest checkout
-      if (!guestCart.length) {
-        toast.error("Your cart is empty");
-        return;
-      }
-      
-      // For guests, we just clear the cart and show success
-      clearGuestCart();
-      toast.success("Your order has been placed!");
-      navigate('/');
+      // Guest checkout - show the form
+      setCheckoutMode(true);
     }
   };
 
@@ -155,7 +149,11 @@ const Cart = () => {
   };
 
   if (isLoading && session) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-primary rounded-full"></div>
+      </div>
+    );
   }
 
   // Determine which cart to use
@@ -164,19 +162,40 @@ const Cart = () => {
     ? (cartItems?.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0) || 0)
     : getGuestCartTotal();
 
+  // If cart is empty, show empty state
+  if ((!items || items.length === 0) && !checkoutMode) {
+    return (
+      <div className="min-h-screen bg-background">
+        <HamburgerMenu />
+        <div className="container mx-auto px-4 py-24">
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <ShoppingCart className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h1 className="text-3xl font-bold mb-4">Your cart is empty</h1>
+            <p className="text-muted-foreground mb-8">Add some delicious items from our menu to get started!</p>
+            <Button onClick={() => navigate('/menu')}>Browse Menu</Button>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      <div className="container mx-auto px-4 py-8">
+      <HamburgerMenu />
+      <div className="container mx-auto px-4 pt-20 pb-20">
         <motion.h1 
           className="text-4xl font-bold mb-8 text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          Your Cart
+          {checkoutMode ? "Checkout" : "Your Cart"}
         </motion.h1>
         
-        {isGuest && (
+        {isGuest && !checkoutMode && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -196,93 +215,156 @@ const Cart = () => {
           </motion.div>
         )}
 
-        {(!items || items.length === 0) ? (
-          <p className="text-center text-muted-foreground">Your cart is empty</p>
-        ) : (
-          <div className="space-y-4">
-            {items.map((item: any) => (
+        {checkoutMode ? (
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3">
+              <GuestCheckoutForm total={total} />
+            </div>
+            
+            <div className="lg:col-span-2">
               <motion.div
-                key={item.id}
-                className="bg-card rounded-lg shadow p-4 flex items-center justify-between"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-card p-6 rounded-lg shadow-md border border-muted sticky top-24"
               >
-                <div>
-                  <h3 className="font-semibold">{item.product_name || item.productName}</h3>
-                  <p className="text-muted-foreground">${item.price} each</p>
+                <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+                <div className="space-y-3 mb-6">
+                  {items.map((item: any) => (
+                    <div key={item.id} className="flex justify-between items-center">
+                      <div>
+                        <span className="font-medium">{item.product_name || item.productName}</span>
+                        <div className="text-sm text-muted-foreground">Qty: {item.quantity}</div>
+                      </div>
+                      <span>${((item.price || 0) * item.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (session) {
-                          updateQuantityMutation.mutate({
-                            itemId: item.id,
-                            quantity: Math.max(1, item.quantity - 1)
-                          });
-                        } else {
-                          updateGuestQuantity(item.id, Math.max(1, item.quantity - 1));
-                        }
-                      }}
-                    >
-                      -
-                    </Button>
-                    <span>{item.quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (session) {
-                          updateQuantityMutation.mutate({
-                            itemId: item.id,
-                            quantity: item.quantity + 1
-                          });
-                        } else {
-                          updateGuestQuantity(item.id, item.quantity + 1);
-                        }
-                      }}
-                    >
-                      +
-                    </Button>
+                <div className="border-t border-muted pt-4">
+                  <div className="flex justify-between items-center font-bold">
+                    <span>Total:</span>
+                    <span>${total.toFixed(2)}</span>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => {
-                      if (session) {
-                        deleteItemMutation.mutate(item.id);
-                      } else {
-                        removeFromCart(item.id);
-                      }
-                    }}
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-6"
+                  onClick={() => setCheckoutMode(false)}
+                >
+                  Back to Cart
+                </Button>
+              </motion.div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="space-y-4">
+                {items.map((item: any) => (
+                  <motion.div
+                    key={item.id}
+                    className="bg-card rounded-lg shadow p-4 flex flex-wrap md:flex-nowrap items-center justify-between"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <div className="w-full md:w-auto mb-3 md:mb-0">
+                      <h3 className="font-semibold">{item.product_name || item.productName}</h3>
+                      <p className="text-muted-foreground">${item.price} each</p>
+                    </div>
+                    <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (session) {
+                              updateQuantityMutation.mutate({
+                                itemId: item.id,
+                                quantity: Math.max(1, item.quantity - 1)
+                              });
+                            } else {
+                              updateGuestQuantity(item.id, Math.max(1, item.quantity - 1));
+                            }
+                          }}
+                        >
+                          -
+                        </Button>
+                        <span className="w-6 text-center">{item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (session) {
+                              updateQuantityMutation.mutate({
+                                itemId: item.id,
+                                quantity: item.quantity + 1
+                              });
+                            } else {
+                              updateGuestQuantity(item.id, item.quantity + 1);
+                            }
+                          }}
+                        >
+                          +
+                        </Button>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => {
+                          if (session) {
+                            deleteItemMutation.mutate(item.id);
+                          } else {
+                            removeFromCart(item.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="lg:col-span-1">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-card p-6 rounded-lg shadow-md border border-muted sticky top-24"
+              >
+                <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax</span>
+                    <span>$0.00</span>
+                  </div>
+                </div>
+                <div className="border-t border-muted pt-4">
+                  <div className="flex justify-between items-center font-bold mb-6">
+                    <span>Total:</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                  
+                  {isGuest && (
+                    <div className="mb-4 p-3 bg-secondary/20 rounded text-sm text-muted-foreground">
+                      Note: As a guest, you won't earn rewards points with this purchase.
+                    </div>
+                  )}
+                  
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    onClick={handleCheckout}
+                  >
+                    {isGuest ? "Proceed to Checkout" : "Complete Order"}
                   </Button>
                 </div>
               </motion.div>
-            ))}
-            
-            <div className="mt-8 p-4 bg-card rounded-lg shadow">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-semibold">Total:</span>
-                <span className="text-lg font-bold">${total.toFixed(2)}</span>
-              </div>
-              
-              {isGuest && (
-                <div className="mb-4 p-3 bg-secondary/10 rounded text-sm text-muted-foreground">
-                  Note: As a guest, you won't earn rewards points with this purchase.
-                </div>
-              )}
-              
-              <Button 
-                className="w-full" 
-                size="lg"
-                onClick={handleCheckout}
-              >
-                Complete Order
-              </Button>
             </div>
           </div>
         )}

@@ -5,11 +5,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
-import Navigation from "@/components/Navigation";
 import { useState } from "react";
 import DrinkBuilder from "@/components/drink-builder/DrinkBuilder";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useGuestCart, useLocalStorage } from "@/hooks/useLocalStorage";
+import HamburgerMenu from "@/components/HamburgerMenu";
 
 const Menu = () => {
   const session = useSession();
@@ -121,7 +121,7 @@ const Menu = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
+      <HamburgerMenu />
       <div className="container mx-auto px-4 py-8 pt-20">
         <motion.h1 
           className="text-3xl md:text-4xl font-bold mb-8 text-center"
@@ -193,7 +193,7 @@ const Menu = () => {
               {filteredItems?.map((item: any) => (
                 <motion.div
                   key={item.id}
-                  className="bg-card rounded-lg shadow-lg overflow-hidden h-full"
+                  className="bg-card rounded-lg shadow-lg overflow-hidden h-full border border-muted hover:shadow-xl transition-all duration-300"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   whileHover={{ scale: 1.02 }}

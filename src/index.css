@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,25 +7,25 @@
 
 @layer base {
   :root {
-    --background: 0 20% 98%;
-    --foreground: 0 45% 13%;
+    --background: 20 33% 98%;
+    --foreground: 0 0% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 0 45% 13%;
-    --popover: 0 20% 98%;
-    --popover-foreground: 0 45% 13%;
-    --primary: 0 100% 25%;
-    --primary-foreground: 0 20% 98%;
-    --secondary: 0 23% 78%;
-    --secondary-foreground: 0 45% 13%;
-    --muted: 0 23% 88%;
-    --muted-foreground: 0 45% 13%;
-    --accent: 0 50% 19%;
-    --accent-foreground: 0 20% 98%;
+    --card-foreground: 0 0% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 12%;
+    --primary: 0 73% 25%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 19 30% 90%;
+    --secondary-foreground: 0 0% 12%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 19 69% 55%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 0 23% 78%;
-    --input: 0 23% 78%;
-    --ring: 0 100% 25%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 0 73% 25%;
     --radius: 0.75rem;
   }
 
@@ -35,17 +35,18 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
+    @apply text-foreground font-semibold;
   }
 }
 
 @layer components {
   .menu-card {
-    @apply relative overflow-hidden rounded-lg bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md;
+    @apply relative overflow-hidden rounded-lg bg-card p-6 shadow-md transition-all duration-300 hover:shadow-lg border border-muted;
   }
 
   .menu-image {
@@ -61,7 +62,7 @@
   }
 
   .badge {
-    @apply inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary;
+    @apply inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent;
   }
 
   .hero-section {
@@ -70,5 +71,33 @@
 
   .section-padding {
     @apply px-4 py-16 sm:px-6 lg:px-8;
+  }
+  
+  .hamburger-overlay {
+    @apply fixed inset-0 bg-black/80 backdrop-blur-sm z-40;
+  }
+  
+  .hamburger-menu {
+    @apply fixed top-0 right-0 h-full w-[300px] bg-background z-50 shadow-xl overflow-y-auto pb-20 transition-transform duration-300;
+  }
+  
+  .btn-hamburger {
+    @apply fixed z-50 top-4 right-4 bg-background shadow-md rounded-full p-3 flex items-center justify-center;
+  }
+  
+  .checkout-form {
+    @apply space-y-5 bg-card p-6 rounded-lg shadow-md border border-muted;
+  }
+  
+  .form-group {
+    @apply space-y-2;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-foreground;
+  }
+  
+  .form-input {
+    @apply w-full p-3 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/30;
   }
 }

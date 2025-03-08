@@ -1,10 +1,10 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import Navigation from "./Navigation";
 import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import HamburgerMenu from "./HamburgerMenu";
 
 const Header = () => {
   const session = useSession();
@@ -23,8 +23,8 @@ const Header = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
-      <div className="absolute inset-0 bg-black/50 z-0"></div>
-      <svg className="absolute top-0 left-0 w-full h-full z-10 opacity-30 pointer-events-none">
+      <div className="absolute inset-0 bg-black/60 z-0"></div>
+      <svg className="absolute top-0 left-0 w-full h-full z-10 opacity-20 pointer-events-none">
         <filter id="grain">
           <feTurbulence baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" type="fractalNoise"></feTurbulence>
           <feColorMatrix type="saturate" values="0"></feColorMatrix>
@@ -45,14 +45,14 @@ const Header = () => {
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
         allowFullScreen
       />
-      <Navigation />
+      <HamburgerMenu />
       <motion.div 
-        className="relative z-10 text-center"
+        className="relative z-10 text-center px-4"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.8 }}
       >
-        <h1 className="mb-6 text-7xl font-bold text-white sm:text-8xl lg:text-9xl">
+        <h1 className="mb-6 text-5xl sm:text-7xl font-bold text-white md:text-8xl lg:text-9xl text-shadow-lg">
           The Brew Barn
         </h1>
         <p className="mb-8 text-xl text-white/90">
@@ -67,7 +67,7 @@ const Header = () => {
           <Link to="/menu">
             <Button 
               size="lg"
-              className="bg-primary text-white hover:bg-primary/90"
+              className="bg-primary text-white hover:bg-primary/90 shadow-lg"
             >
               Explore Menu
             </Button>
@@ -78,7 +78,7 @@ const Header = () => {
                 <Button 
                   size="lg"
                   variant="secondary"
-                  className="hover:bg-secondary/90"
+                  className="hover:bg-secondary/90 shadow-lg"
                 >
                   Join for Rewards
                 </Button>
@@ -86,7 +86,7 @@ const Header = () => {
               <Button 
                 size="lg"
                 variant="outline"
-                className="text-white border-white hover:bg-white/20"
+                className="text-white border-white hover:bg-white/20 shadow-lg backdrop-blur-sm"
                 onClick={continueAsGuest}
               >
                 Continue as Guest
@@ -97,7 +97,7 @@ const Header = () => {
               <Button 
                 size="lg"
                 variant="secondary"
-                className="hover:bg-secondary/90"
+                className="hover:bg-secondary/90 shadow-lg"
               >
                 {session ? "View Rewards" : "View Cart"}
               </Button>
