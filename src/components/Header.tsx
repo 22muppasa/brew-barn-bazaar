@@ -3,20 +3,31 @@ import { Button } from "@/components/ui/button";
 import Navigation from "./Navigation";
 import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
-import SeasonalDecorations from "./SeasonalDecorations";
 
 const Header = () => {
   const session = useSession();
 
   return (
     <motion.header 
-      className="relative flex h-screen items-center justify-center overflow-hidden bg-accent"
+      className="relative flex h-screen items-center justify-center overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-accent to-accent/90" />
-      <SeasonalDecorations />
+      <iframe 
+        className="absolute"
+        style={{
+          top: "50%",
+          left: "50%",
+          width: "120%",
+          height: "120%",
+          transform: "translate(-50%, -50%) scale(1.2)",
+        }}
+        src="https://player.vimeo.com/video/1062622357?h=616a82d686&badge=0&autopause=0&player_id=0&app_id=58479&background=1&autoplay=1&loop=1&muted=1"
+        frameBorder="0"
+        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+        allowFullScreen
+      />
       <Navigation />
       <motion.div 
         className="relative z-10 text-center"
