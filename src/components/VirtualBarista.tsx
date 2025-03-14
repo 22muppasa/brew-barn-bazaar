@@ -8,6 +8,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, Drawer
 import { X, Coffee, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -18,10 +19,11 @@ const VirtualBarista = () => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Hi there! I\'m your virtual barista. Ask me anything about our menu or coffee recommendations!' }
+    { role: 'assistant', content: 'Hi there! I\'m your virtual barista. Ask me anything about our menu, or tell me what you\'re in the mood for. I can also offer personalized discounts based on your previous orders!' }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const session = useSession();
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -39,8 +41,14 @@ const VirtualBarista = () => {
     setIsLoading(true);
 
     try {
+      // Get user ID if authenticated
+      const userId = session?.user?.id || null;
+      
       const { data, error } = await supabase.functions.invoke('virtual-barista', {
-        body: { message: userMessage }
+        body: { 
+          message: userMessage,
+          userId: userId
+        }
       });
 
       if (error) throw error;
