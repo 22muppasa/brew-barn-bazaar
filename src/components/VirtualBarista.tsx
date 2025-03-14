@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { X, MessageSquare, Send } from "lucide-react";
+import { X, MessageSquare, Send, Coffee } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
@@ -24,12 +24,22 @@ const VirtualBarista = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const session = useSession();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Focus input when chat is opened
+    if (open && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,16 +82,22 @@ const VirtualBarista = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          className="fixed left-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center transition-transform duration-300 hover:scale-110"
-          size="icon"
-          variant="secondary"
+        <motion.div
+          initial={{ scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <MessageSquare className="h-6 w-6" />
-        </Button>
+          <Button 
+            className="fixed left-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center"
+            size="icon"
+            variant="secondary"
+          >
+            <Coffee className="h-6 w-6" />
+          </Button>
+        </motion.div>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[350px] h-[400px] flex flex-col p-0 ml-6 mb-20 shadow-lg"
+        className="w-[350px] h-[450px] flex flex-col p-0 ml-6 mb-20 shadow-lg rounded-xl"
         side="top"
         align="start"
         sideOffset={16}
@@ -91,21 +107,24 @@ const VirtualBarista = () => {
         <AnimatePresence>
           {open && (
             <motion.div 
-              className="w-full h-full flex flex-col"
+              className="w-full h-full flex flex-col rounded-xl overflow-hidden"
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
             >
-              <div className="flex justify-between items-center px-4 py-2 border-b">
-                <div className="font-semibold">Brew Barn Barista</div>
-                <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+              <div className="flex justify-between items-center px-4 py-3 border-b bg-secondary/20">
+                <div className="font-semibold flex items-center gap-2">
+                  <Coffee className="h-4 w-4" />
+                  <span>Brew Barn Barista</span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="h-8 w-8">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                <AnimatePresence>
+              <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-background/80">
+                <AnimatePresence initial={false}>
                   {messages.map((message, index) => (
                     <motion.div
                       key={index}
@@ -115,8 +134,8 @@ const VirtualBarista = () => {
                       transition={{ duration: 0.2 }}
                       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
                     >
-                      <Card className={`max-w-[75%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                        <CardContent className="p-2 text-sm">
+                      <Card className={`max-w-[80%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                        <CardContent className="p-3 text-sm">
                           <p className="break-words">{message.content}</p>
                         </CardContent>
                       </Card>
@@ -124,9 +143,13 @@ const VirtualBarista = () => {
                   ))}
                 </AnimatePresence>
                 {isLoading && (
-                  <div className="flex justify-start mb-3">
-                    <Card className="bg-muted max-w-[75%]">
-                      <CardContent className="p-2">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-start mb-3"
+                  >
+                    <Card className="bg-muted max-w-[80%]">
+                      <CardContent className="p-3">
                         <div className="flex space-x-2">
                           <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce"></div>
                           <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
@@ -134,14 +157,15 @@ const VirtualBarista = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  </div>
+                  </motion.div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
               
-              <form onSubmit={handleSubmit} className="p-3 border-t">
+              <form onSubmit={handleSubmit} className="p-3 border-t bg-background">
                 <div className="flex gap-2">
                   <Input
+                    ref={inputRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask about our menu..."
@@ -152,7 +176,7 @@ const VirtualBarista = () => {
                     type="submit" 
                     size="icon" 
                     disabled={isLoading || !input.trim()}
-                    className="transition-transform active:scale-95"
+                    className="transition-all active:scale-95"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
