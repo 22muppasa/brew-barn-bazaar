@@ -12,6 +12,7 @@ import Menu from "./pages/Menu";
 import Cart from "./pages/Cart";
 import Rewards from "./pages/Rewards";
 import Profile from "./pages/Profile";
+import VirtualBarista from "./components/VirtualBarista";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
               } 
             />
           </Routes>
+          <VirtualBarista />
         </BrowserRouter>
       </TooltipProvider>
     </SessionContextProvider>

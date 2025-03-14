@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer";
-import { X, Coffee, Send } from "lucide-react";
+import { X, MessageSquare, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
@@ -41,7 +40,6 @@ const VirtualBarista = () => {
     setIsLoading(true);
 
     try {
-      // Get user ID if authenticated
       const userId = session?.user?.id || null;
       
       const { data, error } = await supabase.functions.invoke('virtual-barista', {
@@ -76,8 +74,9 @@ const VirtualBarista = () => {
         <Button 
           className="fixed right-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center"
           size="icon"
+          variant="secondary"
         >
-          <Coffee className="h-6 w-6" />
+          <MessageSquare className="h-6 w-6" />
         </Button>
       </DrawerTrigger>
       <DrawerContent className="h-[85vh] flex flex-col">

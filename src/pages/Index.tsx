@@ -8,6 +8,7 @@ import { Instagram, Facebook, Twitter } from "lucide-react";
 import ScrollToTop from "@/components/ScrollToTop";
 import Header from "@/components/Header";
 import FeaturedMenu from "@/components/FeaturedMenu";
+import VirtualBarista from "@/components/VirtualBarista";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
