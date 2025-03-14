@@ -10,6 +10,7 @@ import DrinkBuilder from "@/components/drink-builder/DrinkBuilder";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useGuestCart, useLocalStorage } from "@/hooks/useLocalStorage";
 import HamburgerMenu from "@/components/HamburgerMenu";
+import VirtualBarista from "@/components/VirtualBarista";
 
 const Menu = () => {
   const session = useSession();
@@ -229,6 +230,9 @@ const Menu = () => {
           </div>
         )}
       </div>
+      
+      {/* Add the Virtual Barista component */}
+      <VirtualBarista />
     </div>
   );
 };
