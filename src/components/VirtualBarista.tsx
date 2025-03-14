@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { X, MessageSquare, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -70,8 +70,8 @@ const VirtualBarista = () => {
   };
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button 
           className="fixed left-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center"
           size="icon"
@@ -79,17 +79,17 @@ const VirtualBarista = () => {
         >
           <MessageSquare className="h-6 w-6" />
         </Button>
-      </DrawerTrigger>
-      <DrawerContent className="h-[65vh] max-h-[500px] max-w-[350px] mx-auto flex flex-col">
-        <div className="flex justify-between items-center px-4 py-2">
-          <DrawerHeader className="p-0">
-            <DrawerTitle>Brew Barn Barista</DrawerTitle>
-          </DrawerHeader>
-          <DrawerClose asChild>
-            <Button variant="ghost" size="icon">
-              <X className="h-4 w-4" />
-            </Button>
-          </DrawerClose>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-[350px] h-[400px] flex flex-col p-0 ml-6 mb-20 shadow-lg"
+        side="top"
+        align="start"
+      >
+        <div className="flex justify-between items-center px-4 py-2 border-b">
+          <div className="font-semibold">Brew Barn Barista</div>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
         
         <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -144,8 +144,8 @@ const VirtualBarista = () => {
             </Button>
           </div>
         </form>
-      </DrawerContent>
-    </Drawer>
+      </PopoverContent>
+    </Popover>
   );
 };
 
