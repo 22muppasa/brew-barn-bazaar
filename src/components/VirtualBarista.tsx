@@ -73,7 +73,7 @@ const VirtualBarista = () => {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button 
-          className="fixed left-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center"
+          className="fixed left-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center transition-transform duration-300 hover:scale-110"
           size="icon"
           variant="secondary"
         >
@@ -84,66 +84,83 @@ const VirtualBarista = () => {
         className="w-[350px] h-[400px] flex flex-col p-0 ml-6 mb-20 shadow-lg"
         side="top"
         align="start"
+        sideOffset={16}
+        alignOffset={-8}
+        forceMount
       >
-        <div className="flex justify-between items-center px-4 py-2 border-b">
-          <div className="font-semibold">Brew Barn Barista</div>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-3 space-y-3">
-          <AnimatePresence>
-            {messages.map((message, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
-              >
-                <Card className={`max-w-[75%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                  <CardContent className="p-2 text-sm">
-                    <p className="break-words">{message.content}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          {isLoading && (
-            <div className="flex justify-start mb-3">
-              <Card className="bg-muted max-w-[75%]">
-                <CardContent className="p-2">
-                  <div className="flex space-x-2">
-                    <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce"></div>
-                    <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-3 border-t">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about our menu..."
-              disabled={isLoading}
-              className="flex-1 text-sm"
-            />
-            <Button 
-              type="submit" 
-              size="icon" 
-              disabled={isLoading || !input.trim()}
+        <AnimatePresence>
+          {open && (
+            <motion.div 
+              className="w-full h-full flex flex-col"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
             >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </form>
+              <div className="flex justify-between items-center px-4 py-2 border-b">
+                <div className="font-semibold">Brew Barn Barista</div>
+                <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                <AnimatePresence>
+                  {messages.map((message, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
+                    >
+                      <Card className={`max-w-[75%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                        <CardContent className="p-2 text-sm">
+                          <p className="break-words">{message.content}</p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                {isLoading && (
+                  <div className="flex justify-start mb-3">
+                    <Card className="bg-muted max-w-[75%]">
+                      <CardContent className="p-2">
+                        <div className="flex space-x-2">
+                          <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce"></div>
+                          <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+              
+              <form onSubmit={handleSubmit} className="p-3 border-t">
+                <div className="flex gap-2">
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask about our menu..."
+                    disabled={isLoading}
+                    className="flex-1 text-sm"
+                  />
+                  <Button 
+                    type="submit" 
+                    size="icon" 
+                    disabled={isLoading || !input.trim()}
+                    className="transition-transform active:scale-95"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </PopoverContent>
     </Popover>
   );
