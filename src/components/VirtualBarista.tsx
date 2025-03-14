@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -72,7 +73,7 @@ const VirtualBarista = () => {
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button 
-          className="fixed right-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center"
+          className="fixed left-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center"
           size="icon"
           variant="secondary"
         >
