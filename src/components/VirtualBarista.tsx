@@ -80,7 +80,7 @@ const VirtualBarista = () => {
           <MessageSquare className="h-6 w-6" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="h-[65vh] max-h-[500px] flex flex-col">
+      <DrawerContent className="h-[65vh] max-h-[500px] max-w-[350px] mx-auto flex flex-col">
         <div className="flex justify-between items-center px-4 py-2">
           <DrawerHeader className="p-0">
             <DrawerTitle>Brew Barn Barista</DrawerTitle>
