@@ -41,6 +41,14 @@ When mentioning a discount or special offer:
 - Add a unique code they can use at checkout (e.g., BREW15LATTE)
 - Mention any expiration (valid for one week)
 
+DISCOUNT CODE FUNCTIONALITY:
+- The user may have active discount codes stored in the system
+- When a user asks about discounts, coupons, or "what are my active codes", provide a list of their currently active discount codes
+- If providing a new discount code, make sure the code is UNIQUE and follows this format: [ITEM][PERCENTAGE] (e.g., LATTE15 for a 15% off latte)
+- When you provide a discount code, it will be automatically added to the user's active codes
+- For users with order history, provide personalized codes based on what they frequently order
+- For new users, provide general welcome discount codes
+
 Always maintain a warm, welcoming tone while being informative and helpful.`;
 
 serve(async (req) => {
@@ -54,12 +62,13 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
 
-    const { message, userId } = await req.json();
+    const { message, userId, activeCodes = [] } = await req.json();
     if (!message) {
       throw new Error('No message provided');
     }
 
     console.log('Received request with message:', message, 'userId:', userId);
+    console.log('Active discount codes:', activeCodes);
 
     // Get user's order history if they are logged in
     let orderHistory = [];
@@ -119,6 +128,24 @@ serve(async (req) => {
       orderHistoryPrompt = `\nThis is a guest user. Offer general recommendations and a welcome discount.`;
     }
 
+    // Add active discount codes to the system prompt
+    let activeCodesPrompt = '';
+    if (activeCodes.length > 0) {
+      activeCodesPrompt = `\n\nThe customer currently has the following active discount codes:\n`;
+      activeCodes.forEach(code => {
+        const expiryDate = new Date(code.expiry);
+        activeCodesPrompt += `- ${code.code}: ${code.percentage}% off, valid until ${expiryDate.toLocaleDateString()}\n`;
+      });
+      
+      // If user asks about their discount codes, make sure to provide this information
+      if (message.toLowerCase().includes('discount') || 
+          message.toLowerCase().includes('coupon') || 
+          message.toLowerCase().includes('code') || 
+          message.toLowerCase().includes('offer')) {
+        activeCodesPrompt += `\nIf the user is asking about their discount codes, provide this list of active codes.`;
+      }
+    }
+
     console.log('Sending request to OpenAI with order history context added');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -132,7 +159,7 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: SYSTEM_PROMPT + orderHistoryPrompt 
+            content: SYSTEM_PROMPT + orderHistoryPrompt + activeCodesPrompt
           },
           { role: 'user', content: message }
         ],
@@ -155,8 +182,35 @@ serve(async (req) => {
     }
 
     const reply = data.choices[0].message.content;
+    
+    // Check if a discount code is mentioned in the reply
+    const discountRegex = /[A-Z0-9]{4,15}/g;
+    const percentageRegex = /(\d{1,2})%/;
+    const discountMatch = reply.match(discountRegex);
+    const percentageMatch = reply.match(percentageRegex);
+    
+    let responseData: any = { reply };
+    
+    if (discountMatch && percentageMatch && 
+        !activeCodes.some(code => code.code === discountMatch[0])) {
+      // Check if this looks like a discount code (should be capitalized and not a normal word)
+      const potentialCode = discountMatch[0];
+      if (potentialCode === potentialCode.toUpperCase() && 
+          reply.toLowerCase().includes('discount') || 
+          reply.toLowerCase().includes('off') || 
+          reply.toLowerCase().includes('code')) {
+        
+        const percentage = parseInt(percentageMatch[1], 10);
+        if (percentage > 0 && percentage <= 50) { // Reasonable discount range
+          responseData.discountCode = potentialCode;
+          responseData.discountPercentage = percentage;
+          responseData.expiryDays = 7; // Default to 1 week validity
+          console.log(`Detected new discount code: ${potentialCode} for ${percentage}% off`);
+        }
+      }
+    }
 
-    return new Response(JSON.stringify({ reply }), {
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
