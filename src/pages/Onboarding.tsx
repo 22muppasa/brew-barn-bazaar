@@ -435,7 +435,7 @@ const OnboardingPage = () => {
                   </Button>
                 </motion.div>
               ) : (
-                <div className="w-12 h-12"></div> {/* Spacer for alignment */}
+                <div className="w-12 h-12"></div> /* Spacer for alignment */
               )}
               
               {/* Dots for carousel-like pagination */}
