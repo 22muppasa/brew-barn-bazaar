@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -56,6 +57,7 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
             .from('orders')
             .select('id')
             .eq('user_id', session.user.id)
+            .then(result => result.data?.map(order => order.id) || [])
         );
       
       if (error) throw error;
@@ -96,7 +98,6 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
           .update({
             rating,
             comment,
-            updated_at: new Date().toISOString(),
           })
           .eq('id', userReview.id);
         

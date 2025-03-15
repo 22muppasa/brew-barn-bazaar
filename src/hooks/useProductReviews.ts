@@ -33,16 +33,20 @@ export const useProductReviews = (productName: string) => {
     queryFn: async () => {
       if (!session?.user?.id) return false;
       
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('user_id', session.user.id);
+        
+      const orderIds = orders?.map(order => order.id) || [];
+      
+      if (orderIds.length === 0) return false;
+      
       const { data, error } = await supabase
         .from('order_items')
         .select('*')
         .eq('product_name', productName)
-        .in('order_id', 
-          supabase
-            .from('orders')
-            .select('id')
-            .eq('user_id', session.user.id)
-        );
+        .in('order_id', orderIds);
       
       if (error) throw error;
       return data && data.length > 0;
@@ -81,7 +85,6 @@ export const useProductReviews = (productName: string) => {
           .update({
             rating,
             comment,
-            // No need to update created_at as we already have it
           })
           .eq('id', userReview.id);
         
