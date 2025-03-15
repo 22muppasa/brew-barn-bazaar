@@ -18,8 +18,17 @@ import {
   FormLabel,
   FormMessage 
 } from "@/components/ui/form";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -36,6 +45,8 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
   
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -61,6 +72,18 @@ const OnboardingPage = () => {
     
     checkSession();
   }, [navigate]);
+
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const onSubmit = async (values: ProfileFormValues) => {
     try {
@@ -107,31 +130,22 @@ const OnboardingPage = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <HamburgerMenu />
-      
-      <motion.div 
-        className="w-full max-w-md"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="bg-card rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-center mb-6">
-            Complete Your Profile
-          </h1>
-          <p className="text-muted-foreground text-center mb-6">
-            Please provide your details to complete the registration process.
-          </p>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+  const renderFormStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <>
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold text-center">
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <FormField
                 control={form.control}
                 name="fullName"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="mb-4">
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
                       <Input {...field} />
@@ -143,10 +157,35 @@ const OnboardingPage = () => {
               
               <FormField
                 control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="tel" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </>
+        );
+      case 2:
+        return (
+          <>
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold text-center">
+                Address Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
                 name="address"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
+                  <FormItem className="mb-4">
+                    <FormLabel>Street Address</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -160,7 +199,7 @@ const OnboardingPage = () => {
                   control={form.control}
                   name="city"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="mb-4">
                       <FormLabel>City</FormLabel>
                       <FormControl>
                         <Input {...field} />
@@ -174,7 +213,7 @@ const OnboardingPage = () => {
                   control={form.control}
                   name="state"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="mb-4">
                       <FormLabel>State</FormLabel>
                       <FormControl>
                         <Input {...field} />
@@ -185,75 +224,172 @@ const OnboardingPage = () => {
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="zipCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Zip Code</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="tel" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="birthdate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Birthdate (Optional)</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="date" />
-                      </FormControl>
-                      <FormDescription>
-                        For birthday rewards
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="favoriteProduct"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Favorite Drink (Optional)</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="zipCode"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Zip Code</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </>
+        );
+      case 3:
+        return (
+          <>
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold text-center">
+                Personal Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="birthdate"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Birthdate (Optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="date" />
+                    </FormControl>
+                    <FormDescription>
+                      For birthday rewards
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
-              <Button type="submit" className="w-full">
-                Complete Profile
-              </Button>
-            </form>
-          </Form>
-        </div>
+              <FormField
+                control={form.control}
+                name="favoriteProduct"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Favorite Drink (Optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </>
+        );
+      case 4:
+        return (
+          <>
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold text-center">
+                Review & Complete
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-medium">Personal Information</h3>
+                  <p>Full Name: {form.getValues("fullName")}</p>
+                  <p>Phone: {form.getValues("phoneNumber")}</p>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium">Address</h3>
+                  <p>{form.getValues("address")}</p>
+                  <p>{form.getValues("city")}, {form.getValues("state")} {form.getValues("zipCode")}</p>
+                </div>
+                
+                {form.getValues("birthdate") && (
+                  <div>
+                    <h3 className="font-medium">Birthdate</h3>
+                    <p>{form.getValues("birthdate")}</p>
+                  </div>
+                )}
+                
+                {form.getValues("favoriteProduct") && (
+                  <div>
+                    <h3 className="font-medium">Favorite Drink</h3>
+                    <p>{form.getValues("favoriteProduct")}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <HamburgerMenu />
+      
+      <motion.div 
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <Card className="w-full max-w-md h-[500px] flex flex-col">
+              {renderFormStep()}
+              
+              <CardFooter className="flex flex-col space-y-4 mt-auto">
+                <Pagination>
+                  <PaginationContent>
+                    {Array.from({ length: totalSteps }).map((_, index) => (
+                      <PaginationItem key={index}>
+                        <PaginationLink 
+                          isActive={currentStep === index + 1}
+                          onClick={() => setCurrentStep(index + 1)}
+                        >
+                          {index + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                  </PaginationContent>
+                </Pagination>
+                
+                <div className="flex justify-between w-full">
+                  {currentStep > 1 ? (
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={prevStep}
+                    >
+                      Previous
+                    </Button>
+                  ) : (
+                    <div></div>
+                  )}
+                  
+                  {currentStep < totalSteps ? (
+                    <Button 
+                      type="button" 
+                      onClick={nextStep}
+                    >
+                      Next
+                    </Button>
+                  ) : (
+                    <Button 
+                      type="submit"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Save & Complete
+                    </Button>
+                  )}
+                </div>
+              </CardFooter>
+            </Card>
+          </form>
+        </Form>
       </motion.div>
     </div>
   );
