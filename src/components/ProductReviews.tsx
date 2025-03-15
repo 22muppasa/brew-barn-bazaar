@@ -48,17 +48,23 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
     queryFn: async () => {
       if (!session?.user?.id) return false;
       
+      // First get all the user's order IDs
+      const { data: orders, error: orderError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('user_id', session.user.id);
+      
+      if (orderError) throw orderError;
+      const orderIds = orders?.map(order => order.id) || [];
+      
+      if (orderIds.length === 0) return false;
+      
+      // Then check if any of those orders contain this product
       const { data, error } = await supabase
         .from('order_items')
         .select('*')
         .eq('product_name', productName)
-        .in('order_id', 
-          supabase
-            .from('orders')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .then(result => result.data?.map(order => order.id) || [])
-        );
+        .in('order_id', orderIds);
       
       if (error) throw error;
       return data && data.length > 0;

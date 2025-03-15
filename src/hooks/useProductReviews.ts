@@ -33,15 +33,18 @@ export const useProductReviews = (productName: string) => {
     queryFn: async () => {
       if (!session?.user?.id) return false;
       
-      const { data: orders } = await supabase
+      // First get all the user's order IDs
+      const { data: orders, error: orderError } = await supabase
         .from('orders')
         .select('id')
         .eq('user_id', session.user.id);
         
+      if (orderError) throw orderError;
       const orderIds = orders?.map(order => order.id) || [];
       
       if (orderIds.length === 0) return false;
       
+      // Then check if any of those orders contain this product
       const { data, error } = await supabase
         .from('order_items')
         .select('*')
