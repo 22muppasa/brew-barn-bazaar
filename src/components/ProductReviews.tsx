@@ -1,53 +1,62 @@
+import { useState } from "react";
+import { useSession } from "@supabase/auth-helpers-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { StarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { format } from "date-fns";
 
-import { useState } from 'react';
-import { useSession } from '@supabase/auth-helpers-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Star, StarHalf } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-
-interface ReviewsProps {
+interface ProductReviewsProps {
   productName: string;
 }
 
-export default function ProductReviews({ productName }: ReviewsProps) {
+const ProductReviews = ({ productName }: ProductReviewsProps) => {
   const session = useSession();
   const queryClient = useQueryClient();
-  const [rating, setRating] = useState<number>(5);
-  const [comment, setComment] = useState<string>('');
-  const [showForm, setShowForm] = useState<boolean>(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch reviews for this product
-  const { data: reviews, isLoading } = useQuery({
+  // Get reviews for this product
+  const { data: reviews, isLoading: isLoadingReviews } = useQuery({
     queryKey: ['product-reviews', productName],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('product_reviews')
         .select(`
           *,
-          profiles(full_name)
+          profiles (full_name, email)
         `)
         .eq('product_name', productName)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
   // Check if user has purchased this product
-  const { data: hasPurchased } = useQuery({
+  const { data: hasPurchased, isLoading: isCheckingPurchase } = useQuery({
     queryKey: ['has-purchased', productName, session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return false;
-
+      
       const { data, error } = await supabase
         .from('order_items')
         .select('*')
         .eq('product_name', productName)
-        .in('order_id', supabase.from('orders').select('id').eq('user_id', session.user.id));
+        .in('order_id', 
+          supabase
+            .from('orders')
+            .select('id')
+            .eq('user_id', session.user.id)
+        );
       
       if (error) throw error;
       return data && data.length > 0;
@@ -56,11 +65,11 @@ export default function ProductReviews({ productName }: ReviewsProps) {
   });
 
   // Check if user has already reviewed this product
-  const { data: userReview } = useQuery({
+  const { data: userReview, isLoading: isCheckingReview } = useQuery({
     queryKey: ['user-review', productName, session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return null;
-
+      
       const { data, error } = await supabase
         .from('product_reviews')
         .select('*')
@@ -68,198 +77,278 @@ export default function ProductReviews({ productName }: ReviewsProps) {
         .eq('user_id', session.user.id)
         .single();
       
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "No rows returned" which is expected
+      if (error && error.code !== 'PGRST116') throw error;
       return data;
     },
     enabled: !!session?.user?.id,
   });
 
-  // Submit review mutation
-  const submitReview = useMutation({
+  // Submit a review
+  const submitReviewMutation = useMutation({
     mutationFn: async () => {
-      if (!session?.user?.id) throw new Error('You must be logged in to leave a review');
-      if (!hasPurchased) throw new Error('You can only review products you have purchased');
+      if (!session?.user?.id) throw new Error("You must be logged in to leave a review");
+      if (rating === 0) throw new Error("Please select a rating");
       
-      const reviewData = {
-        user_id: session.user.id,
-        product_name: productName,
-        rating,
-        comment: comment.trim() || null,
-      };
-
       if (userReview) {
         // Update existing review
         const { error } = await supabase
           .from('product_reviews')
-          .update(reviewData)
+          .update({
+            rating,
+            comment,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', userReview.id);
-
+        
         if (error) throw error;
-        return 'updated';
+        return "Review updated successfully";
       } else {
         // Create new review
         const { error } = await supabase
           .from('product_reviews')
-          .insert(reviewData);
-
+          .insert({
+            user_id: session.user.id,
+            product_name: productName,
+            rating,
+            comment,
+          });
+        
         if (error) throw error;
-        return 'created';
+        return "Review submitted successfully";
       }
     },
-    onSuccess: (result) => {
-      toast.success(`Review ${result} successfully!`);
-      setShowForm(false);
+    onSuccess: (message) => {
+      toast.success(message);
+      setComment("");
+      setRating(0);
+      setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ['product-reviews', productName] });
       queryClient.invalidateQueries({ queryKey: ['user-review', productName, session?.user?.id] });
-      // Also invalidate product ratings in Menu.tsx
-      queryClient.invalidateQueries({ queryKey: ['product-ratings'] });
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to submit review");
     }
   });
 
-  // Calculate average rating
-  const averageRating = reviews?.length 
-    ? (reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length).toFixed(1)
-    : 'No ratings yet';
+  // Delete a review
+  const deleteReviewMutation = useMutation({
+    mutationFn: async () => {
+      if (!userReview || !session?.user?.id) throw new Error("No review to delete");
+      
+      const { error } = await supabase
+        .from('product_reviews')
+        .delete()
+        .eq('id', userReview.id);
+      
+      if (error) throw error;
+      return "Review deleted successfully";
+    },
+    onSuccess: (message) => {
+      toast.success(message);
+      setComment("");
+      setRating(0);
+      setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ['product-reviews', productName] });
+      queryClient.invalidateQueries({ queryKey: ['user-review', productName, session?.user?.id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete review");
+    }
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    submitReview.mutate();
+  // Start editing user's review
+  const handleEditReview = () => {
+    if (userReview) {
+      setRating(userReview.rating);
+      setComment(userReview.comment || "");
+      setIsEditing(true);
+    }
   };
 
-  const StarRating = ({ value, onChange }: { value: number; onChange?: (rating: number) => void }) => {
-    const stars = [1, 2, 3, 4, 5];
-    
+  // Calculate average rating
+  const averageRating = reviews && reviews.length > 0
+    ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+    : 0;
+
+  // Format the average rating to one decimal place
+  const formattedRating = averageRating.toFixed(1);
+
+  // Loading state
+  if (isLoadingReviews || isCheckingPurchase || isCheckingReview) {
     return (
-      <div className="flex items-center space-x-1">
-        {stars.map((star) => (
-          <button
-            key={star}
-            type="button"
-            onClick={() => onChange && onChange(star)}
-            className={onChange ? "cursor-pointer focus:outline-none" : "cursor-default"}
-            disabled={!onChange}
-          >
-            <Star
-              className={`h-5 w-5 ${
-                star <= value ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-              }`}
-            />
-          </button>
-        ))}
+      <div className="py-4 text-center text-muted-foreground">
+        Loading reviews...
       </div>
     );
-  };
-
-  const canReview = !!session && hasPurchased && !isLoading;
-
-  if (isLoading) {
-    return <div className="p-4 text-center">Loading reviews...</div>;
   }
 
   return (
-    <div className="mt-6 p-4 bg-background rounded-lg border border-border">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Customer Reviews</h3>
-        <div className="flex items-center space-x-2">
-          <div className="text-xl font-bold">{averageRating}</div>
-          {typeof averageRating === 'string' ? (
-            <div className="text-muted-foreground text-sm">{averageRating}</div>
-          ) : (
-            <StarRating value={parseFloat(averageRating as string)} />
-          )}
-          <span className="text-sm text-muted-foreground">({reviews?.length || 0} reviews)</span>
+    <div className="space-y-6 py-4">
+      <div className="flex flex-col items-center space-y-2">
+        <h3 className="text-xl font-semibold">Customer Reviews</h3>
+        <div className="flex items-center gap-2">
+          <div className="flex">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <StarIcon
+                key={star}
+                className={cn(
+                  "h-5 w-5",
+                  star <= Math.round(averageRating)
+                    ? "text-yellow-400 fill-yellow-400"
+                    : "text-gray-300"
+                )}
+              />
+            ))}
+          </div>
+          <span className="font-medium">{formattedRating}</span>
+          <span className="text-muted-foreground">({reviews?.length || 0} reviews)</span>
         </div>
       </div>
 
-      {canReview && !showForm && (
-        <div className="mb-4">
-          {userReview ? (
-            <Button variant="outline" onClick={() => {
-              setRating(userReview.rating);
-              setComment(userReview.comment || '');
-              setShowForm(true);
-            }}>
-              Edit Your Review
-            </Button>
+      {session?.user && (
+        <div className="border rounded-lg p-4 bg-card">
+          {!isEditing && userReview ? (
+            <div className="space-y-2">
+              <p className="font-medium">Your Review</p>
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <StarIcon
+                    key={star}
+                    className={cn(
+                      "h-5 w-5",
+                      star <= userReview.rating
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    )}
+                  />
+                ))}
+              </div>
+              <p className="text-sm">{userReview.comment || "No comment provided."}</p>
+              <div className="flex gap-2 pt-2">
+                <Button size="sm" variant="outline" onClick={handleEditReview}>
+                  Edit Review
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="destructive" 
+                  onClick={() => deleteReviewMutation.mutate()}
+                  disabled={deleteReviewMutation.isPending}
+                >
+                  Delete Review
+                </Button>
+              </div>
+            </div>
+          ) : hasPurchased || userReview ? (
+            <div className="space-y-4">
+              <p className="font-medium">
+                {userReview ? "Edit Your Review" : "Write a Review"}
+              </p>
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <StarIcon
+                    key={star}
+                    className={cn(
+                      "h-6 w-6 cursor-pointer transition-colors",
+                      star <= (hoverRating || rating)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    )}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                  />
+                ))}
+              </div>
+              <Textarea
+                placeholder="Share your thoughts about this product (optional)"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="min-h-[100px]"
+              />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => submitReviewMutation.mutate()}
+                  disabled={submitReviewMutation.isPending || rating === 0}
+                >
+                  {userReview ? "Update Review" : "Submit Review"}
+                </Button>
+                {isEditing && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditing(false);
+                      setRating(0);
+                      setComment("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
+            </div>
           ) : (
-            <Button onClick={() => setShowForm(true)}>Write a Review</Button>
+            <p className="text-center text-muted-foreground py-2">
+              Purchase this item to leave a review
+            </p>
           )}
         </div>
       )}
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded-lg">
-          <h4 className="font-medium mb-2">
-            {userReview ? 'Edit Your Review' : 'Write a Review'}
-          </h4>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Your Rating</label>
-            <StarRating value={rating} onChange={setRating} />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Your Review (Optional)</label>
-            <Textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your experience with this product..."
-              className="w-full"
-              rows={3}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button type="submit" disabled={submitReview.isPending}>
-              {submitReview.isPending ? 'Submitting...' : userReview ? 'Update Review' : 'Submit Review'}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      )}
-
-      {!reviews?.length ? (
-        <p className="text-center text-muted-foreground py-4">No reviews yet.</p>
-      ) : (
-        <div className="divide-y">
-          {reviews.map((review: any) => (
-            <div key={review.id} className="py-4">
+      <div className="space-y-4">
+        <AnimatePresence>
+          {reviews?.map((review: any) => (
+            <motion.div
+              key={review.id}
+              className="border rounded-lg p-4 bg-card"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
               <div className="flex justify-between items-start">
-                <div>
-                  <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
+                  <Avatar>
+                    <AvatarFallback>
+                      {review.profiles?.full_name?.[0] || review.profiles?.email?.[0] || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
                     <p className="font-medium">
-                      {review.profiles?.full_name || 'Anonymous'}
+                      {review.profiles?.full_name || "Anonymous"}
                     </p>
-                    <StarRating value={review.rating} />
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon
+                          key={star}
+                          className={cn(
+                            "h-4 w-4",
+                            star <= review.rating
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300"
+                          )}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(review.created_at).toLocaleDateString()}
-                  </p>
                 </div>
-                {session?.user?.id === review.user_id && !showForm && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={() => {
-                      setRating(review.rating);
-                      setComment(review.comment || '');
-                      setShowForm(true);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                )}
+                <span className="text-xs text-muted-foreground">
+                  {format(new Date(review.created_at), "MMM d, yyyy")}
+                </span>
               </div>
               {review.comment && (
                 <p className="mt-2 text-sm">{review.comment}</p>
               )}
-            </div>
+            </motion.div>
           ))}
-        </div>
-      )}
+        </AnimatePresence>
+        
+        {reviews?.length === 0 && (
+          <p className="text-center text-muted-foreground py-4">
+            No reviews yet. Be the first to review this product!
+          </p>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default ProductReviews;

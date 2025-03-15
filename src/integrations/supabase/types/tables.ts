@@ -40,13 +40,13 @@ export type Profile = {
   email: string | null;
   full_name: string | null;
   created_at: string;
-  phone_number?: string | null;
-  address?: string | null;
-  city?: string | null;
-  state?: string | null;
-  zip_code?: string | null;
-  birthdate?: string | null;
-  favorite_product?: string | null;
+  phone_number: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  birthdate: string | null;
+  favorite_product: string | null;
 }
 
 export type Reward = {
@@ -82,5 +82,4 @@ export type ProductReview = {
   rating: number;
   comment: string | null;
   created_at: string;
-  updated_at: string;
 }

@@ -54,7 +54,7 @@ export interface Database {
       };
       product_reviews: {
         Row: ProductReview;
-        Insert: Omit<ProductReview, 'id' | 'created_at' | 'updated_at'> & { id?: string; created_at?: string; updated_at?: string };
+        Insert: Omit<ProductReview, 'id' | 'created_at'> & { id?: string; created_at?: string };
         Update: Partial<ProductReview>;
       };
     };

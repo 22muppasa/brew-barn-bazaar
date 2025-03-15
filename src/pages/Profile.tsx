@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,15 +69,7 @@ const Profile = () => {
       
       if (profileError) throw profileError;
       
-      // Get user metadata for additional profile information
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) throw userError;
-      
-      return {
-        ...profileData,
-        ...user?.user_metadata
-      };
+      return profileData;
     },
   });
 
