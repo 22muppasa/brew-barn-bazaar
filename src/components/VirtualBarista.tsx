@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { X, MessageSquare, Send, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
+import Draggable from 'react-draggable';
 
 interface Message {
   role: 'user' | 'assistant' | 'notification';
@@ -51,6 +51,20 @@ const VirtualBarista = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const session = useSession();
   const [hasShownDeal, setHasShownDeal] = useState(false);
+  
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const nodeRef = useRef(null);
+
+  useEffect(() => {
+    const savedPosition = localStorage.getItem('chatPosition');
+    if (savedPosition) {
+      try {
+        setPosition(JSON.parse(savedPosition));
+      } catch (e) {
+        console.error('Error parsing saved position:', e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -59,12 +73,10 @@ const VirtualBarista = () => {
   }, [messages]);
 
   useEffect(() => {
-    // Load active discount codes from local storage
     const savedCodes = localStorage.getItem('activeCodes');
     if (savedCodes) {
       try {
         const parsedCodes = JSON.parse(savedCodes);
-        // Filter out expired codes
         const validCodes = parsedCodes.filter((code: {expiry: string}) => 
           new Date(code.expiry) > new Date()
         ).map((code: {expiry: string, code: string, percentage: number}) => ({
@@ -79,7 +91,6 @@ const VirtualBarista = () => {
   }, []);
 
   useEffect(() => {
-    // Save active codes to local storage whenever they change
     localStorage.setItem('activeCodes', JSON.stringify(activeCodes.map(code => ({
       ...code,
       expiry: code.expiry.toISOString()
@@ -87,7 +98,6 @@ const VirtualBarista = () => {
   }, [activeCodes]);
 
   useEffect(() => {
-    // Show a random deal notification when chat is opened (with 30% probability)
     if (open && !hasShownDeal && messages.length <= 2 && Math.random() < 0.3) {
       setTimeout(() => {
         const randomDeal = specialDeals[Math.floor(Math.random() * specialDeals.length)];
@@ -105,7 +115,6 @@ const VirtualBarista = () => {
           }
         ]);
         
-        // Add to active codes
         setActiveCodes(prev => [
           ...prev, 
           {
@@ -149,15 +158,13 @@ const VirtualBarista = () => {
       if (data?.reply) {
         const newMessage: Message = { role: 'assistant', content: data.reply };
         
-        // Check if the AI provided a discount code
         if (data.discountCode) {
           newMessage.discountCode = data.discountCode;
           newMessage.discountPercentage = data.discountPercentage;
           const expiryDate = new Date();
-          expiryDate.setDate(expiryDate.getDate() + (data.expiryDays || 7)); // Default to 7 days if not specified
+          expiryDate.setDate(expiryDate.getDate() + (data.expiryDays || 7));
           newMessage.expiryDate = expiryDate;
           
-          // Add to active codes
           setActiveCodes(prev => [
             ...prev, 
             {
@@ -195,155 +202,183 @@ const VirtualBarista = () => {
     }).format(date);
   };
 
-  // Copy discount code to clipboard
   const copyDiscountCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success(`Copied ${code} to clipboard!`);
   };
 
+  const handleDragStop = (e: any, data: { x: number; y: number }) => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    const element = nodeRef.current as HTMLElement | null;
+    if (!element) return;
+    const elementWidth = element.offsetWidth;
+    const elementHeight = element.offsetHeight;
+    
+    let x = data.x;
+    let y = data.y;
+    
+    if (x < 0) x = 0;
+    if (x + elementWidth > viewportWidth) x = viewportWidth - elementWidth;
+    if (y < 0) y = 0;
+    if (y + elementHeight > viewportHeight) y = viewportHeight - elementHeight;
+    
+    const newPosition = { x, y };
+    setPosition(newPosition);
+    localStorage.setItem('chatPosition', JSON.stringify(newPosition));
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <>
+      {!open && (
         <Button 
           className="fixed left-6 bottom-6 rounded-full shadow-lg w-14 h-14 p-0 flex items-center justify-center transition-transform duration-300 hover:scale-110"
           size="icon"
           variant="secondary"
+          onClick={() => setOpen(true)}
         >
           <MessageSquare className="h-6 w-6" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent 
-        className="w-[350px] h-[400px] flex flex-col p-0 ml-6 mb-20 shadow-lg"
-        side="top"
-        align="start"
-        sideOffset={16}
-        alignOffset={-8}
-        forceMount
-      >
-        <AnimatePresence>
-          {open && (
-            <motion.div 
-              className="w-full h-full flex flex-col"
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-            >
-              <div className="flex justify-between items-center px-4 py-2 border-b">
-                <div className="font-semibold">Brew Barn Barista</div>
-                <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                <AnimatePresence>
-                  {messages.map((message, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className={`flex ${
-                        message.role === 'user' 
-                          ? 'justify-end' 
-                          : message.role === 'notification' 
-                            ? 'justify-center' 
-                            : 'justify-start'
-                      } mb-3`}
-                    >
-                      {message.role === 'notification' ? (
-                        <Card className="bg-amber-100 border-amber-200 text-amber-800 w-full">
-                          <CardContent className="p-3 text-sm">
-                            <div className="flex items-start gap-2">
-                              <Tag className="h-4 w-4 mt-0.5" />
-                              <div>
-                                <p className="break-words">{message.content}</p>
-                                {message.discountCode && (
-                                  <div className="mt-2">
-                                    <div 
-                                      className="bg-white border border-amber-300 rounded px-2 py-1 font-mono text-sm inline-flex gap-2 items-center cursor-pointer hover:bg-amber-50"
-                                      onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
-                                    >
-                                      {message.discountCode}
-                                    </div>
-                                    <p className="text-xs mt-1">
-                                      Valid until: {formatExpiryDate(message.expiryDate)}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        <Card className={`max-w-[75%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                          <CardContent className="p-2 text-sm">
-                            <p className="break-words">{message.content}</p>
-                            {message.discountCode && (
-                              <div className="mt-2 p-2 bg-white rounded border border-gray-200">
-                                <div className="flex justify-between items-center">
-                                  <span className="font-medium text-xs">DISCOUNT CODE:</span>
-                                  <span className="text-xs">{message.discountPercentage}% OFF</span>
-                                </div>
-                                <div 
-                                  className="bg-gray-100 border border-gray-300 rounded px-2 py-1 font-mono text-sm mt-1 text-center cursor-pointer hover:bg-gray-200"
-                                  onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
-                                >
-                                  {message.discountCode}
-                                </div>
-                                <p className="text-xs mt-1 text-gray-500">
-                                  Valid until: {formatExpiryDate(message.expiryDate)}
-                                </p>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      )}
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                {isLoading && (
-                  <div className="flex justify-start mb-3">
-                    <Card className="bg-muted max-w-[75%]">
-                      <CardContent className="p-2">
-                        <div className="flex space-x-2">
-                          <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce"></div>
-                          <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-              
-              <form onSubmit={handleSubmit} className="p-3 border-t">
-                <div className="flex gap-2">
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask about our menu..."
-                    disabled={isLoading}
-                    className="flex-1 text-sm"
-                  />
-                  <Button 
-                    type="submit" 
-                    size="icon" 
-                    disabled={isLoading || !input.trim()}
-                    className="transition-transform active:scale-95"
-                  >
-                    <Send className="h-4 w-4" />
+      )}
+
+      {open && (
+        <Draggable
+          position={position}
+          onStop={handleDragStop}
+          bounds="body"
+          nodeRef={nodeRef}
+          handle=".drag-handle"
+        >
+          <div 
+            ref={nodeRef}
+            className="fixed z-50 shadow-lg"
+            style={{ left: 0, top: 0, transform: `translate(${position.x}px, ${position.y}px)` }}
+          >
+            <AnimatePresence>
+              <motion.div 
+                className="w-[350px] h-[400px] flex flex-col bg-popover rounded-md border"
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+              >
+                <div className="flex justify-between items-center px-4 py-2 border-b drag-handle cursor-move">
+                  <div className="font-semibold">Brew Barn Barista</div>
+                  <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </PopoverContent>
-    </Popover>
+                
+                <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                  <AnimatePresence>
+                    {messages.map((message, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={`flex ${
+                          message.role === 'user' 
+                            ? 'justify-end' 
+                            : message.role === 'notification' 
+                              ? 'justify-center' 
+                              : 'justify-start'
+                        } mb-3`}
+                      >
+                        {message.role === 'notification' ? (
+                          <Card className="bg-amber-100 border-amber-200 text-amber-800 w-full">
+                            <CardContent className="p-3 text-sm">
+                              <div className="flex items-start gap-2">
+                                <Tag className="h-4 w-4 mt-0.5" />
+                                <div>
+                                  <p className="break-words">{message.content}</p>
+                                  {message.discountCode && (
+                                    <div className="mt-2">
+                                      <div 
+                                        className="bg-white border border-amber-300 rounded px-2 py-1 font-mono text-sm inline-flex gap-2 items-center cursor-pointer hover:bg-amber-50"
+                                        onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
+                                      >
+                                        {message.discountCode}
+                                      </div>
+                                      <p className="text-xs mt-1">
+                                        Valid until: {formatExpiryDate(message.expiryDate)}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <Card className={`max-w-[75%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                            <CardContent className="p-2 text-sm">
+                              <p className="break-words">{message.content}</p>
+                              {message.discountCode && (
+                                <div className="mt-2 p-2 bg-white rounded border border-gray-200">
+                                  <div className="flex justify-between items-center">
+                                    <span className="font-medium text-xs">DISCOUNT CODE:</span>
+                                    <span className="text-xs">{message.discountPercentage}% OFF</span>
+                                  </div>
+                                  <div 
+                                    className="bg-gray-100 border border-gray-300 rounded px-2 py-1 font-mono text-sm mt-1 text-center cursor-pointer hover:bg-gray-200"
+                                    onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
+                                  >
+                                    {message.discountCode}
+                                  </div>
+                                  <p className="text-xs mt-1 text-gray-500">
+                                    Valid until: {formatExpiryDate(message.expiryDate)}
+                                  </p>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  {isLoading && (
+                    <div className="flex justify-start mb-3">
+                      <Card className="bg-muted max-w-[75%]">
+                        <CardContent className="p-2">
+                          <div className="flex space-x-2">
+                            <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce"></div>
+                            <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="h-2 w-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+                
+                <form onSubmit={handleSubmit} className="p-3 border-t">
+                  <div className="flex gap-2">
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask about our menu..."
+                      disabled={isLoading}
+                      className="flex-1 text-sm"
+                    />
+                    <Button 
+                      type="submit" 
+                      size="icon" 
+                      disabled={isLoading || !input.trim()}
+                      className="transition-transform active:scale-95"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </form>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </Draggable>
+      )}
+    </>
   );
 };
 
