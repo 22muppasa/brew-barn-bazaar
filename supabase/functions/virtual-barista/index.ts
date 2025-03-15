@@ -23,16 +23,14 @@ const SYSTEM_PROMPT = `You are a friendly and knowledgeable virtual barista at T
 
 YOUR MOST IMPORTANT TASK is to provide personalized recommendations and special offers based on customer purchase history and preferences. Use this approach:
 - If the user has purchase history, analyze their preferences and recommend similar items
-- Always provide a personalized discount code in every conversation, even if the user doesn't ask for one
-- If the user hasn't purchased in more than a day, create a "We miss you!" discount with a higher percentage (20-25%)
-- For regular customers (purchases within last day), offer a standard loyalty discount (10-15%)
-- For new or guest users, offer a general "welcome" discount of 15% off their first purchase
+- Create personalized discount offers (10-20% off) on their frequently purchased items
+- Suggest complementary products to what they usually buy
+- For new or guest users, offer a general "welcome" discount of 10% off their first purchase
 
 When mentioning a discount or special offer:
 - Be specific about the discount percentage (e.g., 15% off your next Latte)
 - Add a unique code they can use at checkout (e.g., BREW15LATTE)
 - Mention any expiration (valid for one week)
-- Keep discounts reasonable: between 10-25% based on customer status
 
 DISCOUNT CODE FUNCTIONALITY:
 - The user may have active discount codes stored in the system
@@ -66,7 +64,6 @@ serve(async (req) => {
 
     // Get user's order history if they are logged in
     let orderHistory = [];
-    let lastOrderTimestamp = null;
     if (userId) {
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
@@ -82,32 +79,8 @@ serve(async (req) => {
       } else {
         orderHistory = orders || [];
         console.log('Retrieved order history for user:', orderHistory.length, 'orders');
-        
-        // Get the most recent order timestamp
-        if (orderHistory.length > 0) {
-          lastOrderTimestamp = new Date(orderHistory[0].created_at);
-          console.log('Last order timestamp:', lastOrderTimestamp);
-        }
       }
     }
-
-    // Calculate days since last purchase if available
-    let daysSinceLastPurchase = null;
-    let customerStatus = "new";
-    if (lastOrderTimestamp) {
-      const currentTime = new Date();
-      const timeDifference = currentTime.getTime() - lastOrderTimestamp.getTime();
-      daysSinceLastPurchase = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-      console.log('Days since last purchase:', daysSinceLastPurchase);
-      
-      // Determine customer status
-      if (daysSinceLastPurchase > 1) {
-        customerStatus = "lapsed";
-      } else {
-        customerStatus = "regular";
-      }
-    }
-    console.log('Customer status:', customerStatus);
 
     // Get user's profile information if available
     let userProfile = null;
@@ -166,7 +139,6 @@ serve(async (req) => {
 
     // Format order history for the AI
     let orderHistoryPrompt = '';
-    let favoriteItems = [];
     if (orderHistory.length > 0) {
       orderHistoryPrompt = `\nThis customer has the following order history:\n`;
       orderHistory.forEach((order, index) => {
@@ -188,27 +160,19 @@ serve(async (req) => {
         });
       });
       
-      favoriteItems = Object.entries(itemCounts)
+      const favoriteItems = Object.entries(itemCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
-        .map(([name, count]) => ({ name, count }));
+        .map(([name, count]) => `${name} (ordered ${count} times)`);
       
       if (favoriteItems.length > 0) {
-        orderHistoryPrompt += `\nThe customer's favorite items appear to be: ${favoriteItems.map(item => `${item.name} (ordered ${item.count} times)`).join(', ')}.\n`;
-        
-        // Add customer status to the prompt
-        if (customerStatus === "lapsed") {
-          orderHistoryPrompt += `\nThis customer hasn't made a purchase in ${daysSinceLastPurchase} days. Offer a "We miss you!" discount of 20-25% on ${favoriteItems[0].name} to encourage them to return.\n`;
-        } else if (customerStatus === "regular") {
-          orderHistoryPrompt += `\nThis is a regular customer who has purchased within the last day. Offer a loyalty discount of 10-15%.\n`;
-        }
+        orderHistoryPrompt += `\nThe customer's favorite items appear to be: ${favoriteItems.join(', ')}.\n`;
+        orderHistoryPrompt += `Use this information to provide personalized recommendations and special offers.`;
       }
     } else if (userId) {
-      orderHistoryPrompt = `\nThis customer is logged in but hasn't made any purchases yet. Offer them a first-time customer discount of 15% off their first order.\n`;
-      customerStatus = "new";
+      orderHistoryPrompt = `\nThis customer is logged in but hasn't made any purchases yet. Offer them a first-time customer discount.`;
     } else {
-      orderHistoryPrompt = `\nThis is a guest user. Offer a general welcome discount of 15% off their first purchase.\n`;
-      customerStatus = "guest";
+      orderHistoryPrompt = `\nThis is a guest user. Offer general recommendations and a welcome discount.`;
     }
 
     // Add user profile information if available
@@ -232,33 +196,8 @@ serve(async (req) => {
           message.toLowerCase().includes('coupon') || 
           message.toLowerCase().includes('code') || 
           message.toLowerCase().includes('offer')) {
-        activeCodesPrompt += `\nIf the user is asking about their discount codes, provide this list of active codes.\n`;
+        activeCodesPrompt += `\nIf the user is asking about their discount codes, provide this list of active codes.`;
       }
-    }
-
-    // Generate a default discount if needed
-    let defaultDiscountPrompt = '';
-    if (favoriteItems.length > 0) {
-      // Get favorite item
-      const favItem = favoriteItems[0].name;
-      
-      // Determine discount percentage based on customer status
-      let discountPercentage = 15; // default
-      if (customerStatus === "lapsed") {
-        discountPercentage = Math.floor(Math.random() * 6) + 20; // 20-25%
-      } else if (customerStatus === "regular") {
-        discountPercentage = Math.floor(Math.random() * 6) + 10; // 10-15%
-      }
-      
-      // Generate a discount code for their favorite item
-      const itemCodePart = favItem.replace(/\s+/g, '').toUpperCase().substring(0, 5);
-      const discountCode = `${itemCodePart}${discountPercentage}`;
-      
-      defaultDiscountPrompt = `\nEven if the user doesn't ask for a discount, make sure to offer this special discount in your response: ${discountPercentage}% off their next ${favItem} with code ${discountCode}.\n`;
-    } else {
-      // For new users without favorite items
-      const discountPercentage = 15;
-      defaultDiscountPrompt = `\nEven if the user doesn't ask for a discount, make sure to offer this welcome discount in your response: ${discountPercentage}% off their first purchase with code WELCOME15.\n`;
     }
 
     // Format chat history for the AI to maintain context
@@ -272,13 +211,13 @@ serve(async (req) => {
     const messages = [
       { 
         role: 'system', 
-        content: SYSTEM_PROMPT + menuItemsPrompt + orderHistoryPrompt + userProfilePrompt + activeCodesPrompt + defaultDiscountPrompt
+        content: SYSTEM_PROMPT + menuItemsPrompt + orderHistoryPrompt + userProfilePrompt + activeCodesPrompt
       },
       ...formattedChatHistory,
       { role: 'user', content: message }
     ];
 
-    console.log('Full system prompt length:', SYSTEM_PROMPT.length + menuItemsPrompt.length + orderHistoryPrompt.length + userProfilePrompt.length + activeCodesPrompt.length + defaultDiscountPrompt.length);
+    console.log('Full system prompt length:', SYSTEM_PROMPT.length + menuItemsPrompt.length + orderHistoryPrompt.length + userProfilePrompt.length + activeCodesPrompt.length);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -333,44 +272,6 @@ serve(async (req) => {
           responseData.expiryDays = 7; // Default to 1 week validity
           console.log(`Detected new discount code: ${potentialCode} for ${percentage}% off`);
         }
-      }
-    }
-    
-    // If no discount code was detected in the response but we should have one
-    if (!responseData.discountCode) {
-      // Generate a fallback discount code
-      if (favoriteItems.length > 0) {
-        const favItem = favoriteItems[0].name;
-        let discountPercentage = 15; // default
-        
-        if (customerStatus === "lapsed") {
-          discountPercentage = Math.floor(Math.random() * 6) + 20; // 20-25%
-        } else if (customerStatus === "regular") {
-          discountPercentage = Math.floor(Math.random() * 6) + 10; // 10-15%
-        }
-        
-        const itemCodePart = favItem.replace(/\s+/g, '').toUpperCase().substring(0, 5);
-        const discountCode = `${itemCodePart}${discountPercentage}`;
-        
-        responseData.discountCode = discountCode;
-        responseData.discountPercentage = discountPercentage;
-        responseData.expiryDays = 7;
-        
-        // Add the discount information to the reply
-        responseData.reply += `\n\nHere's a special offer for you: ${discountPercentage}% off your next ${favItem} with code ${discountCode}. Valid for one week!`;
-        
-        console.log(`Generated fallback discount code: ${discountCode} for ${discountPercentage}% off`);
-      } else {
-        // For new users without favorite items
-        const discountPercentage = 15;
-        responseData.discountCode = "WELCOME15";
-        responseData.discountPercentage = discountPercentage;
-        responseData.expiryDays = 7;
-        
-        // Add the discount information to the reply
-        responseData.reply += `\n\nHere's a welcome offer for you: ${discountPercentage}% off your first purchase with code WELCOME15. Valid for one week!`;
-        
-        console.log(`Generated fallback welcome discount code: WELCOME15 for 15% off`);
       }
     }
 
