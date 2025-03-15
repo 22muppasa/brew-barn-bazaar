@@ -21,24 +21,33 @@ const SYSTEM_PROMPT = `You are a friendly and knowledgeable virtual barista at T
 - Share interesting coffee facts and occasional coffee-related jokes
 - Keep responses concise and friendly
 
-YOUR MOST IMPORTANT TASK is to provide personalized recommendations and special offers based on customer purchase history and preferences. Use this approach:
+YOUR MOST IMPORTANT TASK is to provide personalized recommendations based on customer purchase history and preferences. Use this approach:
 - If the user has purchase history, analyze their preferences and recommend similar items
-- Create personalized discount offers (10-20% off) on their frequently purchased items
 - Suggest complementary products to what they usually buy
-- For new or guest users, offer a general "welcome" discount of 10% off their first purchase
+- For new or guest users, offer general recommendations from our popular items
 
-When mentioning a discount or special offer:
-- Be specific about the discount percentage (e.g., 15% off your next Latte)
+DISCOUNT CODE FUNCTIONALITY - IMPORTANT:
+- Do NOT offer a discount with every message - they should feel special and meaningful 
+- Only offer a discount code in these specific scenarios:
+  1. When a user hasn't made a purchase in 3+ days (customer re-engagement)
+  2. For first-time customers (welcome discount)
+  3. When explicitly asked about deals or discounts
+  4. For customers with 5+ previous orders (loyalty reward)
+  5. Occasionally (~20% chance) during general conversation to surprise the customer
+
+When you DO decide to offer a discount code:
+- Be specific about the discount percentage (10-25%)
+- Focus on the customer's favorite or frequently ordered items 
+- For lapsed customers, offer higher discounts (20-25%)
+- For loyal customers, offer standard discounts (10-15%)
+- For new customers, offer welcome discounts (15%)
 - Add a unique code they can use at checkout (e.g., BREW15LATTE)
-- Mention any expiration (valid for one week)
+- Mention the expiration (valid for one week)
 
-DISCOUNT CODE FUNCTIONALITY:
-- The user may have active discount codes stored in the system
-- When a user asks about discounts, coupons, or "what are my active codes", provide a list of their currently active discount codes
-- If providing a new discount code, make sure the code is UNIQUE and follows this format: [ITEM][PERCENTAGE] (e.g., LATTE15 for a 15% off latte)
-- When you provide a discount code, it will be automatically added to the user's active codes
-- For users with order history, provide personalized codes based on what they frequently order
-- For new users, provide general welcome discount codes
+When a user asks about available discounts, make sure to:
+- Check if they have active discount codes and provide that information
+- Provide information on any currently running promotions
+- Only generate a new discount code if appropriate based on the scenarios above
 
 Always maintain a warm, welcoming tone while being informative and helpful.`;
 
@@ -64,6 +73,9 @@ serve(async (req) => {
 
     // Get user's order history if they are logged in
     let orderHistory = [];
+    let lastOrderDate = null;
+    let daysSinceLastOrder = null;
+    
     if (userId) {
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
@@ -79,6 +91,15 @@ serve(async (req) => {
       } else {
         orderHistory = orders || [];
         console.log('Retrieved order history for user:', orderHistory.length, 'orders');
+        
+        // Calculate days since last order
+        if (orderHistory.length > 0) {
+          lastOrderDate = new Date(orderHistory[0].created_at);
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - lastOrderDate.getTime());
+          daysSinceLastOrder = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          console.log('Days since last order:', daysSinceLastOrder);
+        }
       }
     }
 
@@ -139,6 +160,9 @@ serve(async (req) => {
 
     // Format order history for the AI
     let orderHistoryPrompt = '';
+    let shouldOfferDiscount = false;
+    let discountReason = '';
+    
     if (orderHistory.length > 0) {
       orderHistoryPrompt = `\nThis customer has the following order history:\n`;
       orderHistory.forEach((order, index) => {
@@ -167,12 +191,52 @@ serve(async (req) => {
       
       if (favoriteItems.length > 0) {
         orderHistoryPrompt += `\nThe customer's favorite items appear to be: ${favoriteItems.join(', ')}.\n`;
-        orderHistoryPrompt += `Use this information to provide personalized recommendations and special offers.`;
+      }
+      
+      // Determine if we should offer a discount based on purchase patterns
+      if (daysSinceLastOrder && daysSinceLastOrder >= 3) {
+        shouldOfferDiscount = true;
+        discountReason = `IMPORTANT: This customer hasn't ordered in ${daysSinceLastOrder} days. Offer them a special discount of 20-25% on their favorite item to encourage them to return.`;
+      } else if (orderHistory.length >= 5) {
+        // Loyalty discount - but make it occasional (approximately 1 in 5 interactions)
+        const shouldOfferLoyaltyDiscount = Math.random() < 0.2;
+        if (shouldOfferLoyaltyDiscount) {
+          shouldOfferDiscount = true;
+          discountReason = `IMPORTANT: This is a loyal customer with ${orderHistory.length} orders. Consider offering them a special loyalty discount of 10-15%.`;
+        }
+      }
+      
+      // Add the discount reason to the prompt if applicable
+      if (shouldOfferDiscount) {
+        orderHistoryPrompt += `\n${discountReason}\n`;
+      } else {
+        orderHistoryPrompt += `\nProvide personalized recommendations based on their history, but only offer a discount if they specifically ask about deals or discounts.`;
       }
     } else if (userId) {
-      orderHistoryPrompt = `\nThis customer is logged in but hasn't made any purchases yet. Offer them a first-time customer discount.`;
+      // First-time customer with an account
+      orderHistoryPrompt = `\nThis customer is logged in but hasn't made any purchases yet. Consider offering them a welcome discount of 15% off their first purchase.`;
+      shouldOfferDiscount = true;
     } else {
-      orderHistoryPrompt = `\nThis is a guest user. Offer general recommendations and a welcome discount.`;
+      // Guest user - occasionally offer a discount
+      const shouldOfferGuestDiscount = Math.random() < 0.1; // 10% chance
+      if (shouldOfferGuestDiscount) {
+        orderHistoryPrompt = `\nThis is a guest user. Consider offering a welcome discount to encourage them to create an account.`;
+        shouldOfferDiscount = true;
+      } else {
+        orderHistoryPrompt = `\nThis is a guest user. Offer general recommendations from our popular items.`;
+      }
+    }
+
+    // Determine if the user is explicitly asking about discounts or deals
+    const isAskingForDiscount = message.toLowerCase().includes('discount') || 
+                               message.toLowerCase().includes('deal') ||
+                               message.toLowerCase().includes('coupon') ||
+                               message.toLowerCase().includes('promo') ||
+                               message.toLowerCase().includes('offer') ||
+                               message.toLowerCase().includes('code');
+    
+    if (isAskingForDiscount) {
+      shouldOfferDiscount = true;
     }
 
     // Add user profile information if available
@@ -192,12 +256,20 @@ serve(async (req) => {
       });
       
       // If user asks about their discount codes, make sure to provide this information
-      if (message.toLowerCase().includes('discount') || 
-          message.toLowerCase().includes('coupon') || 
-          message.toLowerCase().includes('code') || 
-          message.toLowerCase().includes('offer')) {
+      if (isAskingForDiscount) {
         activeCodesPrompt += `\nIf the user is asking about their discount codes, provide this list of active codes.`;
       }
+    }
+
+    // Create a discount context message
+    let discountContextPrompt = '';
+    if (shouldOfferDiscount) {
+      discountContextPrompt = `\nIMPORTANT CONTEXT: In your response, you should consider offering the user a discount code.`;
+      if (discountReason) {
+        discountContextPrompt += ` ${discountReason}`;
+      }
+    } else {
+      discountContextPrompt = `\nIMPORTANT CONTEXT: Do NOT offer a discount code in this response.`;
     }
 
     // Format chat history for the AI to maintain context
@@ -207,17 +279,18 @@ serve(async (req) => {
     })).slice(-10); // Keep only the last 10 messages for context
 
     console.log('Sending request to OpenAI with full context');
+    console.log('Should offer discount:', shouldOfferDiscount);
 
     const messages = [
       { 
         role: 'system', 
-        content: SYSTEM_PROMPT + menuItemsPrompt + orderHistoryPrompt + userProfilePrompt + activeCodesPrompt
+        content: SYSTEM_PROMPT + menuItemsPrompt + orderHistoryPrompt + userProfilePrompt + activeCodesPrompt + discountContextPrompt
       },
       ...formattedChatHistory,
       { role: 'user', content: message }
     ];
 
-    console.log('Full system prompt length:', SYSTEM_PROMPT.length + menuItemsPrompt.length + orderHistoryPrompt.length + userProfilePrompt.length + activeCodesPrompt.length);
+    console.log('Full system prompt length:', SYSTEM_PROMPT.length + menuItemsPrompt.length + orderHistoryPrompt.length + userProfilePrompt.length + activeCodesPrompt.length + discountContextPrompt.length);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -257,7 +330,8 @@ serve(async (req) => {
     let responseData: any = { reply };
     
     if (discountMatch && percentageMatch && 
-        !activeCodes.some(code => code.code === discountMatch[0])) {
+        !activeCodes.some(code => code.code === discountMatch[0]) && 
+        shouldOfferDiscount) {
       // Check if this looks like a discount code (should be capitalized and not a normal word)
       const potentialCode = discountMatch[0];
       if (potentialCode === potentialCode.toUpperCase() && 
@@ -266,7 +340,7 @@ serve(async (req) => {
           reply.toLowerCase().includes('code'))) {
         
         const percentage = parseInt(percentageMatch[1], 10);
-        if (percentage > 0 && percentage <= 50) { // Reasonable discount range
+        if (percentage > 0 && percentage <= 25) { // Reasonable discount range
           responseData.discountCode = potentialCode;
           responseData.discountPercentage = percentage;
           responseData.expiryDays = 7; // Default to 1 week validity
