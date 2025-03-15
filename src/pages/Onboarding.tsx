@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { useForm } from "react-hook-form";
@@ -18,14 +17,6 @@ import {
   FormLabel,
   FormMessage 
 } from "@/components/ui/form";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -372,38 +363,39 @@ const OnboardingPage = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-8">
       <HamburgerMenu />
       
-      <div className="w-full max-w-screen-sm mb-6">
+      <div className="w-full max-w-4xl mb-6">
         <h1 className="text-3xl font-bold text-center text-primary mb-2">Complete Your Profile</h1>
         <p className="text-center text-muted-foreground">Please provide your information to complete your account setup</p>
       </div>
       
       <motion.div 
-        className="w-full max-w-screen-sm"
+        className="w-full max-w-4xl"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <Card className="w-full shadow-lg border-muted h-[550px] flex flex-col">
+            <Card className="w-full shadow-lg border-muted min-h-[550px] flex flex-col">
               {renderFormStep()}
               
-              <CardFooter className="flex flex-col space-y-6 mt-auto p-6 pt-0 border-t">
-                <Pagination className="mt-4">
-                  <PaginationContent>
-                    {Array.from({ length: totalSteps }).map((_, index) => (
-                      <PaginationItem key={index}>
-                        <PaginationLink 
-                          className={`w-10 h-10 rounded-full font-medium ${currentStep === index + 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}
-                          isActive={currentStep === index + 1}
-                          onClick={() => setCurrentStep(index + 1)}
-                        >
-                          {index + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                  </PaginationContent>
-                </Pagination>
+              <CardFooter className="flex flex-col space-y-6 mt-auto p-6 pt-4 border-t">
+                {/* Dots for carousel-like pagination */}
+                <div className="flex items-center justify-center space-x-2 py-2">
+                  {Array.from({ length: totalSteps }).map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setCurrentStep(index + 1)}
+                      className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                        currentStep === index + 1
+                          ? "bg-primary scale-125"
+                          : "bg-muted hover:bg-primary/50"
+                      }`}
+                      aria-label={`Go to step ${index + 1}`}
+                    />
+                  ))}
+                </div>
                 
                 <div className="flex justify-between w-full gap-4">
                   {currentStep > 1 ? (
