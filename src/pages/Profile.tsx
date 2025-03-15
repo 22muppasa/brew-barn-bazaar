@@ -1,16 +1,29 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "@supabase/auth-helpers-react";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { 
+  Pencil, 
+  Star, 
+  Clock, 
+  User, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  Gift,
+  Coffee
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Profile = () => {
   const session = useSession();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['orders'],
@@ -49,14 +62,23 @@ const Profile = () => {
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session?.user?.id)
         .single();
       
-      if (error) throw error;
-      return data;
+      if (profileError) throw profileError;
+      
+      // Get user metadata for additional profile information
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) throw userError;
+      
+      return {
+        ...profileData,
+        ...user?.user_metadata
+      };
     },
   });
 
@@ -78,15 +100,74 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <motion.div
-            className="bg-card rounded-lg shadow-lg p-6"
-            whileHover={{ scale: 1.02 }}
+            className="bg-card rounded-lg shadow-lg p-6 relative"
+            whileHover={{ scale: 1.01 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <h2 className="text-2xl font-semibold mb-4">Account Information</h2>
-            <div className="space-y-2">
-              <p><span className="font-medium">Email:</span> {profile?.email}</p>
-              <p><span className="font-medium">Name:</span> {profile?.full_name}</p>
+            <div className="flex justify-between items-start">
+              <h2 className="text-2xl font-semibold mb-4">Account Information</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-1"
+                onClick={() => navigate("/auth")}
+              >
+                <Pencil className="h-4 w-4" />
+                Edit
+              </Button>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <p><span className="font-medium">Name:</span> {profile?.full_name || "Not provided"}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <p><span className="font-medium">Email:</span> {profile?.email}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <p><span className="font-medium">Phone:</span> {profile?.phoneNumber || "Not provided"}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Coffee className="h-4 w-4 text-muted-foreground" />
+                  <p><span className="font-medium">Favorite Drink:</span> {profile?.favoriteProduct || "Not specified"}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <p><span className="font-medium">Address:</span> {profile?.address || "Not provided"}</p>
+                </div>
+                <p className="ml-6">{profile?.city || ""} {profile?.state || ""} {profile?.zipCode || ""}</p>
+                <div className="flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-muted-foreground" />
+                  <p><span className="font-medium">Birthday:</span> {profile?.birthdate || "Not provided"}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <p><span className="font-medium">Member Since:</span> {new Date(profile?.created_at).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+            
+            {(!profile?.full_name || !profile?.address || !profile?.phoneNumber) && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
+                <p className="font-medium">Your profile is incomplete</p>
+                <p className="text-sm mt-1">Complete your profile to receive personalized offers and improve your experience.</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2 bg-amber-100 hover:bg-amber-200 border-amber-300"
+                  onClick={() => navigate("/auth")}
+                >
+                  Complete Profile
+                </Button>
+              </div>
+            )}
           </motion.div>
 
           <motion.div
@@ -122,6 +203,9 @@ const Profile = () => {
                   </motion.div>
                 ))}
               </AnimatePresence>
+              {!customDrinks?.length && (
+                <p className="text-center text-muted-foreground col-span-2">No custom drinks yet</p>
+              )}
             </div>
           </motion.div>
 

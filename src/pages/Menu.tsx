@@ -11,11 +11,15 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useGuestCart, useLocalStorage } from "@/hooks/useLocalStorage";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import VirtualBarista from "@/components/VirtualBarista";
+import ProductReviews from "@/components/ProductReviews";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Star } from "lucide-react";
 
 const Menu = () => {
   const session = useSession();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showDrinkBuilder, setShowDrinkBuilder] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const { getValue } = useLocalStorage();
   const isGuest = getValue("isGuest") === "true";
   const { addToCart } = useGuestCart();
@@ -72,6 +76,40 @@ const Menu = () => {
       
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Get product ratings
+  const { data: productRatings } = useQuery({
+    queryKey: ['product-ratings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('product_reviews')
+        .select(`
+          product_name,
+          rating
+        `);
+      
+      if (error) throw error;
+      
+      // Calculate average ratings and count
+      const ratingMap: Record<string, { avg: number; count: number }> = {};
+      data.forEach(review => {
+        if (!ratingMap[review.product_name]) {
+          ratingMap[review.product_name] = { sum: 0, count: 0 };
+        }
+        ratingMap[review.product_name].sum += review.rating;
+        ratingMap[review.product_name].count += 1;
+      });
+      
+      // Convert sums to averages
+      Object.keys(ratingMap).forEach(product => {
+        ratingMap[product].avg = 
+          ratingMap[product].sum / ratingMap[product].count;
+        delete ratingMap[product].sum;
+      });
+      
+      return ratingMap;
     },
   });
 
@@ -211,7 +249,39 @@ const Menu = () => {
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg sm:text-xl font-semibold mb-2">{item.name}</h3>
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg sm:text-xl font-semibold">{item.name}</h3>
+                      
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button 
+                            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
+                            onClick={() => setSelectedProduct(item.name)}
+                          >
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span>
+                                {productRatings?.[item.name]?.avg 
+                                  ? productRatings[item.name].avg.toFixed(1) 
+                                  : "-"}
+                              </span>
+                              <span className="text-xs">
+                                ({productRatings?.[item.name]?.count || 0})
+                              </span>
+                            </div>
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-lg">
+                          <DialogHeader>
+                            <DialogTitle>{item.name} Reviews</DialogTitle>
+                          </DialogHeader>
+                          {selectedProduct === item.name && (
+                            <ProductReviews productName={item.name} />
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    
                     <p className="text-muted-foreground mb-4 text-sm sm:text-base">{item.description}</p>
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-base sm:text-lg font-bold">${item.price.toFixed(2)}</span>
@@ -231,7 +301,6 @@ const Menu = () => {
         )}
       </div>
       
-      {/* Add the Virtual Barista component */}
       <VirtualBarista />
     </div>
   );

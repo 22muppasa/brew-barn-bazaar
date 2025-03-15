@@ -45,7 +45,7 @@ const VirtualBarista = () => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Hi there! I\'m your virtual barista. Ask me anything about our menu, or tell me what you\'re in the mood for. I can also offer personalized discounts based on your previous orders!' }
+    { role: 'assistant', content: 'Hi there! I\'m Lisa, your virtual barista. Ask me anything about our menu, or tell me what you\'re in the mood for. I can also offer personalized discounts!' }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeCodes, setActiveCodes] = useState<{code: string, percentage: number, expiry: Date}[]>([]);
@@ -193,6 +193,7 @@ const VirtualBarista = () => {
         body: { 
           message: userMessage,
           userId: userId,
+          botName: "Lisa", // Set the bot name to Lisa
           activeCodes: activeCodes.map(code => ({
             code: code.code,
             percentage: code.percentage,
@@ -327,7 +328,7 @@ const VirtualBarista = () => {
               >
                 <div className="flex justify-between items-center px-4 py-2 border-b drag-handle cursor-move">
                   <div className="font-semibold">
-                    Brew Barn Barista {session ? `- ${session.user.email}` : '(Guest)'}
+                    Lisa - Brew Barn Barista {session ? `- ${session.user.email}` : '(Guest)'}
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
                     <X className="h-4 w-4" />
@@ -444,7 +445,7 @@ const VirtualBarista = () => {
                     <Input
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder="Ask about our menu..."
+                      placeholder="Ask Lisa about our menu..."
                       disabled={isLoading}
                       className="flex-1 text-sm"
                     />
