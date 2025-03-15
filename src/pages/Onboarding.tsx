@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import {
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -390,69 +391,99 @@ const OnboardingPage = () => {
             transition={{ duration: 0.5 }}
             className="w-full"
           >
-            <Card className="w-full shadow-xl border-muted min-h-[500px] flex flex-col overflow-hidden rounded-2xl bg-card/95 backdrop-blur-sm border">
+            <Card className="w-full shadow-xl border-muted min-h-[500px] flex flex-col overflow-hidden rounded-3xl bg-card/95 backdrop-blur-sm border">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-bl-full" />
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-secondary/20 to-primary/5 rounded-tr-full" />
               
-              {renderFormStep()}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex-1 flex flex-col"
+                >
+                  {renderFormStep()}
+                </motion.div>
+              </AnimatePresence>
             </Card>
           </motion.div>
           
           <motion.div 
-            className="flex flex-col items-center space-y-6"
+            className="flex items-center justify-center space-y-0 mt-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            {/* Dots for carousel-like pagination */}
-            <div className="flex items-center justify-center space-x-3 py-2">
-              {Array.from({ length: totalSteps }).map((_, index) => (
-                <motion.button
-                  key={index}
-                  type="button"
-                  onClick={() => setCurrentStep(index + 1)}
-                  className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
-                    currentStep === index + 1
-                      ? "bg-primary scale-125"
-                      : "bg-muted hover:bg-primary/50"
-                  }`}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label={`Go to step ${index + 1}`}
-                />
-              ))}
-            </div>
-            
-            <div className="flex justify-between w-full max-w-md gap-6">
+            <div className="flex items-center justify-center gap-4 w-full">
+              {/* Previous Button */}
               {currentStep > 1 ? (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={prevStep}
-                  className="w-full h-12 text-base rounded-xl shadow-sm hover:shadow transition-all"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  Previous
-                </Button>
+                  <Button 
+                    type="button" 
+                    variant="pagination" 
+                    size="circle"
+                    onClick={prevStep}
+                    className="shadow-md hover:shadow-lg border border-muted relative overflow-hidden group"
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                </motion.div>
               ) : (
-                <div className="w-full"></div>
+                <div className="w-12 h-12"></div> {/* Spacer for alignment */}
               )}
               
-              {currentStep < totalSteps ? (
-                <Button 
-                  type="button" 
-                  onClick={nextStep}
-                  className="w-full h-12 text-base rounded-xl shadow-sm hover:shadow-md transition-all"
-                >
-                  Next
-                </Button>
-              ) : (
-                <Button 
-                  type="submit"
-                  className="w-full h-12 text-base bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-sm hover:shadow-md transition-all"
-                >
-                  Save & Complete
-                </Button>
-              )}
+              {/* Dots for carousel-like pagination */}
+              <div className="flex items-center justify-center space-x-3 px-8">
+                {Array.from({ length: totalSteps }).map((_, index) => (
+                  <motion.button
+                    key={index}
+                    type="button"
+                    onClick={() => setCurrentStep(index + 1)}
+                    className={`w-3.5 h-3.5 rounded-full transition-all duration-300 border ${
+                      currentStep === index + 1
+                        ? "bg-primary border-primary scale-125"
+                        : "bg-muted/50 border-muted hover:bg-primary/50"
+                    }`}
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label={`Go to step ${index + 1}`}
+                  />
+                ))}
+              </div>
+              
+              {/* Next/Submit Button */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {currentStep < totalSteps ? (
+                  <Button 
+                    type="button" 
+                    variant="pagination"
+                    size="circle"
+                    onClick={nextStep}
+                    className="shadow-md hover:shadow-lg border border-muted relative overflow-hidden group"
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                ) : (
+                  <Button 
+                    type="submit"
+                    size="circle"
+                    className="bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg relative overflow-hidden group"
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-tr from-green-500/20 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                )}
+              </motion.div>
             </div>
           </motion.div>
         </form>
