@@ -135,74 +135,25 @@ const OnboardingPage = () => {
       case 1:
         return (
           <>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">
+            <CardHeader className="text-center border-b pb-4">
+              <CardTitle className="text-2xl font-bold text-primary">
                 Personal Information
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="tel" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </>
-        );
-      case 2:
-        return (
-          <>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">
-                Address Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Street Address</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-2 gap-4">
+            <CardContent className="pt-6 px-8">
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
-                  name="city"
+                  name="fullName"
                   render={({ field }) => (
                     <FormItem className="mb-4">
-                      <FormLabel>City</FormLabel>
+                      <FormLabel className="text-base">Full Name</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input 
+                          {...field} 
+                          className="h-12 text-base border-muted focus-visible:ring-primary" 
+                          placeholder="Enter your full name"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -211,110 +162,201 @@ const OnboardingPage = () => {
                 
                 <FormField
                   control={form.control}
-                  name="state"
+                  name="phoneNumber"
                   render={({ field }) => (
                     <FormItem className="mb-4">
-                      <FormLabel>State</FormLabel>
+                      <FormLabel className="text-base">Phone Number</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input 
+                          {...field} 
+                          type="tel" 
+                          className="h-12 text-base border-muted focus-visible:ring-primary" 
+                          placeholder="Enter your phone number"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              
-              <FormField
-                control={form.control}
-                name="zipCode"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Zip Code</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            </CardContent>
+          </>
+        );
+      case 2:
+        return (
+          <>
+            <CardHeader className="text-center border-b pb-4">
+              <CardTitle className="text-2xl font-bold text-primary">
+                Address Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 px-8">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel className="text-base">Street Address</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className="h-12 text-base border-muted focus-visible:ring-primary" 
+                          placeholder="Enter your street address"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem className="mb-4">
+                        <FormLabel className="text-base">City</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            className="h-12 text-base border-muted focus-visible:ring-primary" 
+                            placeholder="Enter your city"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem className="mb-4">
+                        <FormLabel className="text-base">State</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            className="h-12 text-base border-muted focus-visible:ring-primary" 
+                            placeholder="Enter your state"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="zipCode"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel className="text-base">Zip Code</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className="h-12 text-base border-muted focus-visible:ring-primary" 
+                          placeholder="Enter your zip code"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
           </>
         );
       case 3:
         return (
           <>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">
+            <CardHeader className="text-center border-b pb-4">
+              <CardTitle className="text-2xl font-bold text-primary">
                 Personal Preferences
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="birthdate"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Birthdate (Optional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="date" />
-                    </FormControl>
-                    <FormDescription>
-                      For birthday rewards
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="favoriteProduct"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel>Favorite Drink (Optional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <CardContent className="pt-6 px-8">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="birthdate"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel className="text-base">Birthdate (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="date" 
+                          className="h-12 text-base border-muted focus-visible:ring-primary" 
+                        />
+                      </FormControl>
+                      <FormDescription className="text-sm text-muted-foreground mt-1">
+                        For birthday rewards and special offers
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="favoriteProduct"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel className="text-base">Favorite Drink (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className="h-12 text-base border-muted focus-visible:ring-primary" 
+                          placeholder="Enter your favorite drink"
+                        />
+                      </FormControl>
+                      <FormDescription className="text-sm text-muted-foreground mt-1">
+                        We'll recommend similar drinks you might enjoy
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
           </>
         );
       case 4:
         return (
           <>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">
+            <CardHeader className="text-center border-b pb-4">
+              <CardTitle className="text-2xl font-bold text-primary">
                 Review & Complete
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium">Personal Information</h3>
-                  <p>Full Name: {form.getValues("fullName")}</p>
-                  <p>Phone: {form.getValues("phoneNumber")}</p>
+            <CardContent className="pt-6 px-8">
+              <div className="space-y-6 bg-secondary/10 p-6 rounded-lg">
+                <div className="border-b pb-4">
+                  <h3 className="font-medium text-lg text-primary mb-2">Personal Information</h3>
+                  <p className="text-foreground"><span className="font-medium">Full Name:</span> {form.getValues("fullName")}</p>
+                  <p className="text-foreground"><span className="font-medium">Phone:</span> {form.getValues("phoneNumber")}</p>
                 </div>
                 
-                <div>
-                  <h3 className="font-medium">Address</h3>
-                  <p>{form.getValues("address")}</p>
-                  <p>{form.getValues("city")}, {form.getValues("state")} {form.getValues("zipCode")}</p>
+                <div className="border-b pb-4">
+                  <h3 className="font-medium text-lg text-primary mb-2">Address</h3>
+                  <p className="text-foreground">{form.getValues("address")}</p>
+                  <p className="text-foreground">{form.getValues("city")}, {form.getValues("state")} {form.getValues("zipCode")}</p>
                 </div>
                 
                 {form.getValues("birthdate") && (
-                  <div>
-                    <h3 className="font-medium">Birthdate</h3>
-                    <p>{form.getValues("birthdate")}</p>
+                  <div className="border-b pb-4">
+                    <h3 className="font-medium text-lg text-primary mb-2">Birthdate</h3>
+                    <p className="text-foreground">{form.getValues("birthdate")}</p>
                   </div>
                 )}
                 
                 {form.getValues("favoriteProduct") && (
                   <div>
-                    <h3 className="font-medium">Favorite Drink</h3>
-                    <p>{form.getValues("favoriteProduct")}</p>
+                    <h3 className="font-medium text-lg text-primary mb-2">Favorite Drink</h3>
+                    <p className="text-foreground">{form.getValues("favoriteProduct")}</p>
                   </div>
                 )}
               </div>
@@ -327,26 +369,32 @@ const OnboardingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-8">
       <HamburgerMenu />
       
+      <div className="w-full max-w-screen-sm mb-6">
+        <h1 className="text-3xl font-bold text-center text-primary mb-2">Complete Your Profile</h1>
+        <p className="text-center text-muted-foreground">Please provide your information to complete your account setup</p>
+      </div>
+      
       <motion.div 
-        className="w-full max-w-md"
+        className="w-full max-w-screen-sm"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <Card className="w-full max-w-md h-[500px] flex flex-col">
+            <Card className="w-full shadow-lg border-muted h-[550px] flex flex-col">
               {renderFormStep()}
               
-              <CardFooter className="flex flex-col space-y-4 mt-auto">
-                <Pagination>
+              <CardFooter className="flex flex-col space-y-6 mt-auto p-6 pt-0 border-t">
+                <Pagination className="mt-4">
                   <PaginationContent>
                     {Array.from({ length: totalSteps }).map((_, index) => (
                       <PaginationItem key={index}>
                         <PaginationLink 
+                          className={`w-10 h-10 rounded-full font-medium ${currentStep === index + 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}
                           isActive={currentStep === index + 1}
                           onClick={() => setCurrentStep(index + 1)}
                         >
@@ -357,30 +405,32 @@ const OnboardingPage = () => {
                   </PaginationContent>
                 </Pagination>
                 
-                <div className="flex justify-between w-full">
+                <div className="flex justify-between w-full gap-4">
                   {currentStep > 1 ? (
                     <Button 
                       type="button" 
                       variant="outline" 
                       onClick={prevStep}
+                      className="w-full h-12 text-base"
                     >
                       Previous
                     </Button>
                   ) : (
-                    <div></div>
+                    <div className="w-full"></div>
                   )}
                   
                   {currentStep < totalSteps ? (
                     <Button 
                       type="button" 
                       onClick={nextStep}
+                      className="w-full h-12 text-base"
                     >
                       Next
                     </Button>
                   ) : (
                     <Button 
                       type="submit"
-                      className="bg-green-600 hover:bg-green-700"
+                      className="w-full h-12 text-base bg-green-600 hover:bg-green-700 text-white"
                     >
                       Save & Complete
                     </Button>
