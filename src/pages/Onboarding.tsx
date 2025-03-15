@@ -360,79 +360,103 @@ const OnboardingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-8">
+    <div className="min-h-screen bg-background bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM4MDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djZoLTZ2LTZoLTZ2LTZoNnYtNmg2djZoNnY2aC02eiIvPjwvZz48L2c+PC9zdmc+')] flex flex-col items-center justify-center p-4 sm:p-8">
       <HamburgerMenu />
       
-      <div className="w-full max-w-4xl mb-6">
-        <h1 className="text-3xl font-bold text-center text-primary mb-2">Complete Your Profile</h1>
-        <p className="text-center text-muted-foreground">Please provide your information to complete your account setup</p>
+      <div className="w-full max-w-3xl mb-6">
+        <motion.h1 
+          className="text-4xl font-bold text-center text-primary mb-2"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          Complete Your Profile
+        </motion.h1>
+        <motion.p 
+          className="text-center text-muted-foreground"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          Please provide your information to complete your account setup
+        </motion.p>
       </div>
       
-      <motion.div 
-        className="w-full max-w-4xl"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <Card className="w-full shadow-lg border-muted min-h-[550px] flex flex-col">
-              {renderFormStep()}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="w-full"
+          >
+            <Card className="w-full shadow-xl border-muted min-h-[500px] flex flex-col overflow-hidden rounded-2xl bg-card/95 backdrop-blur-sm border">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-bl-full" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-secondary/20 to-primary/5 rounded-tr-full" />
               
-              <CardFooter className="flex flex-col space-y-6 mt-auto p-6 pt-4 border-t">
-                {/* Dots for carousel-like pagination */}
-                <div className="flex items-center justify-center space-x-2 py-2">
-                  {Array.from({ length: totalSteps }).map((_, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => setCurrentStep(index + 1)}
-                      className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                        currentStep === index + 1
-                          ? "bg-primary scale-125"
-                          : "bg-muted hover:bg-primary/50"
-                      }`}
-                      aria-label={`Go to step ${index + 1}`}
-                    />
-                  ))}
-                </div>
-                
-                <div className="flex justify-between w-full gap-4">
-                  {currentStep > 1 ? (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={prevStep}
-                      className="w-full h-12 text-base"
-                    >
-                      Previous
-                    </Button>
-                  ) : (
-                    <div className="w-full"></div>
-                  )}
-                  
-                  {currentStep < totalSteps ? (
-                    <Button 
-                      type="button" 
-                      onClick={nextStep}
-                      className="w-full h-12 text-base"
-                    >
-                      Next
-                    </Button>
-                  ) : (
-                    <Button 
-                      type="submit"
-                      className="w-full h-12 text-base bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      Save & Complete
-                    </Button>
-                  )}
-                </div>
-              </CardFooter>
+              {renderFormStep()}
             </Card>
-          </form>
-        </Form>
-      </motion.div>
+          </motion.div>
+          
+          <motion.div 
+            className="flex flex-col items-center space-y-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            {/* Dots for carousel-like pagination */}
+            <div className="flex items-center justify-center space-x-3 py-2">
+              {Array.from({ length: totalSteps }).map((_, index) => (
+                <motion.button
+                  key={index}
+                  type="button"
+                  onClick={() => setCurrentStep(index + 1)}
+                  className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
+                    currentStep === index + 1
+                      ? "bg-primary scale-125"
+                      : "bg-muted hover:bg-primary/50"
+                  }`}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
+                  aria-label={`Go to step ${index + 1}`}
+                />
+              ))}
+            </div>
+            
+            <div className="flex justify-between w-full max-w-md gap-6">
+              {currentStep > 1 ? (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={prevStep}
+                  className="w-full h-12 text-base rounded-xl shadow-sm hover:shadow transition-all"
+                >
+                  Previous
+                </Button>
+              ) : (
+                <div className="w-full"></div>
+              )}
+              
+              {currentStep < totalSteps ? (
+                <Button 
+                  type="button" 
+                  onClick={nextStep}
+                  className="w-full h-12 text-base rounded-xl shadow-sm hover:shadow-md transition-all"
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button 
+                  type="submit"
+                  className="w-full h-12 text-base bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-sm hover:shadow-md transition-all"
+                >
+                  Save & Complete
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        </form>
+      </Form>
     </div>
   );
 };
