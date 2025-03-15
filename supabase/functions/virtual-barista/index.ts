@@ -20,17 +20,8 @@ const SYSTEM_PROMPT = `You are a friendly and knowledgeable virtual barista at T
 - Answer questions about coffee and our offerings
 - Share interesting coffee facts and occasional coffee-related jokes
 - Keep responses concise and friendly
-- If asked about prices or menu items, refer to these items and prices:
-  * Espresso ($3.50)
-  * Americano ($4.00)
-  * Latte ($4.50)
-  * Cappuccino ($4.50)
-  * Cold Brew ($4.50)
-  * Mocha ($5.00)
-  * Tea ($3.50)
-  * Hot Chocolate ($4.00)
 
-YOUR MOST IMPORTANT TASK is to provide personalized recommendations and special offers based on customer purchase history. Use this approach:
+YOUR MOST IMPORTANT TASK is to provide personalized recommendations and special offers based on customer purchase history and preferences. Use this approach:
 - If the user has purchase history, analyze their preferences and recommend similar items
 - Create personalized discount offers (10-20% off) on their frequently purchased items
 - Suggest complementary products to what they usually buy
@@ -62,13 +53,14 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
 
-    const { message, userId, activeCodes = [] } = await req.json();
+    const { message, userId, activeCodes = [], chatHistory = [] } = await req.json();
     if (!message) {
       throw new Error('No message provided');
     }
 
     console.log('Received request with message:', message, 'userId:', userId);
     console.log('Active discount codes:', activeCodes);
+    console.log('Chat history length:', chatHistory.length);
 
     // Get user's order history if they are logged in
     let orderHistory = [];
@@ -87,6 +79,61 @@ serve(async (req) => {
       } else {
         orderHistory = orders || [];
         console.log('Retrieved order history for user:', orderHistory.length, 'orders');
+      }
+    }
+
+    // Get user's profile information if available
+    let userProfile = null;
+    if (userId) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+      } else if (profile) {
+        userProfile = profile;
+        console.log('Retrieved user profile:', userProfile);
+      }
+    }
+
+    // Fetch the menu items from the database
+    const { data: menuItems, error: menuError } = await supabase
+      .from('menu_items')
+      .select('*')
+      .order('category');
+
+    if (menuError) {
+      console.error('Error fetching menu items:', menuError);
+    } else {
+      console.log('Retrieved menu items:', menuItems?.length || 0);
+    }
+
+    // Format menu items for the AI
+    let menuItemsPrompt = '';
+    if (menuItems && menuItems.length > 0) {
+      // Group items by category
+      const itemsByCategory = menuItems.reduce((acc, item) => {
+        if (!acc[item.category]) {
+          acc[item.category] = [];
+        }
+        acc[item.category].push(item);
+        return acc;
+      }, {});
+
+      menuItemsPrompt = `\nOur current menu includes:\n`;
+      
+      for (const [category, items] of Object.entries(itemsByCategory)) {
+        menuItemsPrompt += `\n${category.toUpperCase()}:\n`;
+        for (const item of items) {
+          menuItemsPrompt += `- ${item.name} ($${item.price.toFixed(2)})`;
+          if (item.description) {
+            menuItemsPrompt += `: ${item.description}`;
+          }
+          menuItemsPrompt += `\n`;
+        }
       }
     }
 
@@ -128,6 +175,13 @@ serve(async (req) => {
       orderHistoryPrompt = `\nThis is a guest user. Offer general recommendations and a welcome discount.`;
     }
 
+    // Add user profile information if available
+    let userProfilePrompt = '';
+    if (userProfile) {
+      userProfilePrompt = `\nThis customer's name is ${userProfile.full_name || 'unknown'}.\n`;
+      userProfilePrompt += `Use their name in your responses to make it more personalized.\n`;
+    }
+
     // Add active discount codes to the system prompt
     let activeCodesPrompt = '';
     if (activeCodes.length > 0) {
@@ -146,7 +200,24 @@ serve(async (req) => {
       }
     }
 
-    console.log('Sending request to OpenAI with order history context added');
+    // Format chat history for the AI to maintain context
+    const formattedChatHistory = chatHistory.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content
+    })).slice(-10); // Keep only the last 10 messages for context
+
+    console.log('Sending request to OpenAI with full context');
+
+    const messages = [
+      { 
+        role: 'system', 
+        content: SYSTEM_PROMPT + menuItemsPrompt + orderHistoryPrompt + userProfilePrompt + activeCodesPrompt
+      },
+      ...formattedChatHistory,
+      { role: 'user', content: message }
+    ];
+
+    console.log('Full system prompt length:', SYSTEM_PROMPT.length + menuItemsPrompt.length + orderHistoryPrompt.length + userProfilePrompt.length + activeCodesPrompt.length);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -156,13 +227,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: SYSTEM_PROMPT + orderHistoryPrompt + activeCodesPrompt
-          },
-          { role: 'user', content: message }
-        ],
+        messages: messages,
         temperature: 0.7,
         max_tokens: 500,
       }),
@@ -196,9 +261,9 @@ serve(async (req) => {
       // Check if this looks like a discount code (should be capitalized and not a normal word)
       const potentialCode = discountMatch[0];
       if (potentialCode === potentialCode.toUpperCase() && 
-          reply.toLowerCase().includes('discount') || 
+          (reply.toLowerCase().includes('discount') || 
           reply.toLowerCase().includes('off') || 
-          reply.toLowerCase().includes('code')) {
+          reply.toLowerCase().includes('code'))) {
         
         const percentage = parseInt(percentageMatch[1], 10);
         if (percentage > 0 && percentage <= 50) { // Reasonable discount range

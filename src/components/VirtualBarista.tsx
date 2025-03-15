@@ -1,14 +1,15 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { X, MessageSquare, Send, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import Draggable from 'react-draggable';
+import { useNavigate } from "react-router-dom";
 
 interface Message {
   role: 'user' | 'assistant' | 'notification';
@@ -48,13 +49,16 @@ const VirtualBarista = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeCodes, setActiveCodes] = useState<{code: string, percentage: number, expiry: Date}[]>([]);
+  const [chatInitialized, setChatInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const session = useSession();
   const [hasShownDeal, setHasShownDeal] = useState(false);
+  const navigate = useNavigate();
   
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const nodeRef = useRef(null);
 
+  // Load persisted position
   useEffect(() => {
     const savedPosition = localStorage.getItem('chatPosition');
     if (savedPosition) {
@@ -66,12 +70,14 @@ const VirtualBarista = () => {
     }
   }, []);
 
+  // Auto-scroll to the bottom of the chat
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
+  // Load saved discount codes from localStorage
   useEffect(() => {
     const savedCodes = localStorage.getItem('activeCodes');
     if (savedCodes) {
@@ -90,6 +96,40 @@ const VirtualBarista = () => {
     }
   }, []);
 
+  // Load saved chat history based on user ID or guest status
+  useEffect(() => {
+    if (!chatInitialized) {
+      const storageKey = session ? `chatHistory-${session.user.id}` : 'chatHistory-guest';
+      const savedChat = localStorage.getItem(storageKey);
+      
+      if (savedChat) {
+        try {
+          const parsedChat = JSON.parse(savedChat);
+          // Convert string dates back to Date objects
+          const processedChat = parsedChat.map((msg: any) => ({
+            ...msg,
+            expiryDate: msg.expiryDate ? new Date(msg.expiryDate) : undefined
+          }));
+          
+          setMessages(processedChat);
+        } catch (e) {
+          console.error("Error parsing saved chat history:", e);
+        }
+      }
+      
+      setChatInitialized(true);
+    }
+  }, [session, chatInitialized]);
+
+  // Save chat history when it changes
+  useEffect(() => {
+    if (chatInitialized) {
+      const storageKey = session ? `chatHistory-${session.user.id}` : 'chatHistory-guest';
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    }
+  }, [messages, session, chatInitialized]);
+
+  // Save active discount codes
   useEffect(() => {
     localStorage.setItem('activeCodes', JSON.stringify(activeCodes.map(code => ({
       ...code,
@@ -97,6 +137,7 @@ const VirtualBarista = () => {
     }))));
   }, [activeCodes]);
 
+  // Show random deal on chat open
   useEffect(() => {
     if (open && !hasShownDeal && messages.length <= 2 && Math.random() < 0.3) {
       setTimeout(() => {
@@ -141,6 +182,13 @@ const VirtualBarista = () => {
     try {
       const userId = session?.user?.id || null;
       
+      // Format the chat history to send to the edge function
+      const chatHistory = messages.filter(msg => msg.role !== 'notification')
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        })).slice(-10); // Send only the last 10 messages
+      
       const { data, error } = await supabase.functions.invoke('virtual-barista', {
         body: { 
           message: userMessage,
@@ -149,7 +197,8 @@ const VirtualBarista = () => {
             code: code.code,
             percentage: code.percentage,
             expiry: code.expiry.toISOString()
-          }))
+          })),
+          chatHistory
         }
       });
 
@@ -207,6 +256,19 @@ const VirtualBarista = () => {
     toast.success(`Copied ${code} to clipboard!`);
   };
 
+  const applyDiscountToCart = (code: string, percentage: number) => {
+    // Store the selected discount in localStorage for use at checkout
+    localStorage.setItem('selectedDiscount', JSON.stringify({
+      code,
+      percentage
+    }));
+    
+    // Navigate to cart and close the chat
+    toast.success(`Discount code ${code} will be applied at checkout!`);
+    navigate('/cart');
+    setOpen(false);
+  };
+
   const handleDragStop = (e: any, data: { x: number; y: number }) => {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -257,14 +319,16 @@ const VirtualBarista = () => {
           >
             <AnimatePresence>
               <motion.div 
-                className="w-[350px] h-[400px] flex flex-col bg-popover rounded-md border"
+                className="w-[350px] h-[450px] flex flex-col bg-popover rounded-md border"
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
               >
                 <div className="flex justify-between items-center px-4 py-2 border-b drag-handle cursor-move">
-                  <div className="font-semibold">Brew Barn Barista</div>
+                  <div className="font-semibold">
+                    Brew Barn Barista {session ? `- ${session.user.email}` : '(Guest)'}
+                  </div>
                   <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
                     <X className="h-4 w-4" />
                   </Button>
@@ -296,11 +360,21 @@ const VirtualBarista = () => {
                                   <p className="break-words">{message.content}</p>
                                   {message.discountCode && (
                                     <div className="mt-2">
-                                      <div 
-                                        className="bg-white border border-amber-300 rounded px-2 py-1 font-mono text-sm inline-flex gap-2 items-center cursor-pointer hover:bg-amber-50"
-                                        onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
-                                      >
-                                        {message.discountCode}
+                                      <div className="flex flex-wrap gap-2">
+                                        <div 
+                                          className="bg-white border border-amber-300 rounded px-2 py-1 font-mono text-sm inline-flex gap-2 items-center cursor-pointer hover:bg-amber-50"
+                                          onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
+                                        >
+                                          {message.discountCode}
+                                        </div>
+                                        <Button 
+                                          variant="secondary" 
+                                          size="sm"
+                                          onClick={() => message.discountCode && message.discountPercentage && 
+                                            applyDiscountToCart(message.discountCode, message.discountPercentage)}
+                                        >
+                                          Use at checkout
+                                        </Button>
                                       </div>
                                       <p className="text-xs mt-1">
                                         Valid until: {formatExpiryDate(message.expiryDate)}
@@ -321,11 +395,22 @@ const VirtualBarista = () => {
                                     <span className="font-medium text-xs">DISCOUNT CODE:</span>
                                     <span className="text-xs">{message.discountPercentage}% OFF</span>
                                   </div>
-                                  <div 
-                                    className="bg-gray-100 border border-gray-300 rounded px-2 py-1 font-mono text-sm mt-1 text-center cursor-pointer hover:bg-gray-200"
-                                    onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
-                                  >
-                                    {message.discountCode}
+                                  <div className="flex flex-wrap gap-2 mt-1">
+                                    <div 
+                                      className="bg-gray-100 border border-gray-300 rounded px-2 py-1 font-mono text-sm text-center cursor-pointer hover:bg-gray-200 flex-grow"
+                                      onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
+                                    >
+                                      {message.discountCode}
+                                    </div>
+                                    <Button 
+                                      variant="secondary" 
+                                      size="sm"
+                                      className="text-xs"
+                                      onClick={() => message.discountCode && message.discountPercentage && 
+                                        applyDiscountToCart(message.discountCode, message.discountPercentage)}
+                                    >
+                                      Use at checkout
+                                    </Button>
                                   </div>
                                   <p className="text-xs mt-1 text-gray-500">
                                     Valid until: {formatExpiryDate(message.expiryDate)}

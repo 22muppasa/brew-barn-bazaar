@@ -1,17 +1,23 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
-import { Trash2, LogIn, ShoppingCart } from "lucide-react";
+import { Trash2, LogIn, ShoppingCart, X, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGuestCart, useLocalStorage } from "@/hooks/useLocalStorage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import GuestCheckoutForm from "@/components/checkout/GuestCheckoutForm";
+
+interface DiscountCode {
+  code: string;
+  percentage: number;
+  expiry: Date;
+}
 
 const Cart = () => {
   const session = useSession();
@@ -26,7 +32,9 @@ const Cart = () => {
     clearCart: clearGuestCart,
     getCartTotal: getGuestCartTotal
   } = useGuestCart();
-  const [checkoutMode, setCheckoutMode] = React.useState(false);
+  const [checkoutMode, setCheckoutMode] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number} | null>(null);
+  const [availableDiscounts, setAvailableDiscounts] = useState<DiscountCode[]>([]);
 
   // Query for authenticated user cart
   const { data: cartItems, isLoading } = useQuery({
@@ -43,6 +51,38 @@ const Cart = () => {
     },
     enabled: !!session,
   });
+
+  // Load available discount codes
+  useEffect(() => {
+    const storedCodes = localStorage.getItem('activeCodes');
+    if (storedCodes) {
+      try {
+        const parsedCodes = JSON.parse(storedCodes);
+        const validCodes = parsedCodes
+          .filter((code: {expiry: string}) => new Date(code.expiry) > new Date())
+          .map((code: {expiry: string, code: string, percentage: number}) => ({
+            ...code,
+            expiry: new Date(code.expiry)
+          }));
+        setAvailableDiscounts(validCodes);
+      } catch (e) {
+        console.error("Error parsing discount codes:", e);
+      }
+    }
+    
+    // Check for a discount code from the chat
+    const selectedDiscount = localStorage.getItem('selectedDiscount');
+    if (selectedDiscount) {
+      try {
+        const discount = JSON.parse(selectedDiscount);
+        setAppliedDiscount(discount);
+        // Clear the selected discount so it's not auto-applied on future visits
+        localStorage.removeItem('selectedDiscount');
+      } catch (e) {
+        console.error("Error parsing selected discount:", e);
+      }
+    }
+  }, []);
 
   // Mutations for authenticated user
   const deleteItemMutation = useMutation({
@@ -88,8 +128,7 @@ const Cart = () => {
         return;
       }
 
-      const total = cartItems.reduce((sum: number, item: any) => 
-        sum + (item.price * item.quantity), 0);
+      const total = calculateTotal();
 
       // Create order
       const { data: order, error: orderError } = await supabase
@@ -135,6 +174,18 @@ const Cart = () => {
         return;
       }
 
+      // If a discount was applied, remove it from available discounts
+      if (appliedDiscount) {
+        const updatedDiscounts = availableDiscounts.filter(
+          discount => discount.code !== appliedDiscount.code
+        );
+        setAvailableDiscounts(updatedDiscounts);
+        localStorage.setItem('activeCodes', JSON.stringify(updatedDiscounts.map(code => ({
+          ...code,
+          expiry: code.expiry.toISOString()
+        }))));
+      }
+
       queryClient.invalidateQueries({ queryKey: ['cart-items'] });
       toast.success("Order completed successfully!");
       navigate('/profile');
@@ -149,6 +200,42 @@ const Cart = () => {
     navigate('/auth');
   };
 
+  const calculateSubtotal = () => {
+    const items = session ? cartItems : guestCart;
+    return items?.reduce((sum: number, item: any) => 
+      sum + (item.price * item.quantity), 0) || 0;
+  };
+
+  const calculateDiscount = () => {
+    if (!appliedDiscount) return 0;
+    const subtotal = calculateSubtotal();
+    return (subtotal * appliedDiscount.percentage) / 100;
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const discount = calculateDiscount();
+    return subtotal - discount;
+  };
+
+  const applyDiscount = (code: string, percentage: number) => {
+    setAppliedDiscount({ code, percentage });
+    toast.success(`Applied discount: ${code}`);
+  };
+
+  const removeDiscount = () => {
+    setAppliedDiscount(null);
+    toast.success("Discount removed");
+  };
+
+  const formatExpiryDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    }).format(date);
+  };
+
   if (isLoading && session) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -159,9 +246,9 @@ const Cart = () => {
 
   // Determine which cart to use
   const items = session ? cartItems : guestCart;
-  const total = session 
-    ? (cartItems?.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0) || 0)
-    : getGuestCartTotal();
+  const total = calculateTotal();
+  const subtotal = calculateSubtotal();
+  const discount = calculateDiscount();
 
   // If cart is empty, show empty state
   if ((!items || items.length === 0) && !checkoutMode) {
@@ -242,6 +329,12 @@ const Cart = () => {
                   ))}
                 </div>
                 <div className="border-t border-muted pt-4">
+                  {appliedDiscount && (
+                    <div className="flex justify-between items-center text-green-600 mb-2">
+                      <span>Discount ({appliedDiscount.percentage}%):</span>
+                      <span>-${discount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center font-bold">
                     <span>Total:</span>
                     <span>${total.toFixed(2)}</span>
@@ -335,16 +428,81 @@ const Cart = () => {
                 className="bg-card p-6 rounded-lg shadow-md border border-muted sticky top-24"
               >
                 <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+                
+                {/* Available discount codes */}
+                {availableDiscounts.length > 0 && !appliedDiscount && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium mb-2 flex items-center gap-1">
+                      <Tag className="h-3 w-3" /> Available Discounts
+                    </h3>
+                    <div className="space-y-2 max-h-28 overflow-y-auto pr-1 mb-3">
+                      {availableDiscounts.map((discount) => (
+                        <div 
+                          key={discount.code} 
+                          className="bg-secondary/20 p-2 rounded-md text-xs flex justify-between items-center"
+                        >
+                          <div>
+                            <div className="font-mono font-medium">{discount.code}</div>
+                            <div className="text-muted-foreground text-xs">
+                              {discount.percentage}% off • expires {formatExpiryDate(discount.expiry)}
+                            </div>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            className="text-xs h-7"
+                            onClick={() => applyDiscount(discount.code, discount.percentage)}
+                          >
+                            Apply
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Applied discount */}
+                {appliedDiscount && (
+                  <div className="mb-4 bg-green-50 p-3 rounded-md border border-green-100">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="text-sm font-medium text-green-800 flex items-center gap-1">
+                          <Tag className="h-3 w-3" /> Applied Discount
+                        </h3>
+                        <div className="font-mono text-xs text-green-600 mt-1">{appliedDiscount.code}</div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="h-7 text-red-500 hover:text-red-700 hover:bg-red-50 p-0 w-7"
+                        onClick={removeDiscount}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Order totals */}
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>${subtotal.toFixed(2)}</span>
                   </div>
+                  
+                  {appliedDiscount && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount ({appliedDiscount.percentage}%)</span>
+                      <span>-${discount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between">
                     <span>Tax</span>
                     <span>$0.00</span>
                   </div>
                 </div>
+                
                 <div className="border-t border-muted pt-4">
                   <div className="flex justify-between items-center font-bold mb-6">
                     <span>Total:</span>
