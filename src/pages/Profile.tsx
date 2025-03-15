@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -5,6 +6,9 @@ import { useSession } from "@supabase/auth-helpers-react";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { toast } from "sonner";
 import { 
   Pencil, 
   Star, 
@@ -14,7 +18,9 @@ import {
   Mail, 
   MapPin, 
   Gift,
-  Coffee
+  Coffee,
+  Check,
+  X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +29,8 @@ const Profile = () => {
   const session = useSession();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProfile, setEditedProfile] = useState<any>(null);
 
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['orders'],
@@ -73,6 +81,75 @@ const Profile = () => {
     },
   });
 
+  const handleEditToggle = () => {
+    if (isEditing) {
+      setIsEditing(false);
+    } else {
+      setEditedProfile({
+        full_name: profile?.full_name || "",
+        email: profile?.email || "",
+        phone_number: profile?.phone_number || "",
+        address: profile?.address || "",
+        city: profile?.city || "",
+        state: profile?.state || "",
+        zip_code: profile?.zip_code || "",
+        birthdate: profile?.birthdate || "",
+        favorite_product: profile?.favorite_product || ""
+      });
+      setIsEditing(true);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setEditedProfile((prev: any) => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      // Update auth user metadata
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { 
+          address: editedProfile.address,
+          city: editedProfile.city,
+          state: editedProfile.state,
+          zip_code: editedProfile.zip_code,
+          phone_number: editedProfile.phone_number,
+          birthdate: editedProfile.birthdate,
+          favorite_product: editedProfile.favorite_product,
+          profile_completed: true
+        }
+      });
+      
+      if (authError) throw authError;
+      
+      // Update profiles table
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ 
+          full_name: editedProfile.full_name,
+          phone_number: editedProfile.phone_number,
+          address: editedProfile.address,
+          city: editedProfile.city,
+          state: editedProfile.state,
+          zip_code: editedProfile.zip_code,
+          birthdate: editedProfile.birthdate,
+          favorite_product: editedProfile.favorite_product
+        })
+        .eq("id", session?.user?.id);
+      
+      if (profileError) throw profileError;
+      
+      toast.success("Profile information saved!");
+      setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred while saving your profile");
+    }
+  };
+
   if (profileLoading || ordersLoading || drinksLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -97,22 +174,56 @@ const Profile = () => {
           >
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-semibold mb-4">Account Information</h2>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-1"
-                onClick={() => navigate("/auth")}
-              >
-                <Pencil className="h-4 w-4" />
-                Edit
-              </Button>
+              {isEditing ? (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-1"
+                    onClick={handleEditToggle}
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="flex items-center gap-1"
+                    onClick={handleSaveProfile}
+                  >
+                    <Check className="h-4 w-4" />
+                    Save
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                  onClick={handleEditToggle}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <p><span className="font-medium">Name:</span> {profile?.full_name || "Not provided"}</p>
+                  {isEditing ? (
+                    <div className="flex-1">
+                      <Label htmlFor="full_name">Name:</Label>
+                      <Input 
+                        id="full_name" 
+                        value={editedProfile.full_name} 
+                        onChange={(e) => handleInputChange('full_name', e.target.value)}
+                      />
+                    </div>
+                  ) : (
+                    <p><span className="font-medium">Name:</span> {profile?.full_name || "Not provided"}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
@@ -120,23 +231,99 @@ const Profile = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <p><span className="font-medium">Phone:</span> {profile?.phone_number || "Not provided"}</p>
+                  {isEditing ? (
+                    <div className="flex-1">
+                      <Label htmlFor="phone_number">Phone:</Label>
+                      <Input 
+                        id="phone_number" 
+                        value={editedProfile.phone_number} 
+                        onChange={(e) => handleInputChange('phone_number', e.target.value)}
+                      />
+                    </div>
+                  ) : (
+                    <p><span className="font-medium">Phone:</span> {profile?.phone_number || "Not provided"}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Coffee className="h-4 w-4 text-muted-foreground" />
-                  <p><span className="font-medium">Favorite Drink:</span> {profile?.favorite_product || "Not specified"}</p>
+                  {isEditing ? (
+                    <div className="flex-1">
+                      <Label htmlFor="favorite_product">Favorite Drink:</Label>
+                      <Input 
+                        id="favorite_product" 
+                        value={editedProfile.favorite_product} 
+                        onChange={(e) => handleInputChange('favorite_product', e.target.value)}
+                      />
+                    </div>
+                  ) : (
+                    <p><span className="font-medium">Favorite Drink:</span> {profile?.favorite_product || "Not specified"}</p>
+                  )}
                 </div>
               </div>
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <p><span className="font-medium">Address:</span> {profile?.address || "Not provided"}</p>
+                  {isEditing ? (
+                    <div className="flex-1">
+                      <Label htmlFor="address">Address:</Label>
+                      <Input 
+                        id="address" 
+                        value={editedProfile.address} 
+                        onChange={(e) => handleInputChange('address', e.target.value)}
+                      />
+                    </div>
+                  ) : (
+                    <p><span className="font-medium">Address:</span> {profile?.address || "Not provided"}</p>
+                  )}
                 </div>
-                <p className="ml-6">{profile?.city || ""} {profile?.state || ""} {profile?.zip_code || ""}</p>
+                {isEditing ? (
+                  <div className="ml-6 space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <Label htmlFor="city">City:</Label>
+                        <Input 
+                          id="city" 
+                          value={editedProfile.city}
+                          onChange={(e) => handleInputChange('city', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="state">State:</Label>
+                        <Input 
+                          id="state" 
+                          value={editedProfile.state}
+                          onChange={(e) => handleInputChange('state', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="zip_code">Zip:</Label>
+                        <Input 
+                          id="zip_code" 
+                          value={editedProfile.zip_code}
+                          onChange={(e) => handleInputChange('zip_code', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="ml-6">{profile?.city || ""} {profile?.state || ""} {profile?.zip_code || ""}</p>
+                )}
                 <div className="flex items-center gap-2">
                   <Gift className="h-4 w-4 text-muted-foreground" />
-                  <p><span className="font-medium">Birthday:</span> {profile?.birthdate || "Not provided"}</p>
+                  {isEditing ? (
+                    <div className="flex-1">
+                      <Label htmlFor="birthdate">Birthday:</Label>
+                      <Input 
+                        id="birthdate" 
+                        type="date"
+                        value={editedProfile.birthdate} 
+                        onChange={(e) => handleInputChange('birthdate', e.target.value)}
+                      />
+                    </div>
+                  ) : (
+                    <p><span className="font-medium">Birthday:</span> {profile?.birthdate || "Not provided"}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
@@ -145,7 +332,7 @@ const Profile = () => {
               </div>
             </div>
             
-            {(!profile?.full_name || !profile?.address || !profile?.phone_number) && (
+            {(!profile?.full_name || !profile?.address || !profile?.phone_number) && !isEditing && (
               <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
                 <p className="font-medium">Your profile is incomplete</p>
                 <p className="text-sm mt-1">Complete your profile to receive personalized offers and improve your experience.</p>
@@ -153,7 +340,7 @@ const Profile = () => {
                   variant="outline" 
                   size="sm" 
                   className="mt-2 bg-amber-100 hover:bg-amber-200 border-amber-300"
-                  onClick={() => navigate("/auth")}
+                  onClick={handleEditToggle}
                 >
                   Complete Profile
                 </Button>
