@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -27,7 +26,6 @@ const Menu = () => {
   const { data: menuItems, isLoading } = useQuery({
     queryKey: ['menu-items'],
     queryFn: async () => {
-      // First, ensure winter specials are added
       const winterSpecials = [
         {
           name: "Peppermint Mocha",
@@ -52,7 +50,6 @@ const Menu = () => {
         }
       ];
 
-      // Add winter specials to menu if they don't exist
       for (const item of winterSpecials) {
         const { data: existing } = await supabase
           .from('menu_items')
@@ -67,7 +64,6 @@ const Menu = () => {
         }
       }
 
-      // Get all menu items excluding seasonal category
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
@@ -79,34 +75,27 @@ const Menu = () => {
     },
   });
 
-  // Get product ratings
   const { data: productRatings } = useQuery({
     queryKey: ['product-ratings'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('product_reviews')
-        .select(`
-          product_name,
-          rating
-        `);
+        .select('product_name, rating');
       
       if (error) throw error;
       
-      // Calculate average ratings and count
       const ratingMap: Record<string, { avg: number; count: number }> = {};
       data.forEach(review => {
         if (!ratingMap[review.product_name]) {
-          ratingMap[review.product_name] = { sum: 0, count: 0 };
+          ratingMap[review.product_name] = { avg: 0, count: 0 };
         }
-        ratingMap[review.product_name].sum += review.rating;
+        ratingMap[review.product_name].avg += review.rating;
         ratingMap[review.product_name].count += 1;
       });
       
-      // Convert sums to averages
       Object.keys(ratingMap).forEach(product => {
         ratingMap[product].avg = 
-          ratingMap[product].sum / ratingMap[product].count;
-        delete ratingMap[product].sum;
+          ratingMap[product].avg / ratingMap[product].count;
       });
       
       return ratingMap;
@@ -115,7 +104,6 @@ const Menu = () => {
 
   const addToCartHandler = async (item: any) => {
     if (session) {
-      // For logged in users, use Supabase cart
       const { error } = await supabase
         .from('cart_items')
         .insert({
@@ -130,14 +118,12 @@ const Menu = () => {
         return;
       }
     } else if (isGuest) {
-      // For guests, use local storage cart
       addToCart({
         productName: item.name,
         price: item.price,
         quantity: 1
       });
     } else {
-      // Not logged in or guest
       toast.error("Please login or continue as guest to add items to cart");
       return;
     }

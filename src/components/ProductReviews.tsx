@@ -111,6 +111,8 @@ export default function ProductReviews({ productName }: ReviewsProps) {
       setShowForm(false);
       queryClient.invalidateQueries({ queryKey: ['product-reviews', productName] });
       queryClient.invalidateQueries({ queryKey: ['user-review', productName, session?.user?.id] });
+      // Also invalidate product ratings in Menu.tsx
+      queryClient.invalidateQueries({ queryKey: ['product-ratings'] });
     },
     onError: (error: Error) => {
       toast.error(error.message);

@@ -1,3 +1,4 @@
+
 export type CartItem = {
   created_at: string;
   id: string;
@@ -39,6 +40,13 @@ export type Profile = {
   email: string | null;
   full_name: string | null;
   created_at: string;
+  phone_number?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip_code?: string | null;
+  birthdate?: string | null;
+  favorite_product?: string | null;
 }
 
 export type Reward = {
@@ -65,4 +73,14 @@ export type DrinkAddon = {
   addon_type: string;
   addon_name: string;
   created_at: string;
+}
+
+export type ProductReview = {
+  id: string;
+  user_id: string;
+  product_name: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
 }

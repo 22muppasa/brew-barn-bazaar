@@ -129,11 +129,11 @@ const Profile = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <p><span className="font-medium">Phone:</span> {profile?.phoneNumber || "Not provided"}</p>
+                  <p><span className="font-medium">Phone:</span> {profile?.phone_number || "Not provided"}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Coffee className="h-4 w-4 text-muted-foreground" />
-                  <p><span className="font-medium">Favorite Drink:</span> {profile?.favoriteProduct || "Not specified"}</p>
+                  <p><span className="font-medium">Favorite Drink:</span> {profile?.favorite_product || "Not specified"}</p>
                 </div>
               </div>
               
@@ -142,7 +142,7 @@ const Profile = () => {
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <p><span className="font-medium">Address:</span> {profile?.address || "Not provided"}</p>
                 </div>
-                <p className="ml-6">{profile?.city || ""} {profile?.state || ""} {profile?.zipCode || ""}</p>
+                <p className="ml-6">{profile?.city || ""} {profile?.state || ""} {profile?.zip_code || ""}</p>
                 <div className="flex items-center gap-2">
                   <Gift className="h-4 w-4 text-muted-foreground" />
                   <p><span className="font-medium">Birthday:</span> {profile?.birthdate || "Not provided"}</p>
@@ -154,7 +154,7 @@ const Profile = () => {
               </div>
             </div>
             
-            {(!profile?.full_name || !profile?.address || !profile?.phoneNumber) && (
+            {(!profile?.full_name || !profile?.address || !profile?.phone_number) && (
               <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
                 <p className="font-medium">Your profile is incomplete</p>
                 <p className="text-sm mt-1">Complete your profile to receive personalized offers and improve your experience.</p>

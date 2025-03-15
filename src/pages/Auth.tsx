@@ -1,4 +1,3 @@
-
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -107,10 +106,10 @@ const AuthPage = () => {
       address: userData?.address || "",
       city: userData?.city || "",
       state: userData?.state || "",
-      zipCode: userData?.zipCode || "",
-      phoneNumber: userData?.phoneNumber || "",
+      zipCode: userData?.zip_code || "",
+      phoneNumber: userData?.phone_number || "",
       birthdate: userData?.birthdate || "",
-      favoriteProduct: userData?.favoriteProduct || ""
+      favoriteProduct: userData?.favorite_product || ""
     });
 
     setIsEditing(true);
@@ -121,7 +120,13 @@ const AuthPage = () => {
       // Update auth user metadata
       const { error: authError } = await supabase.auth.updateUser({
         data: { 
-          ...values,
+          address: values.address,
+          city: values.city,
+          state: values.state,
+          zip_code: values.zipCode,
+          phone_number: values.phoneNumber,
+          birthdate: values.birthdate,
+          favorite_product: values.favoriteProduct,
           profile_completed: true
         }
       });
@@ -134,7 +139,7 @@ const AuthPage = () => {
         const { error: profileError } = await supabase
           .from("profiles")
           .update({ 
-            full_name: values.fullName 
+            full_name: values.fullName
           })
           .eq("id", session.user.id);
         

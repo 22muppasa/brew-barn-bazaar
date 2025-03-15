@@ -1,4 +1,5 @@
-import { CartItem, MenuItem, Order, OrderItem, Profile, Reward, CustomDrink, DrinkAddon } from './tables';
+
+import { CartItem, MenuItem, Order, OrderItem, Profile, Reward, CustomDrink, DrinkAddon, ProductReview } from './tables';
 
 export type Json =
   | string
@@ -50,6 +51,11 @@ export interface Database {
         Row: DrinkAddon;
         Insert: Omit<DrinkAddon, 'id' | 'created_at'> & { id?: string; created_at?: string };
         Update: Partial<DrinkAddon>;
+      };
+      product_reviews: {
+        Row: ProductReview;
+        Insert: Omit<ProductReview, 'id' | 'created_at' | 'updated_at'> & { id?: string; created_at?: string; updated_at?: string };
+        Update: Partial<ProductReview>;
       };
     };
     Views: {
