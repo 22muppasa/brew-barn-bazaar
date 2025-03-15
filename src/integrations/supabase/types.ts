@@ -243,22 +243,43 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
+          birthdate: string | null
+          city: string | null
           created_at: string
           email: string | null
+          favorite_product: string | null
           full_name: string | null
           id: string
+          phone_number: string | null
+          state: string | null
+          zip_code: string | null
         }
         Insert: {
+          address?: string | null
+          birthdate?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
+          favorite_product?: string | null
           full_name?: string | null
           id: string
+          phone_number?: string | null
+          state?: string | null
+          zip_code?: string | null
         }
         Update: {
+          address?: string | null
+          birthdate?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
+          favorite_product?: string | null
           full_name?: string | null
           id?: string
+          phone_number?: string | null
+          state?: string | null
+          zip_code?: string | null
         }
         Relationships: []
       }

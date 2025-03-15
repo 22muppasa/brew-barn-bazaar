@@ -7,6 +7,7 @@ import HamburgerMenu from "@/components/HamburgerMenu";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { 
@@ -24,8 +25,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Profile } from "@/integrations/supabase/types/tables";
 
-const Profile = () => {
+const ProfilePage = () => {
   const session = useSession();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -77,7 +79,7 @@ const Profile = () => {
       
       if (profileError) throw profileError;
       
-      return profileData;
+      return profileData as Profile;
     },
   });
 
@@ -340,7 +342,7 @@ const Profile = () => {
                   variant="outline" 
                   size="sm" 
                   className="mt-2 bg-amber-100 hover:bg-amber-200 border-amber-300"
-                  onClick={handleEditToggle}
+                  onClick={() => navigate("/onboarding")}
                 >
                   Complete Profile
                 </Button>
@@ -444,4 +446,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfilePage;
