@@ -21,6 +21,28 @@ export const useAddToCart = () => {
   const mutation = useMutation({
     mutationFn: async ({ productName, price, quantity }: AddToCartParams) => {
       if (session?.user?.id) {
+        // Check if profile is complete
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", session.user.id)
+          .single();
+        
+        if (profileError) throw profileError;
+        
+        // If the user doesn't have a full name or it's empty, show incomplete profile warning
+        if (!profile?.full_name || profile.full_name.trim() === '') {
+          toast.warning(
+            "Your profile seems incomplete. Please update your account information.", 
+            {
+              action: {
+                label: "Update Profile",
+                onClick: () => window.location.href = "/auth"
+              }
+            }
+          );
+        }
+
         // For authenticated users, use Supabase
         const { error } = await supabase
           .from("cart_items")
