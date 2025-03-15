@@ -9,6 +9,8 @@ interface AddToCartParams {
   productName: string;
   price: number;
   quantity: number;
+  discountCode?: string;
+  discountPercentage?: number;
 }
 
 export const useAddToCart = () => {
@@ -19,7 +21,7 @@ export const useAddToCart = () => {
   const { addToCart: addToGuestCart } = useGuestCart();
 
   const mutation = useMutation({
-    mutationFn: async ({ productName, price, quantity }: AddToCartParams) => {
+    mutationFn: async ({ productName, price, quantity, discountCode, discountPercentage }: AddToCartParams) => {
       if (session?.user?.id) {
         // For authenticated users, use Supabase
         const { error } = await supabase
@@ -29,6 +31,8 @@ export const useAddToCart = () => {
             product_name: productName,
             quantity,
             price,
+            discount_code: discountCode,
+            discount_percentage: discountPercentage,
           });
 
         if (error) throw error;
@@ -37,7 +41,9 @@ export const useAddToCart = () => {
         addToGuestCart({
           productName,
           price,
-          quantity
+          quantity,
+          discountCode,
+          discountPercentage
         });
       } else {
         throw new Error("Must be logged in or continue as guest");

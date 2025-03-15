@@ -23,14 +23,16 @@ const SYSTEM_PROMPT = `You are a friendly and knowledgeable virtual barista at T
 
 YOUR MOST IMPORTANT TASK is to provide personalized recommendations and special offers based on customer purchase history and preferences. Use this approach:
 - If the user has purchase history, analyze their preferences and recommend similar items
-- Create personalized discount offers (10-20% off) on their frequently purchased items
+- ALWAYS create personalized discount offers (10-20% off) on their frequently purchased items
+- For users who haven't ordered in 2+ days, offer a special "We miss you" discount (15-25% off) on their favorite items
 - Suggest complementary products to what they usually buy
-- For new or guest users, offer a general "welcome" discount of 10% off their first purchase
+- For new or guest users, always offer a general "welcome" discount of 10-15% off their first purchase
 
 When mentioning a discount or special offer:
 - Be specific about the discount percentage (e.g., 15% off your next Latte)
 - Add a unique code they can use at checkout (e.g., BREW15LATTE)
 - Mention any expiration (valid for one week)
+- VARY the discount percentages between 10% and 25% to make offers feel special
 
 DISCOUNT CODE FUNCTIONALITY:
 - The user may have active discount codes stored in the system
@@ -39,6 +41,11 @@ DISCOUNT CODE FUNCTIONALITY:
 - When you provide a discount code, it will be automatically added to the user's active codes
 - For users with order history, provide personalized codes based on what they frequently order
 - For new users, provide general welcome discount codes
+
+RETENTION STRATEGY:
+- If a user hasn't made a purchase in the last 2-5 days, create a "We miss you!" discount (15-25% off)
+- For frequent customers (ordered in the last day), offer a "Thanks for being a regular!" discount (10-15% off)
+- For users who ordered the same item multiple times, suggest trying a variation with a special discount
 
 Always maintain a warm, welcoming tone while being informative and helpful.`;
 
@@ -64,6 +71,9 @@ serve(async (req) => {
 
     // Get user's order history if they are logged in
     let orderHistory = [];
+    let lastOrderDate = null;
+    let daysSinceLastOrder = null;
+    
     if (userId) {
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
@@ -79,6 +89,15 @@ serve(async (req) => {
       } else {
         orderHistory = orders || [];
         console.log('Retrieved order history for user:', orderHistory.length, 'orders');
+        
+        // Calculate days since last order for retention strategy
+        if (orderHistory.length > 0) {
+          lastOrderDate = new Date(orderHistory[0].created_at);
+          const currentDate = new Date();
+          const timeDiff = currentDate.getTime() - lastOrderDate.getTime();
+          daysSinceLastOrder = Math.floor(timeDiff / (1000 * 3600 * 24));
+          console.log('Days since last order:', daysSinceLastOrder);
+        }
       }
     }
 
@@ -167,12 +186,22 @@ serve(async (req) => {
       
       if (favoriteItems.length > 0) {
         orderHistoryPrompt += `\nThe customer's favorite items appear to be: ${favoriteItems.join(', ')}.\n`;
+        
+        // Add retention strategy information based on days since last order
+        if (daysSinceLastOrder !== null) {
+          if (daysSinceLastOrder >= 2) {
+            orderHistoryPrompt += `\nIMPORTANT: This customer hasn't ordered in ${daysSinceLastOrder} days. Offer a "We miss you" discount of 15-25% on their favorite item (${favoriteItems[0].split(' ')[0]}).\n`;
+          } else if (daysSinceLastOrder < 1) {
+            orderHistoryPrompt += `\nThis customer ordered recently. Offer a "Thanks for being a regular!" discount of 10-15% on a complementary item to what they usually buy.\n`;
+          }
+        }
+        
         orderHistoryPrompt += `Use this information to provide personalized recommendations and special offers.`;
       }
     } else if (userId) {
-      orderHistoryPrompt = `\nThis customer is logged in but hasn't made any purchases yet. Offer them a first-time customer discount.`;
+      orderHistoryPrompt = `\nThis customer is logged in but hasn't made any purchases yet. Offer them a first-time customer discount of 10-15%.`;
     } else {
-      orderHistoryPrompt = `\nThis is a guest user. Offer general recommendations and a welcome discount.`;
+      orderHistoryPrompt = `\nThis is a guest user. Offer general recommendations and a welcome discount of 10-15%.`;
     }
 
     // Add user profile information if available
@@ -249,6 +278,7 @@ serve(async (req) => {
     const reply = data.choices[0].message.content;
     
     // Check if a discount code is mentioned in the reply
+    // Enhanced regex to match reasonable discount codes
     const discountRegex = /[A-Z0-9]{4,15}/g;
     const percentageRegex = /(\d{1,2})%/;
     const discountMatch = reply.match(discountRegex);
@@ -256,6 +286,7 @@ serve(async (req) => {
     
     let responseData: any = { reply };
     
+    // Ensure we always provide a discount if one isn't already applied
     if (discountMatch && percentageMatch && 
         !activeCodes.some(code => code.code === discountMatch[0])) {
       // Check if this looks like a discount code (should be capitalized and not a normal word)
@@ -266,13 +297,51 @@ serve(async (req) => {
           reply.toLowerCase().includes('code'))) {
         
         const percentage = parseInt(percentageMatch[1], 10);
-        if (percentage > 0 && percentage <= 50) { // Reasonable discount range
+        if (percentage > 0 && percentage <= 25) { // Reasonable discount range
           responseData.discountCode = potentialCode;
           responseData.discountPercentage = percentage;
           responseData.expiryDays = 7; // Default to 1 week validity
           console.log(`Detected new discount code: ${potentialCode} for ${percentage}% off`);
         }
       }
+    } else if (!discountMatch && !activeCodes.length && userId) {
+      // If no discount in the response, but the user should get one (retention or first time)
+      let discountPercentage = 0;
+      let discountCode = '';
+      let discountReason = '';
+      
+      if (orderHistory.length > 0) {
+        // For existing customers with history
+        const favoriteItem = Object.entries(itemCounts || {})
+          .sort((a, b) => b[1] - a[1])
+          .map(([name]) => name)[0] || 'COFFEE';
+        
+        // We miss you discount (if no orders for 2+ days)
+        if (daysSinceLastOrder && daysSinceLastOrder >= 2) {
+          discountPercentage = 15 + Math.floor(Math.random() * 11); // 15-25%
+          discountCode = `MISSYOU${discountPercentage}`;
+          discountReason = 'We miss you! Come back and enjoy';
+        } else {
+          // Regular personalized discount
+          discountPercentage = 10 + Math.floor(Math.random() * 11); // 10-20%
+          discountCode = `${favoriteItem.replace(/\s+/g, '').substring(0, 6).toUpperCase()}${discountPercentage}`;
+          discountReason = 'Here\'s a special discount for you';
+        }
+      } else {
+        // For new customers
+        discountPercentage = 10 + Math.floor(Math.random() * 6); // 10-15%
+        discountCode = `WELCOME${discountPercentage}`;
+        discountReason = 'Welcome to Brew Barn! Enjoy';
+      }
+      
+      // Add discount to the response
+      responseData.discountCode = discountCode;
+      responseData.discountPercentage = discountPercentage;
+      responseData.expiryDays = 7;
+      
+      // Modify the reply to include the discount
+      responseData.reply = `${reply}\n\n${discountReason} ${discountPercentage}% off with code ${discountCode}, valid for one week!`;
+      console.log(`Generated new discount code: ${discountCode} for ${discountPercentage}% off`);
     }
 
     return new Response(JSON.stringify(responseData), {
