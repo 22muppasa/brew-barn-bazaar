@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -20,7 +19,7 @@ import {
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Coffee } from "lucide-react";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -38,6 +37,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const totalSteps = 4;
   
   const form = useForm<ProfileFormValues>({
@@ -79,6 +79,8 @@ const OnboardingPage = () => {
 
   const onSubmit = async (values: ProfileFormValues) => {
     try {
+      setIsSubmitting(true);
+      
       // Update auth user metadata
       const { error: authError } = await supabase.auth.updateUser({
         data: { 
@@ -115,9 +117,13 @@ const OnboardingPage = () => {
         if (profileError) throw profileError;
       }
       
+      // Simulate a delay for the loading animation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       toast.success("Profile information saved!");
-      navigate("/profile");
+      navigate("/");
     } catch (error: any) {
+      setIsSubmitting(false);
       toast.error(error.message || "An error occurred while saving your profile");
     }
   };
@@ -359,9 +365,65 @@ const OnboardingPage = () => {
         return null;
     }
   };
+  
+  // Loading screen component
+  const LoadingScreen = () => (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm"
+    >
+      <motion.div
+        animate={{ 
+          scale: [1, 1.1, 1],
+          rotate: [0, 10, -10, 0]
+        }}
+        transition={{ 
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        className="mb-8"
+      >
+        <Coffee className="h-20 w-20 text-primary" />
+      </motion.div>
+      
+      <motion.h2 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="text-2xl font-bold mb-4 text-primary"
+      >
+        Setting Up Your Profile
+      </motion.h2>
+      
+      <div className="relative w-64 h-2 bg-primary/20 rounded-full overflow-hidden">
+        <motion.div 
+          className="absolute top-0 left-0 h-full bg-primary"
+          initial={{ width: "0%" }}
+          animate={{ width: "100%" }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        />
+      </div>
+      
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mt-8 text-muted-foreground text-center max-w-md"
+      >
+        <p>We're preparing your personalized experience</p>
+        <p className="text-sm mt-2">You'll be redirected to the home page shortly</p>
+      </motion.div>
+    </motion.div>
+  );
 
   return (
     <div className="min-h-screen bg-background bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM4MDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djZoLTZ2LTZoLTZ2LTZoNnYtNmg2djZoNnY2aC02eiIvPjwvZz48L2c+PC9zdmc+')] flex flex-col items-center justify-center p-4 sm:p-8">
+      <AnimatePresence>
+        {isSubmitting && <LoadingScreen />}
+      </AnimatePresence>
+      
       <HamburgerMenu />
       
       <div className="w-full max-w-3xl mb-6">
@@ -429,6 +491,7 @@ const OnboardingPage = () => {
                     size="circle"
                     onClick={prevStep}
                     className="shadow-md hover:shadow-lg border border-muted relative overflow-hidden group"
+                    disabled={isSubmitting}
                   >
                     <span className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <ChevronLeft className="h-5 w-5" />
@@ -444,7 +507,7 @@ const OnboardingPage = () => {
                   <motion.button
                     key={index}
                     type="button"
-                    onClick={() => setCurrentStep(index + 1)}
+                    onClick={() => !isSubmitting && setCurrentStep(index + 1)}
                     className={`w-3.5 h-3.5 rounded-full transition-all duration-300 border ${
                       currentStep === index + 1
                         ? "bg-primary border-primary scale-125"
@@ -453,6 +516,7 @@ const OnboardingPage = () => {
                     whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.9 }}
                     aria-label={`Go to step ${index + 1}`}
+                    disabled={isSubmitting}
                   />
                 ))}
               </div>
@@ -469,6 +533,7 @@ const OnboardingPage = () => {
                     size="circle"
                     onClick={nextStep}
                     className="shadow-md hover:shadow-lg border border-muted relative overflow-hidden group"
+                    disabled={isSubmitting}
                   >
                     <span className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <ChevronRight className="h-5 w-5" />
@@ -478,9 +543,18 @@ const OnboardingPage = () => {
                     type="submit"
                     size="circle"
                     className="bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg relative overflow-hidden group"
+                    disabled={isSubmitting}
                   >
                     <span className="absolute inset-0 bg-gradient-to-tr from-green-500/20 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <ChevronRight className="h-5 w-5" />
+                    {isSubmitting ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="h-5 w-5 border-2 border-white border-t-transparent rounded-full"
+                      />
+                    ) : (
+                      <Check className="h-5 w-5" />
+                    )}
                   </Button>
                 )}
               </motion.div>

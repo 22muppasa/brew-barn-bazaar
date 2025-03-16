@@ -9,6 +9,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollTransform } from "@/components/ui/scroll-transform";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface RewardsHeaderProps {
   tier: string;
@@ -95,9 +97,9 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
               </motion.div>
             </Button>
           </SheetTrigger>
-          <SheetContent className="bg-gradient-to-b from-background to-background/95 border-l-primary/20 overflow-y-auto">
+          <SheetContent className="bg-gradient-to-b from-background to-background/95 border-l-primary/20 overflow-y-auto sm:max-w-md w-full">
             <SheetHeader>
-              <SheetTitle className="text-center text-3xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary">
+              <SheetTitle className="text-center text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary">
                 <motion.div
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -111,61 +113,114 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
             </SheetHeader>
             
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center h-60 gap-3">
-                <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full"
-                />
-                <p className="text-muted-foreground">Loading leaderboard...</p>
+              <div className="flex flex-col space-y-3 px-1">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-8 w-16 rounded-lg" />
+                  </div>
+                ))}
               </div>
             ) : (
-              <motion.div 
-                className="space-y-4 mt-4 pb-8"
-                variants={container}
-                initial="hidden"
-                animate="show"
-              >
-                {leaderboard?.map((user, index) => {
-                  const medal = getMedalStyles(index);
-                  return (
-                    <motion.div 
-                      key={index}
-                      variants={item}
-                      className={`flex items-center justify-between p-4 rounded-xl border ${medal.border} ${medal.shadow} backdrop-blur-sm`}
-                      whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-lg font-bold`}>
-                          {index + 1}
-                        </div>
-                        <div>
-                          <div className="font-bold text-base flex items-center gap-1">
-                            {user.username}
-                            {user.is_anonymous && (
-                              <motion.span 
-                                className="text-xs bg-primary/10 px-1.5 py-0.5 rounded-full text-primary/70"
-                                initial={{ scale: 0.8 }}
-                                animate={{ scale: 1 }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                anonymous
-                              </motion.span>
-                            )}
-                          </div>
-                          <div className="text-xs text-muted-foreground rounded-full px-2 py-0.5 bg-primary/5 inline-block mt-1">{user.tier}</div>
-                        </div>
-                      </div>
+              <div className="mt-4 pb-8">
+                {/* Desktop and Tablet View */}
+                <div className="hidden sm:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">Rank</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead className="text-right">Points</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {leaderboard?.map((user, index) => {
+                        const medal = getMedalStyles(index);
+                        return (
+                          <TableRow key={index} className="hover:bg-primary/5">
+                            <TableCell className="font-medium">
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-sm font-bold`}>
+                                {index + 1}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium flex items-center gap-1">
+                                {user.username}
+                                {user.is_anonymous && (
+                                  <span className="text-xs bg-primary/10 px-1.5 py-0.5 rounded-full text-primary/70">
+                                    anonymous
+                                  </span>
+                                )}
+                                <span className="text-xs text-muted-foreground ml-2 bg-primary/5 px-1.5 py-0.5 rounded-full">
+                                  {user.tier}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {user.points}
+                              <span className="text-xs ml-1 text-primary/80">pts</span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile View */}
+                <motion.div 
+                  className="sm:hidden space-y-3"
+                  variants={container}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {leaderboard?.map((user, index) => {
+                    const medal = getMedalStyles(index);
+                    return (
                       <motion.div 
-                        className="font-bold text-lg bg-primary/10 px-3 py-1 rounded-lg"
-                        whileHover={{ scale: 1.05 }}
+                        key={index}
+                        variants={item}
+                        className={`flex items-center justify-between p-3 rounded-xl border ${medal.border} ${medal.shadow} backdrop-blur-sm`}
+                        whileHover={{ y: -2, transition: { duration: 0.2 } }}
                       >
-                        {user.points} 
-                        <span className="text-xs ml-1 text-primary/80">pts</span>
+                        <div className="flex items-center gap-3">
+                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-sm font-bold`}>
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm flex items-center gap-1">
+                              {user.username}
+                              {user.is_anonymous && (
+                                <motion.span 
+                                  className="text-xs bg-primary/10 px-1 py-0.5 rounded-full text-primary/70"
+                                  initial={{ scale: 0.8 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ duration: 0.2 }}
+                                >
+                                  anon
+                                </motion.span>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground rounded-full px-1.5 py-0.5 bg-primary/5 inline-block mt-1">{user.tier}</div>
+                          </div>
+                        </div>
+                        <motion.div 
+                          className="font-bold text-base bg-primary/10 px-2 py-1 rounded-lg"
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          {user.points} 
+                          <span className="text-xs ml-1 text-primary/80">pts</span>
+                        </motion.div>
                       </motion.div>
-                    </motion.div>
-                  );
-                })}
+                    );
+                  })}
+                </motion.div>
                 
                 {(!leaderboard || leaderboard.length === 0) && (
                   <ScrollTransform effect="fade" direction="up" className="text-center py-12">
@@ -176,7 +231,7 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                     </div>
                   </ScrollTransform>
                 )}
-              </motion.div>
+              </div>
             )}
           </SheetContent>
         </Sheet>
