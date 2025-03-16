@@ -116,7 +116,7 @@
   }
   
   .nav-link {
-    @apply text-base lg:text-lg font-medium text-foreground transition-colors hover:text-primary relative;
+    @apply text-base lg:text-lg font-bold text-foreground transition-colors hover:text-primary relative;
     font-family: 'Barriecito', cursive;
     text-transform: lowercase;
   }
