@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
@@ -13,8 +13,15 @@ const Navigation = () => {
   const navigate = useNavigate();
   const session = useSession();
   const supabase = useSupabaseClient();
-  const { getValue } = useLocalStorage();
+  const { getValue, setValue } = useLocalStorage();
   const isGuest = getValue("isGuest") === "true";
+
+  // Auto-enable guest mode for non-authenticated users
+  useEffect(() => {
+    if (!session && !isGuest) {
+      setValue("isGuest", "true");
+    }
+  }, [session, isGuest, setValue]);
 
   const leftMenuItems = [
     { title: "home", href: "/" },
@@ -43,11 +50,8 @@ const Navigation = () => {
     }
   };
 
-  const continueAsGuest = () => {
-    localStorage.setItem("isGuest", "true");
-    toast.success("Continuing as guest");
-    navigate("/menu");
-  };
+  // We can remove this function since we're auto-enabling guest mode
+  // const continueAsGuest = () => {...}
 
   return (
     <>
@@ -108,15 +112,7 @@ const Navigation = () => {
             >
               {session ? "Logout" : isGuest ? "Sign In" : "Login"}
             </Button>
-            {!session && !isGuest && (
-              <Button 
-                variant="outline" 
-                className="text-foreground border-input hover:bg-secondary/20 text-sm lg:text-base hidden sm:inline-flex"
-                onClick={continueAsGuest}
-              >
-                Continue as Guest
-              </Button>
-            )}
+            {/* Remove the "Continue as Guest" button since we're auto-applying that now */}
           </div>
         </div>
       </motion.nav>

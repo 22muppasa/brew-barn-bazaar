@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export const useLocalStorage = () => {
@@ -35,14 +34,21 @@ export const useLocalStorage = () => {
     }
   };
 
-  return { setValue, getValue, removeValue, clearStorage };
+  const ensureGuestMode = (session: any) => {
+    if (!session && getValue("isGuest") !== "true") {
+      setValue("isGuest", "true");
+      return true; // Guest mode was activated
+    }
+    return false; // No change needed
+  };
+
+  return { setValue, getValue, removeValue, clearStorage, ensureGuestMode };
 };
 
 export const useGuestCart = () => {
   const { getValue, setValue } = useLocalStorage();
   const [cart, setCart] = useState<GuestCartItem[]>([]);
 
-  // Load cart from localStorage on initial mount
   useEffect(() => {
     const savedCart = getValue('guestCart');
     if (savedCart) {
@@ -55,25 +61,21 @@ export const useGuestCart = () => {
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
     setValue('guestCart', JSON.stringify(cart));
   }, [cart]);
 
   const addToCart = (item: Omit<GuestCartItem, 'id'>) => {
     setCart(prevCart => {
-      // Check if item already exists
       const existingItemIndex = prevCart.findIndex(
         cartItem => cartItem.productName === item.productName
       );
 
       if (existingItemIndex >= 0) {
-        // Update quantity if item exists
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex].quantity += item.quantity;
         return updatedCart;
       } else {
-        // Add new item
         return [...prevCart, { ...item, id: Date.now().toString() }];
       }
     });
@@ -119,7 +121,6 @@ export const useGuestCart = () => {
   };
 };
 
-// Types
 export interface GuestCartItem {
   id: string;
   productName: string;

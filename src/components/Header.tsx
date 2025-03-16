@@ -1,15 +1,21 @@
-
-import { motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import HamburgerMenu from "./HamburgerMenu";
+import { useEffect } from "react";
 
 const Header = () => {
   const session = useSession();
   const { getValue, setValue } = useLocalStorage();
   const isGuest = getValue("isGuest") === "true";
+  
+  useEffect(() => {
+    if (!session && !isGuest) {
+      setValue("isGuest", "true");
+    }
+  }, [session, isGuest, setValue]);
 
   const continueAsGuest = () => {
     setValue("isGuest", "true");
@@ -72,7 +78,7 @@ const Header = () => {
               Explore Menu
             </Button>
           </Link>
-          {!session && !isGuest ? (
+          {!session ? (
             <div className="flex flex-col sm:flex-row gap-3">
               <Link to="/auth">
                 <Button 

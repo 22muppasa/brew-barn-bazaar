@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Home, Utensils, ShoppingBag, Award, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,12 @@ const HamburgerMenu = () => {
   const supabase = useSupabaseClient();
   const { getValue, setValue } = useLocalStorage();
   const isGuest = getValue("isGuest") === "true";
+
+  useEffect(() => {
+    if (!session && !isGuest) {
+      setValue("isGuest", "true");
+    }
+  }, [session, isGuest, setValue]);
 
   const handleAuth = async () => {
     if (session) {
@@ -136,16 +142,6 @@ const HamburgerMenu = () => {
                   >
                     {session ? "Logout" : isGuest ? "Sign In" : "Login"}
                   </Button>
-                  {!session && !isGuest && (
-                    <Button 
-                      variant="outline"
-                      size="lg"
-                      className="w-full text-foreground border-input hover:bg-secondary/20"
-                      onClick={continueAsGuest}
-                    >
-                      Continue as Guest
-                    </Button>
-                  )}
                 </div>
               </nav>
             </motion.div>
