@@ -55,10 +55,47 @@ const Cart = () => {
     staleTime: 10000,
   });
 
-  // Define items to use either cartItems for logged-in users or guestCart for guests
-  const items = session ? cartItems || [] : guestCart || [];
+  // First, define the calculation functions
+  const calculateSubtotal = () => {
+    const items = session ? cartItems : guestCart;
+    return items?.reduce((sum: number, item: any) => 
+      sum + (item.price * item.quantity), 0) || 0;
+  };
 
-  // Calculate subtotal, discount and total values
+  const calculateDiscount = () => {
+    if (!appliedDiscount) return 0;
+    
+    const items = session ? cartItems : guestCart;
+    
+    if (appliedDiscount.productType) {
+      const eligibleItems = items?.filter((item: any) => 
+        (item.product_name || item.productName)
+          .toLowerCase()
+          .includes(appliedDiscount.productType!.toLowerCase())
+      );
+      
+      if (eligibleItems.length === 0) {
+        return 0;
+      }
+      
+      const eligibleSubtotal = eligibleItems.reduce((sum: number, item: any) => 
+        sum + (item.price * item.quantity), 0) || 0;
+        
+      return (eligibleSubtotal * appliedDiscount.percentage) / 100;
+    } else {
+      const subtotal = calculateSubtotal();
+      return (subtotal * appliedDiscount.percentage) / 100;
+    }
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const discount = calculateDiscount();
+    return subtotal - discount;
+  };
+
+  // Then use the functions
+  const items = session ? cartItems || [] : guestCart || [];
   const subtotal = calculateSubtotal();
   const discount = calculateDiscount();
   const total = calculateTotal();
