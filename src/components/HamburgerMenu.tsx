@@ -42,15 +42,15 @@ const HamburgerMenu = () => {
   };
 
   const menuItems = [
-    { name: "Home", icon: Home, path: "/" },
-    { name: "Menu", icon: Utensils, path: "/menu" },
-    { name: "Cart", icon: ShoppingBag, path: "/cart" },
+    { name: "home", icon: Home, path: "/" },
+    { name: "menu", icon: Utensils, path: "/menu" },
+    { name: "cart", icon: ShoppingBag, path: "/cart" },
   ];
 
   if (session) {
     menuItems.push(
-      { name: "Rewards", icon: Award, path: "/rewards" },
-      { name: "Profile", icon: User, path: "/profile" }
+      { name: "rewards", icon: Award, path: "/rewards" },
+      { name: "profile", icon: User, path: "/profile" }
     );
   }
 
@@ -113,7 +113,7 @@ const HamburgerMenu = () => {
                   <Link
                     key={item.name}
                     to={item.path}
-                    className={`text-xl font-medium transition-colors hover:text-primary flex items-center gap-3 w-full ${
+                    className={`text-xl font-medium transition-colors hover:text-primary flex items-center gap-3 w-full font-aloja ${
                       location.pathname === item.path ? "text-primary" : "text-foreground"
                     }`}
                     onClick={() => setIsOpen(false)}

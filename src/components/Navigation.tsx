@@ -17,14 +17,14 @@ const Navigation = () => {
   const isGuest = getValue("isGuest") === "true";
 
   const leftMenuItems = [
-    { title: "Home", href: "/" },
-    { title: "Menu", href: "/menu" },
+    { title: "home", href: "/" },
+    { title: "menu", href: "/menu" },
   ];
 
   const rightMenuItems = [
     ...(session ? [
-      { title: "Profile", href: "/profile" },
-      { title: "Rewards", href: "/rewards" }
+      { title: "profile", href: "/profile" },
+      { title: "rewards", href: "/rewards" }
     ] : [])
   ];
 
@@ -70,7 +70,7 @@ const Navigation = () => {
               <Link
                 key={item.title}
                 to={item.href}
-                className="text-base lg:text-lg font-medium text-foreground transition-colors hover:text-primary relative group"
+                className="nav-link"
               >
                 <span>{item.title}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
@@ -93,7 +93,7 @@ const Navigation = () => {
               <Link
                 key={item.title}
                 to={item.href}
-                className="text-base lg:text-lg font-medium text-foreground transition-colors hover:text-primary relative group"
+                className="nav-link"
               >
                 <span>{item.title}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>

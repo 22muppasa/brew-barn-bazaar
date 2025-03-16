@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 const config = {
@@ -19,6 +18,7 @@ const config = {
     extend: {
       fontFamily: {
         'tan-ashford': ['TAN Ashford', 'serif'],
+        'aloja': ['Aloja', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
