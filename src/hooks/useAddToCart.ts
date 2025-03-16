@@ -3,13 +3,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
-import { useGuestCart, useLocalStorage, GuestCartItem } from "./useLocalStorage";
+import { useGuestCart, useLocalStorage } from "./useLocalStorage";
 
 interface AddToCartParams {
   productName: string;
   price: number;
   quantity: number;
-  size?: string;
 }
 
 export const useAddToCart = () => {
@@ -26,7 +25,7 @@ export const useAddToCart = () => {
   const { addToCart: addToGuestCart } = useGuestCart();
 
   const mutation = useMutation({
-    mutationFn: async ({ productName, price, quantity, size }: AddToCartParams) => {
+    mutationFn: async ({ productName, price, quantity }: AddToCartParams) => {
       if (session?.user?.id) {
         // Check if profile is complete
         const { data: profile, error: profileError } = await supabase
@@ -50,29 +49,26 @@ export const useAddToCart = () => {
           );
         }
 
-        // For authenticated users, check if item already exists in cart with the same size
-        // Break this into separate steps to avoid deep type instantiation
-        const query = supabase
+        // For authenticated users, check if item already exists in cart
+        const { data: existingItem, error: queryError } = await supabase
           .from("cart_items")
           .select("*")
           .eq("user_id", session.user.id)
           .eq("product_name", productName)
-          .eq("size", size || "medium");
-          
-        const { data: existingItem, error: queryError } = await query;
+          .single();
         
         if (queryError && queryError.code !== 'PGRST116') { // PGRST116 means no rows returned
           throw queryError;
         }
 
-        if (existingItem && existingItem.length > 0) {
+        if (existingItem) {
           // Update existing item quantity
           const { error } = await supabase
             .from("cart_items")
             .update({
-              quantity: existingItem[0].quantity + quantity
+              quantity: existingItem.quantity + quantity
             })
-            .eq("id", existingItem[0].id);
+            .eq("id", existingItem.id);
 
           if (error) throw error;
         } else {
@@ -84,7 +80,6 @@ export const useAddToCart = () => {
               product_name: productName,
               quantity,
               price,
-              size: size || "medium",
             });
   
           if (error) throw error;
@@ -97,15 +92,12 @@ export const useAddToCart = () => {
           setValue("isGuest", "true");
         }
         
-        // Add item to guest cart with explicitly typed parameters
-        const cartItem: Omit<GuestCartItem, "id"> = {
+        // Add item to guest cart
+        addToGuestCart({
           productName,
           price,
-          quantity,
-          size: size || "medium"
-        };
-        
-        addToGuestCart(cartItem);
+          quantity
+        });
         
         // Return a resolved result for guest flow
         return { success: true, guest: true };

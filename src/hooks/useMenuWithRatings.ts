@@ -1,7 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MenuItem } from "@/integrations/supabase/types/tables";
 
 export const useMenuWithRatings = (category?: string) => {
   return useQuery({
@@ -47,26 +46,15 @@ export const useMenuWithRatings = (category?: string) => {
         return acc;
       }, {}) || {};
 
-      // Add ratings and size options to menu items
-      const menuWithRatings = menuItems?.map((item: any) => {
+      // Add ratings to menu items
+      const menuWithRatings = menuItems?.map(item => {
         const ratings = ratingsByProduct[item.name] || { total: 0, count: 0 };
         const averageRating = ratings.count > 0 ? ratings.total / ratings.count : 0;
-        
-        // Add default size options if not present
-        if (!item.size_options) {
-          const basePrice = item.price;
-          item.size_options = {
-            small: { price: Math.round((basePrice * 0.8) * 100) / 100, volume: 240 },
-            medium: { price: basePrice, volume: 360 },
-            large: { price: Math.round((basePrice * 1.2) * 100) / 100, volume: 480 },
-          };
-        }
         
         return {
           ...item,
           averageRating,
-          reviewCount: ratings.count,
-          size_options: item.size_options
+          reviewCount: ratings.count
         };
       }) || [];
 
