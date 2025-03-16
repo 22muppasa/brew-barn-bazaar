@@ -19,7 +19,6 @@ export const useAddToCart = () => {
   // Auto-enable guest mode for non-logged in users
   if (!session && getValue("isGuest") !== "true") {
     setValue("isGuest", "true");
-    console.log("Guest mode auto-enabled in useAddToCart");
   }
   
   const isGuest = getValue("isGuest") === "true";
@@ -88,12 +87,9 @@ export const useAddToCart = () => {
         return { success: true };
       } else {
         // Non-logged in users are automatically in guest mode
-        console.log("Adding to guest cart as non-logged in user:", { productName, price, quantity });
-        
         // Force guest mode to be true
         if (getValue("isGuest") !== "true") {
           setValue("isGuest", "true");
-          console.log("Guest mode auto-enabled during cart add");
         }
         
         // Add item to guest cart
@@ -111,9 +107,6 @@ export const useAddToCart = () => {
       if (session) {
         queryClient.invalidateQueries({ queryKey: ["cart-items"] });
       }
-      
-      // Log success for debugging
-      console.log("Successfully added to cart:", result);
       
       toast.success("Added to cart!");
     },

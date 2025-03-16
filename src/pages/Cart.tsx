@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -12,12 +11,13 @@ import { useGuestCart, useLocalStorage } from "@/hooks/useLocalStorage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import GuestCheckoutForm from "@/components/checkout/GuestCheckoutForm";
+import CartSkeleton from "@/components/cart/CartSkeleton";
 
 interface DiscountCode {
   code: string;
   percentage: number;
   expiry: Date;
-  productType?: string; // Optional field to specify which product type the discount applies to
+  productType?: string;
 }
 
 const Cart = () => {
@@ -36,8 +36,8 @@ const Cart = () => {
   const [checkoutMode, setCheckoutMode] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number, productType?: string} | null>(null);
   const [availableDiscounts, setAvailableDiscounts] = useState<DiscountCode[]>([]);
+  const [isContentLoaded, setIsContentLoaded] = useState(false);
 
-  // Query for authenticated user cart
   const { data: cartItems, isLoading } = useQuery({
     queryKey: ['cart-items'],
     queryFn: async () => {
@@ -51,9 +51,16 @@ const Cart = () => {
       return data;
     },
     enabled: !!session,
+    staleTime: 10000,
   });
 
-  // Load available discount codes
+  useEffect(() => {
+    if (!isLoading) {
+      const timer = setTimeout(() => setIsContentLoaded(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
+
   useEffect(() => {
     const storedCodes = localStorage.getItem('activeCodes');
     if (storedCodes) {
@@ -71,13 +78,11 @@ const Cart = () => {
       }
     }
     
-    // Check for a discount code from the chat
     const selectedDiscount = localStorage.getItem('selectedDiscount');
     if (selectedDiscount) {
       try {
         const discount = JSON.parse(selectedDiscount);
         setAppliedDiscount(discount);
-        // Clear the selected discount so it's not auto-applied on future visits
         localStorage.removeItem('selectedDiscount');
       } catch (e) {
         console.error("Error parsing selected discount:", e);
@@ -85,7 +90,6 @@ const Cart = () => {
     }
   }, []);
 
-  // Mutations for authenticated user
   const deleteItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
       const { error } = await supabase
@@ -123,7 +127,6 @@ const Cart = () => {
 
   const handleCheckout = async () => {
     if (session) {
-      // Authenticated user checkout
       if (!cartItems?.length) {
         toast.error("Your cart is empty");
         return;
@@ -131,7 +134,6 @@ const Cart = () => {
 
       const total = calculateTotal();
 
-      // Create order
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -147,7 +149,6 @@ const Cart = () => {
         return;
       }
 
-      // Create order items
       const orderItems = cartItems.map((item: any) => ({
         order_id: order.id,
         product_name: item.product_name,
@@ -164,7 +165,6 @@ const Cart = () => {
         return;
       }
 
-      // Clear cart
       const { error: clearError } = await supabase
         .from('cart_items')
         .delete()
@@ -175,7 +175,6 @@ const Cart = () => {
         return;
       }
 
-      // If a discount was applied, remove it from available discounts
       if (appliedDiscount) {
         const updatedDiscounts = availableDiscounts.filter(
           discount => discount.code !== appliedDiscount.code
@@ -191,13 +190,11 @@ const Cart = () => {
       toast.success("Order completed successfully!");
       navigate('/profile');
     } else if (isGuest) {
-      // Guest checkout - show the form
       setCheckoutMode(true);
     }
   };
 
   const convertToAccount = () => {
-    // Save guest cart to localStorage before redirecting to auth
     navigate('/auth');
   };
 
@@ -212,9 +209,7 @@ const Cart = () => {
     
     const items = session ? cartItems : guestCart;
     
-    // If the discount is product-specific, only apply it to matching items
     if (appliedDiscount.productType) {
-      // Find all items that match the product type (check if product name contains the product type)
       const eligibleItems = items?.filter((item: any) => 
         (item.product_name || item.productName)
           .toLowerCase()
@@ -222,17 +217,14 @@ const Cart = () => {
       );
       
       if (eligibleItems.length === 0) {
-        // If no eligible items found, return 0 discount
         return 0;
       }
       
-      // Calculate subtotal for only the eligible items
       const eligibleSubtotal = eligibleItems.reduce((sum: number, item: any) => 
         sum + (item.price * item.quantity), 0) || 0;
         
       return (eligibleSubtotal * appliedDiscount.percentage) / 100;
     } else {
-      // If no product type specified, apply discount to entire cart
       const subtotal = calculateSubtotal();
       return (subtotal * appliedDiscount.percentage) / 100;
     }
@@ -247,7 +239,6 @@ const Cart = () => {
   const applyDiscount = (code: string, percentage: number, productType?: string) => {
     setAppliedDiscount({ code, percentage, productType });
     
-    // Generate a message based on whether it's a general or product-specific discount
     const discountMessage = productType 
       ? `Applied ${percentage}% discount on ${productType} items: ${code}`
       : `Applied discount: ${code}`;
@@ -268,7 +259,6 @@ const Cart = () => {
     }).format(date);
   };
 
-  // Determine if a product-specific discount has eligible items in the cart
   const hasEligibleItems = (productType: string) => {
     const items = session ? cartItems : guestCart;
     return items?.some((item: any) => 
@@ -278,21 +268,10 @@ const Cart = () => {
     );
   };
 
-  if (isLoading && session) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-primary rounded-full"></div>
-      </div>
-    );
+  if (!isContentLoaded) {
+    return <CartSkeleton />;
   }
 
-  // Determine which cart to use
-  const items = session ? cartItems : guestCart;
-  const total = calculateTotal();
-  const subtotal = calculateSubtotal();
-  const discount = calculateDiscount();
-
-  // If cart is empty, show empty state
   if ((!items || items.length === 0) && !checkoutMode) {
     return (
       <div className="min-h-screen bg-background">
@@ -407,7 +386,6 @@ const Cart = () => {
                       <h3 className="font-semibold">{item.product_name || item.productName}</h3>
                       <p className="text-muted-foreground">${item.price} each</p>
                       
-                      {/* Show discount badge if this item is eligible for the applied product-specific discount */}
                       {appliedDiscount?.productType && 
                        (item.product_name || item.productName)
                          .toLowerCase()
@@ -482,7 +460,6 @@ const Cart = () => {
               >
                 <h2 className="text-xl font-bold mb-4">Order Summary</h2>
                 
-                {/* Available discount codes */}
                 {availableDiscounts.length > 0 && !appliedDiscount && (
                   <div className="mb-4">
                     <h3 className="text-sm font-medium mb-2 flex items-center gap-1">
@@ -490,7 +467,6 @@ const Cart = () => {
                     </h3>
                     <div className="space-y-2 max-h-28 overflow-y-auto pr-1 mb-3">
                       {availableDiscounts.map((discount) => {
-                        // Check if product-specific discount has eligible items
                         const isEligible = discount.productType ? 
                           hasEligibleItems(discount.productType) : true;
                           
@@ -530,7 +506,6 @@ const Cart = () => {
                   </div>
                 )}
                 
-                {/* Applied discount */}
                 {appliedDiscount && (
                   <div className="mb-4 bg-green-50 p-3 rounded-md border border-green-100">
                     <div className="flex justify-between items-center">
@@ -557,7 +532,6 @@ const Cart = () => {
                   </div>
                 )}
                 
-                {/* Order totals */}
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
@@ -610,4 +584,3 @@ const Cart = () => {
 };
 
 export default Cart;
-

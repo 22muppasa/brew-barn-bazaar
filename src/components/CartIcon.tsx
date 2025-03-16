@@ -4,13 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useGuestCart, useLocalStorage } from "@/hooks/useLocalStorage";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 
-const CartIcon = () => {
+// Using memo to prevent unnecessary re-renders
+const CartIcon = memo(() => {
   const session = useSession();
-  const navigate = useNavigate();
   const { getValue } = useLocalStorage();
   const { getCartCount } = useGuestCart();
   const [guestCartCount, setGuestCartCount] = useState(0);
@@ -36,7 +36,6 @@ const CartIcon = () => {
     if (!session) {
       const updateCartCount = () => {
         const count = getCartCount();
-        console.log("Updating guest cart count in CartIcon:", count);
         setGuestCartCount(count);
       };
       
@@ -52,20 +51,15 @@ const CartIcon = () => {
       
       // Set up custom event listener for same-tab updates
       const handleCustomEvent = () => {
-        console.log("Guest cart updated event received");
         updateCartCount();
       };
       
       window.addEventListener('storage', handleStorageChange);
       window.addEventListener('guestCartUpdated', handleCustomEvent);
       
-      // Check periodically for updates
-      const interval = setInterval(updateCartCount, 500);
-      
       return () => {
         window.removeEventListener('storage', handleStorageChange);
         window.removeEventListener('guestCartUpdated', handleCustomEvent);
-        clearInterval(interval);
       };
     }
   }, [session, getCartCount]);
@@ -80,16 +74,20 @@ const CartIcon = () => {
       variant="ghost"
       size="icon"
       className="relative"
-      onClick={() => navigate('/cart')}
+      asChild
     >
-      <ShoppingCart className="h-6 w-6 text-foreground" />
-      {totalItems > 0 && (
-        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
-          {totalItems}
-        </span>
-      )}
+      <Link to="/cart" prefetch="intent">
+        <ShoppingCart className="h-6 w-6 text-foreground" />
+        {totalItems > 0 && (
+          <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
+            {totalItems}
+          </span>
+        )}
+      </Link>
     </Button>
   );
-};
+});
+
+CartIcon.displayName = "CartIcon";
 
 export default CartIcon;
