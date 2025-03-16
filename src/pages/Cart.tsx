@@ -25,7 +25,7 @@ const Cart = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { getValue } = useLocalStorage();
-  const isGuest = getValue("isGuest") === "true";
+  const isGuest = !session && getValue("isGuest") === "true";
   const { 
     cart: guestCart, 
     removeFromCart, 
