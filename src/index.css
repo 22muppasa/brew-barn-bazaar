@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Aloja:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barriecito&display=swap');
 
 /* TAN Ashford font import */
 @font-face {
@@ -117,7 +117,7 @@
   
   .nav-link {
     @apply text-base lg:text-lg font-medium text-foreground transition-colors hover:text-primary relative;
-    font-family: 'Aloja', sans-serif;
+    font-family: 'Barriecito', cursive;
     text-transform: lowercase;
   }
 
