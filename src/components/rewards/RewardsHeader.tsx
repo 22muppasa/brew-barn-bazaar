@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
@@ -225,7 +226,7 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className={`
-                              relative flex items-center justify-center h-12 w-12 rounded-full
+                              relative flex items-center justify-center h-12 w-12 min-w-[3rem] rounded-full
                               ${index === 0 ? 'bg-yellow-200 text-yellow-800' : 
                                index === 1 ? 'bg-gray-100 text-gray-800' : 
                                index === 2 ? 'bg-amber-200 text-amber-900' : 
@@ -236,10 +237,10 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                               {getRankIcon(index)}
                             </div>
                             
-                            <div>
-                              <div className="flex items-center gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <h3 className={`
-                                  font-bold text-lg
+                                  font-bold text-lg truncate max-w-[120px] sm:max-w-[180px]
                                   ${index === 0 ? 'text-yellow-900' : 
                                    index === 1 ? 'text-gray-800' : 
                                    index === 2 ? 'text-amber-50' : 
@@ -292,7 +293,7 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                             
                             {index === 0 && (
                               <motion.div 
-                                className="flex items-center gap-1 text-xs mt-1 text-yellow-800 mr-1"
+                                className="flex items-center gap-1 text-xs mt-1 text-yellow-800 mr-2"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.5 }}
