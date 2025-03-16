@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Home, Utensils, ShoppingBag, Award, User } from "lucide-react";
@@ -112,7 +111,7 @@ const HamburgerMenu = () => {
                   <Link
                     key={item.name}
                     to={item.path}
-                    className={`text-xl font-bold transition-colors hover:text-primary flex items-center gap-3 w-full font-abril-fatface ${
+                    className={`text-xl font-normal transition-colors hover:text-primary flex items-center gap-3 w-full font-abril-fatface ${
                       location.pathname === item.path ? "text-primary" : "text-foreground"
                     }`}
                     onClick={() => setIsOpen(false)}

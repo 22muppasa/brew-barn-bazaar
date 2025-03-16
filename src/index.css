@@ -117,7 +117,7 @@
   }
   
   .nav-link {
-    @apply text-base lg:text-lg font-bold text-foreground transition-colors hover:text-primary relative;
+    @apply text-base lg:text-lg font-normal text-foreground transition-colors hover:text-primary relative;
     font-family: 'Abril Fatface', cursive;
     text-transform: lowercase;
   }
