@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -31,6 +32,7 @@ const Menu = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { getValue } = useLocalStorage();
   const { addToCart } = useGuestCart();
+  const isGuest = getValue("isGuest") === "true"; // Properly define isGuest variable
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
