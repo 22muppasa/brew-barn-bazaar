@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,14 @@ const Cart = () => {
     enabled: !!session,
     staleTime: 10000,
   });
+
+  // Define items to use either cartItems for logged-in users or guestCart for guests
+  const items = session ? cartItems || [] : guestCart || [];
+
+  // Calculate subtotal, discount and total values
+  const subtotal = calculateSubtotal();
+  const discount = calculateDiscount();
+  const total = calculateTotal();
 
   useEffect(() => {
     if (!isLoading) {

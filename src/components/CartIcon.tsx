@@ -76,7 +76,7 @@ const CartIcon = memo(() => {
       className="relative"
       asChild
     >
-      <Link to="/cart" prefetch="intent">
+      <Link to="/cart">
         <ShoppingCart className="h-6 w-6 text-foreground" />
         {totalItems > 0 && (
           <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
