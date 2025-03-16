@@ -7,6 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import CartIcon from "./CartIcon";
 
 const HamburgerMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,23 +55,38 @@ const HamburgerMenu = () => {
 
   return (
     <>
-      <button 
-        className="btn-hamburger"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Menu"
-      >
-        {isOpen ? (
-          <X className="h-6 w-6 text-primary" />
-        ) : (
-          <Menu className="h-6 w-6 text-primary" />
-        )}
-      </button>
+      <div className="fixed left-6 top-6 z-50 flex items-center gap-4 md:hidden">
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/lovable-uploads/faac9400-50f9-4072-b473-b9879c90fb87.png" 
+            alt="The Brew Barn Logo" 
+            className="h-12"
+          />
+        </Link>
+      </div>
+      
+      <div className="fixed right-6 top-6 z-50 flex items-center gap-4 md:hidden">
+        {(session || isGuest) && <CartIcon />}
+        <button 
+          className="rounded-full bg-white p-3 shadow-md transition-all hover:bg-secondary/20"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Menu"
+        >
+          <motion.div animate={{ rotate: isOpen ? 90 : 0 }}>
+            {isOpen ? (
+              <X className="h-6 w-6 text-foreground" />
+            ) : (
+              <Menu className="h-6 w-6 text-foreground" />
+            )}
+          </motion.div>
+        </button>
+      </div>
 
       <AnimatePresence>
         {isOpen && (
           <>
             <motion.div
-              className="hamburger-overlay"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -78,79 +94,56 @@ const HamburgerMenu = () => {
             />
             
             <motion.div
-              className="hamburger-menu"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25 }}
+              className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-white px-6 py-24 shadow-xl md:hidden"
+              initial={{ opacity: 0, x: "100%" }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: "100%" }}
+              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
             >
-              <div className="p-6 flex flex-col h-full">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <Coffee className="h-8 w-8 text-primary" />
-                    <span className="text-xl font-bold">Brew Barn</span>
-                  </div>
-                  <button 
-                    onClick={() => setIsOpen(false)} 
-                    className="rounded-full p-2 hover:bg-muted transition-colors"
-                    aria-label="Close menu"
-                  >
-                    <X className="h-6 w-6" />
-                  </button>
-                </div>
-
-                <nav className="flex-1">
-                  <ul className="space-y-4">
-                    {menuItems.map((item) => (
-                      <li key={item.name}>
-                        <Link 
-                          to={item.path} 
-                          className="flex items-center gap-3 p-3 rounded-md hover:bg-secondary/50 transition-colors"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <item.icon className="h-5 w-5 text-primary" />
-                          <span>{item.name}</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-
-                <div className="mt-auto pt-6 border-t border-muted space-y-4">
-                  {session ? (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={handleAuth}
-                    >
-                      <LogIn className="h-5 w-5 mr-2" />
-                      Sign Out
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        variant="default"
-                        className="w-full justify-start"
-                        onClick={handleAuth}
-                      >
-                        <LogIn className="h-5 w-5 mr-2" />
-                        Sign In
-                      </Button>
-                      
-                      {!isGuest && (
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start"
-                          onClick={continueAsGuest}
-                        >
-                          <User className="h-5 w-5 mr-2" />
-                          Continue as Guest
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
+              <div className="absolute top-6 left-6">
+                <img 
+                  src="/lovable-uploads/faac9400-50f9-4072-b473-b9879c90fb87.png" 
+                  alt="The Brew Barn Logo" 
+                  className="h-14"
+                />
               </div>
+              <nav className="flex flex-col items-center space-y-8">
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className="text-2xl font-medium text-foreground transition-colors hover:text-primary"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <motion.span
+                      whileHover={{ x: 10 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center gap-3"
+                    >
+                      <item.icon className="h-6 w-6" />
+                      {item.name}
+                    </motion.span>
+                  </Link>
+                ))}
+                <Button 
+                  variant="secondary"
+                  size="lg"
+                  className="w-full min-w-[200px]"
+                  onClick={handleAuth}
+                >
+                  {session ? "Logout" : isGuest ? "Sign In" : "Login"}
+                </Button>
+                {!session && !isGuest && (
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="w-full min-w-[200px] text-foreground border-input hover:bg-secondary/20"
+                    onClick={continueAsGuest}
+                  >
+                    Continue as Guest
+                  </Button>
+                )}
+              </nav>
             </motion.div>
           </>
         )}
