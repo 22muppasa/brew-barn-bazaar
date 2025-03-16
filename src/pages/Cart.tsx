@@ -111,8 +111,12 @@ const Cart = () => {
       try {
         const parsedCodes = JSON.parse(storedCodes);
         const validCodes = parsedCodes
-          .filter((code: {expiry: string}) => new Date(code.expiry) > new Date())
-          .map((code: {expiry: string, code: string, percentage: number, productType?: string}) => ({
+          .filter((code: {expiry: string, userId?: string}) => {
+            const notExpired = new Date(code.expiry) > new Date();
+            const belongsToUser = !code.userId || code.userId === session?.user?.id;
+            return notExpired && belongsToUser;
+          })
+          .map((code: {expiry: string, code: string, percentage: number, productType?: string, userId?: string}) => ({
             ...code,
             expiry: new Date(code.expiry)
           }));
@@ -126,13 +130,15 @@ const Cart = () => {
     if (selectedDiscount) {
       try {
         const discount = JSON.parse(selectedDiscount);
-        setAppliedDiscount(discount);
-        localStorage.removeItem('selectedDiscount');
+        if (!discount.userId || discount.userId === session?.user?.id) {
+          setAppliedDiscount(discount);
+          localStorage.removeItem('selectedDiscount');
+        }
       } catch (e) {
         console.error("Error parsing selected discount:", e);
       }
     }
-  }, []);
+  }, [session]);
 
   const deleteItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
@@ -272,25 +278,6 @@ const Cart = () => {
         .toLowerCase()
         .includes(productType.toLowerCase())
     );
-  };
-
-  const loadSelectedDiscount = () => {
-    const discountJson = localStorage.getItem('selectedDiscount');
-    if (discountJson) {
-      try {
-        const discount = JSON.parse(discountJson);
-        // Only apply the discount if it belongs to the current user or has no user ID (legacy support)
-        if (!discount.userId || discount.userId === session?.user?.id) {
-          setDiscountCode(discount.code);
-          setDiscountPercentage(discount.percentage);
-          setProductTypeForDiscount(discount.productType);
-          return true;
-        }
-      } catch (e) {
-        console.error("Error parsing discount:", e);
-      }
-    }
-    return false;
   };
 
   if (!isContentLoaded) {
