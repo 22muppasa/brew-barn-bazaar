@@ -51,19 +51,21 @@ export const useAddToCart = () => {
         }
 
         // For authenticated users, check if item already exists in cart with the same size
-        const { data: existingItem, error: queryError } = await supabase
+        // Break this into separate steps to avoid deep type instantiation
+        const query = supabase
           .from("cart_items")
           .select("*")
           .eq("user_id", session.user.id)
           .eq("product_name", productName)
-          // Use type assertion to avoid deep instantiation error
-          .eq("size", size || "medium") as any;
+          .eq("size", size || "medium");
+          
+        const { data: existingItem, error: queryError } = await query;
         
         if (queryError && queryError.code !== 'PGRST116') { // PGRST116 means no rows returned
           throw queryError;
         }
 
-        if (existingItem?.[0]) {
+        if (existingItem && existingItem.length > 0) {
           // Update existing item quantity
           const { error } = await supabase
             .from("cart_items")
