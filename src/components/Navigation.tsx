@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Coffee } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -11,7 +10,6 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import HamburgerMenu from "./HamburgerMenu";
 
 const Navigation = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const session = useSession();
   const supabase = useSupabaseClient();
@@ -43,14 +41,12 @@ const Navigation = () => {
     } else {
       navigate("/auth");
     }
-    setIsOpen(false);
   };
 
   const continueAsGuest = () => {
     localStorage.setItem("isGuest", "true");
     toast.success("Continuing as guest");
     navigate("/menu");
-    setIsOpen(false);
   };
 
   return (
@@ -67,14 +63,14 @@ const Navigation = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex items-center justify-between px-6 py-4 mx-6 my-4 bg-white rounded-xl shadow-sm">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 mx-4 sm:mx-6 my-4 bg-white rounded-xl shadow-sm">
           {/* Left Menu Items */}
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-4 lg:space-x-8">
             {leftMenuItems.map((item) => (
               <Link
                 key={item.title}
                 to={item.href}
-                className="text-lg font-medium text-foreground transition-colors hover:text-primary relative group"
+                className="text-base lg:text-lg font-medium text-foreground transition-colors hover:text-primary relative group"
               >
                 <span>{item.title}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
@@ -87,17 +83,17 @@ const Navigation = () => {
             <img 
               src="/lovable-uploads/faac9400-50f9-4072-b473-b9879c90fb87.png" 
               alt="The Brew Barn Logo" 
-              className="h-16"
+              className="h-12 md:h-14 lg:h-16"
             />
           </Link>
           
           {/* Right Menu Items */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3 lg:space-x-6">
             {rightMenuItems.map((item) => (
               <Link
                 key={item.title}
                 to={item.href}
-                className="text-lg font-medium text-foreground transition-colors hover:text-primary relative group"
+                className="text-base lg:text-lg font-medium text-foreground transition-colors hover:text-primary relative group"
               >
                 <span>{item.title}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
@@ -107,7 +103,7 @@ const Navigation = () => {
             {(session || isGuest) && <CartIcon />}
             <Button 
               variant="secondary"
-              className="hover:bg-secondary/90"
+              className="hover:bg-secondary/90 text-sm lg:text-base"
               onClick={handleAuth}
             >
               {session ? "Logout" : isGuest ? "Sign In" : "Login"}
@@ -115,7 +111,7 @@ const Navigation = () => {
             {!session && !isGuest && (
               <Button 
                 variant="outline" 
-                className="text-foreground border-input hover:bg-secondary/20"
+                className="text-foreground border-input hover:bg-secondary/20 text-sm lg:text-base hidden sm:inline-flex"
                 onClick={continueAsGuest}
               >
                 Continue as Guest

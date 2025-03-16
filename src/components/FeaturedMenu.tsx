@@ -132,9 +132,9 @@ const FeaturedMenu = () => {
 
   return (
     <section className="section-padding bg-background">
-      <div className="container">
+      <div className="container px-4 sm:px-6 lg:px-8 mx-auto">
         <motion.div 
-          className="text-center"
+          className="text-center mb-8 sm:mb-12"
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
@@ -143,39 +143,39 @@ const FeaturedMenu = () => {
             animate: { opacity: 1, y: 0 }
           }}
         >
-          <span className="badge mb-4">Seasonal Specials</span>
-          <h2 className="mb-12 text-4xl font-bold">{seasonTitles[currentSeason]}</h2>
+          <span className="badge mb-2 sm:mb-4">Seasonal Specials</span>
+          <h2 className="text-3xl sm:text-4xl font-bold">{seasonTitles[currentSeason]}</h2>
         </motion.div>
         
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {seasonalItems[currentSeason].map((item, index) => (
             <motion.div
               key={index}
-              className="menu-card"
+              className="menu-card h-full flex flex-col"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <div className="menu-image">
-                <img src={item.image} alt={item.title} />
+              <div className="menu-image h-48 sm:h-56 md:h-64 w-full">
+                <img src={item.image} alt={item.title} className="w-full h-full object-cover rounded-md" />
               </div>
-              <div className="mt-4">
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="mt-2 text-primary">${item.price}</p>
+              <div className="mt-4 flex flex-col flex-grow">
+                <h3 className="text-lg sm:text-xl font-semibold">{item.title}</h3>
+                <p className="mt-2 text-primary font-medium">${item.price}</p>
               </div>
             </motion.div>
           ))}
         </div>
         
         <motion.div 
-          className="mt-12 text-center"
+          className="mt-8 sm:mt-12 text-center"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
           <Link to="/menu">
-            <Button size="lg">View Full Menu</Button>
+            <Button size="lg" className="w-full sm:w-auto px-8">View Full Menu</Button>
           </Link>
         </motion.div>
       </div>
