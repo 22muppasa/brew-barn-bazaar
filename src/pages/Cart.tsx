@@ -18,6 +18,7 @@ interface DiscountCode {
   percentage: number;
   expiry: Date;
   productType?: string;
+  userId?: string;
 }
 
 const Cart = () => {
@@ -271,6 +272,25 @@ const Cart = () => {
         .toLowerCase()
         .includes(productType.toLowerCase())
     );
+  };
+
+  const loadSelectedDiscount = () => {
+    const discountJson = localStorage.getItem('selectedDiscount');
+    if (discountJson) {
+      try {
+        const discount = JSON.parse(discountJson);
+        // Only apply the discount if it belongs to the current user or has no user ID (legacy support)
+        if (!discount.userId || discount.userId === session?.user?.id) {
+          setDiscountCode(discount.code);
+          setDiscountPercentage(discount.percentage);
+          setProductTypeForDiscount(discount.productType);
+          return true;
+        }
+      } catch (e) {
+        console.error("Error parsing discount:", e);
+      }
+    }
+    return false;
   };
 
   if (!isContentLoaded) {

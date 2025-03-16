@@ -51,7 +51,7 @@ const VirtualBarista = () => {
     { role: 'assistant', content: 'Hi there! I\'m Lisa, your virtual barista. Ask me anything about our menu, or tell me what you\'re in the mood for. I can also offer personalized discounts!' }
   ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeCodes, setActiveCodes] = useState<{code: string, percentage: number, expiry: Date, productType?: string}[]>([]);
+  const [activeCodes, setActiveCodes] = useState<{code: string, percentage: number, expiry: Date, productType?: string, userId?: string}[]>([]);
   const [chatInitialized, setChatInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const session = useSession();
@@ -73,6 +73,16 @@ const VirtualBarista = () => {
     }
   }, []);
 
+  // Reset chat state when session changes
+  useEffect(() => {
+    // Clear chat history and reset to initial state when the session changes
+    setChatInitialized(false);
+    setMessages([
+      { role: 'assistant', content: 'Hi there! I\'m Lisa, your virtual barista. Ask me anything about our menu, or tell me what you\'re in the mood for. I can also offer personalized discounts!' }
+    ]);
+    setHasShownDeal(false);
+  }, [session?.user?.id]);
+
   // Auto-scroll to the bottom of the chat
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -80,24 +90,31 @@ const VirtualBarista = () => {
     }
   }, [messages]);
 
-  // Load saved discount codes from localStorage
+  // Load saved discount codes from localStorage (filtered for current user)
   useEffect(() => {
     const savedCodes = localStorage.getItem('activeCodes');
     if (savedCodes) {
       try {
         const parsedCodes = JSON.parse(savedCodes);
-        const validCodes = parsedCodes.filter((code: {expiry: string}) => 
-          new Date(code.expiry) > new Date()
-        ).map((code: {expiry: string, code: string, percentage: number, productType?: string}) => ({
+        const currentUserId = session?.user?.id;
+        
+        // Filter codes to only include those that:
+        // 1. Haven't expired
+        // 2. Either belong to the current user or have no user assigned (for backward compatibility)
+        const validCodes = parsedCodes.filter((code: {expiry: string, userId?: string}) => 
+          new Date(code.expiry) > new Date() && 
+          (!code.userId || code.userId === currentUserId)
+        ).map((code: {expiry: string, code: string, percentage: number, productType?: string, userId?: string}) => ({
           ...code,
           expiry: new Date(code.expiry)
         }));
+        
         setActiveCodes(validCodes);
       } catch (e) {
         console.error("Error parsing saved discount codes:", e);
       }
     }
-  }, []);
+  }, [session]);
 
   // Load saved chat history based on user ID or guest status
   useEffect(() => {
@@ -148,6 +165,9 @@ const VirtualBarista = () => {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + randomDeal.expiryDays);
         
+        // Add the current user ID to the deal if logged in
+        const userId = session?.user?.id;
+        
         setMessages(prev => [
           ...prev,
           { 
@@ -166,14 +186,15 @@ const VirtualBarista = () => {
             code: randomDeal.discountCode,
             percentage: randomDeal.discountPercentage,
             expiry: expiryDate,
-            productType: randomDeal.productType
+            productType: randomDeal.productType,
+            userId // Attach the user ID to the discount code
           }
         ]);
         
         setHasShownDeal(true);
       }, 2000);
     }
-  }, [open, hasShownDeal, messages.length]);
+  }, [open, hasShownDeal, messages.length, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,6 +208,11 @@ const VirtualBarista = () => {
     try {
       const userId = session?.user?.id || null;
       
+      // Filter active codes to only include those belonging to the current user
+      const userActiveCodes = activeCodes.filter(code => 
+        !code.userId || code.userId === userId
+      );
+      
       // Format the chat history to send to the edge function
       const chatHistory = messages.filter(msg => msg.role !== 'notification')
         .map(msg => ({
@@ -199,7 +225,7 @@ const VirtualBarista = () => {
           message: userMessage,
           userId: userId,
           botName: "Lisa", // Set the bot name to Lisa
-          activeCodes: activeCodes.map(code => ({
+          activeCodes: userActiveCodes.map(code => ({
             code: code.code,
             percentage: code.percentage,
             expiry: code.expiry.toISOString(),
@@ -232,7 +258,8 @@ const VirtualBarista = () => {
               code: data.discountCode,
               percentage: data.discountPercentage,
               expiry: expiryDate,
-              productType: data.productType
+              productType: data.productType,
+              userId: session?.user?.id // Attach the user ID to the discount code
             }
           ]);
           
@@ -278,7 +305,8 @@ const VirtualBarista = () => {
     localStorage.setItem('selectedDiscount', JSON.stringify({
       code,
       percentage,
-      productType
+      productType,
+      userId: session?.user?.id // Store the user ID with the selected discount
     }));
     
     // Generate appropriate message
@@ -506,4 +534,3 @@ const VirtualBarista = () => {
 };
 
 export default VirtualBarista;
-
