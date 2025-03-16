@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
-import { useGuestCart, useLocalStorage } from "./useLocalStorage";
+import { useGuestCart, useLocalStorage, GuestCartItem } from "./useLocalStorage";
 
 interface AddToCartParams {
   productName: string;
@@ -95,7 +95,7 @@ export const useAddToCart = () => {
           setValue("isGuest", "true");
         }
         
-        // Add item to guest cart
+        // Add item to guest cart using typed parameters that match the GuestCartItem interface
         addToGuestCart({
           productName,
           price,
