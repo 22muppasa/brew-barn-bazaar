@@ -3,14 +3,21 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Crown, Medal, Sparkles, Star, Trophy } from "lucide-react";
+import { 
+  Crown, 
+  Medal, 
+  Sparkles, 
+  Star, 
+  Trophy, 
+  Flame,
+  ArrowUp
+} from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollTransform } from "@/components/ui/scroll-transform";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface RewardsHeaderProps {
   tier: string;
@@ -67,35 +74,63 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
 
-  const getMedalStyles = (index: number) => {
-    if (index === 0) return { 
-      bg: "bg-gradient-to-br from-yellow-300 to-yellow-500", 
-      text: "text-yellow-950", 
-      border: "border-yellow-400", 
-      shadow: "shadow-lg shadow-yellow-500/20",
-      icon: <Crown className="h-4 w-4 text-yellow-600" />
-    };
-    if (index === 1) return { 
-      bg: "bg-gradient-to-br from-gray-300 to-gray-400", 
-      text: "text-gray-950", 
-      border: "border-gray-300", 
-      shadow: "shadow-md shadow-gray-500/20",
-      icon: <Medal className="h-4 w-4 text-gray-600" />
-    };
-    if (index === 2) return { 
-      bg: "bg-gradient-to-br from-amber-600 to-amber-800", 
-      text: "text-amber-50", 
-      border: "border-amber-700", 
-      shadow: "shadow-md shadow-amber-700/20",
-      icon: <Medal className="h-4 w-4 text-amber-300" />
-    };
-    return { 
-      bg: "bg-gradient-to-br from-primary/5 to-primary/10", 
-      text: "text-primary-foreground", 
-      border: "border-primary/10", 
-      shadow: "shadow-sm",
-      icon: <Star className="h-3 w-3 text-primary/60" />
-    };
+  const getTierColor = (tier: string) => {
+    switch(tier) {
+      case 'Platinum': return 'bg-gradient-to-r from-gray-300 to-gray-500 text-white';
+      case 'Gold': return 'bg-gradient-to-r from-yellow-300 to-amber-500 text-yellow-900';
+      case 'Silver': return 'bg-gradient-to-r from-gray-200 to-gray-400 text-gray-800';
+      case 'Bronze': 
+      default: return 'bg-gradient-to-r from-amber-600 to-amber-800 text-amber-50';
+    }
+  };
+
+  const getRankIcon = (index: number) => {
+    if (index === 0) return (
+      <motion.div 
+        className="absolute -top-1 -right-1"
+        animate={{ 
+          rotate: [0, 10, -10, 0],
+          scale: [1, 1.1, 1]
+        }}
+        transition={{ 
+          duration: 2,
+          repeat: Infinity,
+          repeatType: "reverse"
+        }}
+      >
+        <Crown className="h-6 w-6 text-yellow-500 drop-shadow-lg" />
+      </motion.div>
+    );
+    
+    if (index === 1) return (
+      <motion.div 
+        className="absolute -top-0 -right-0"
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ 
+          duration: 1.5,
+          repeat: Infinity,
+          repeatType: "reverse"
+        }}
+      >
+        <Medal className="h-5 w-5 text-gray-400" />
+      </motion.div>
+    );
+    
+    if (index === 2) return (
+      <motion.div 
+        className="absolute -top-0 -right-0"
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ 
+          duration: 1.5,
+          repeat: Infinity,
+          repeatType: "reverse"
+        }}
+      >
+        <Medal className="h-5 w-5 text-amber-700" />
+      </motion.div>
+    );
+    
+    return null;
   };
 
   return (
@@ -121,7 +156,7 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
               </motion.div>
             </Button>
           </SheetTrigger>
-          <SheetContent className="bg-gradient-to-b from-background to-background/95 border-l-primary/20 overflow-y-auto sm:max-w-lg w-full">
+          <SheetContent className="bg-gradient-to-b from-background to-background/95 border-l-primary/20 overflow-y-auto sm:max-w-md w-full">
             <SheetHeader>
               <SheetTitle className="text-center mb-6">
                 <motion.div
@@ -147,199 +182,132 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                       <Sparkles className="h-4 w-4 text-yellow-300" />
                     </motion.div>
                   </div>
-                  <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600">
+                  <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600">
                     Rewards Leaderboard
-                  </div>
+                  </h2>
                 </motion.div>
               </SheetTitle>
             </SheetHeader>
             
             {isLoading ? (
-              <div className="flex flex-col space-y-3 px-1">
+              <div className="space-y-4 px-1">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-8 w-16 rounded-lg" />
+                  <div key={i} className="relative">
+                    <Skeleton className="h-24 w-full rounded-xl" />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="mt-4 pb-8">
-                {/* Desktop and Tablet View */}
-                <div className="hidden sm:block">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
+              <motion.div 
+                className="space-y-4 pb-10"
+                variants={container}
+                initial="hidden"
+                animate="show"
+              >
+                {leaderboard?.map((user, index) => (
+                  <motion.div 
+                    key={index}
+                    variants={item}
+                    className="relative"
                   >
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-gradient-to-r from-primary/5 to-primary/10">
-                          <TableHead className="w-12">Rank</TableHead>
-                          <TableHead>User</TableHead>
-                          <TableHead className="text-right">Points</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {leaderboard?.map((user, index) => {
-                          const medal = getMedalStyles(index);
-                          return (
-                            <motion.tr
-                              key={index}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.05 }}
-                              className={`hover:bg-primary/5 ${index < 3 ? 'border-l-4 ' + medal.border : ''}`}
-                            >
-                              <TableCell className="font-medium">
-                                <div className={`h-8 w-8 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-sm font-bold relative`}>
-                                  {index + 1}
-                                  {index < 3 && (
-                                    <motion.div
-                                      className="absolute -top-1 -right-1"
-                                      animate={{ 
-                                        rotate: [0, 10, -10, 0],
-                                        scale: [1, 1.1, 1]
-                                      }}
-                                      transition={{ 
-                                        duration: 2,
-                                        repeat: Infinity,
-                                        repeatType: "reverse"
-                                      }}
-                                    >
-                                      {medal.icon}
-                                    </motion.div>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="font-medium flex items-center gap-1">
+                    <motion.div
+                      whileHover={{ y: -4, scale: 1.02 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      className={`rounded-xl overflow-hidden shadow-md border ${index < 3 ? 'border-yellow-500/30' : 'border-primary/10'}`}
+                    >
+                      <div className={`
+                        w-full relative py-4 px-5
+                        ${index === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 
+                          index === 1 ? 'bg-gradient-to-r from-gray-200 to-gray-400' : 
+                          index === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-800' : 
+                          'bg-gradient-to-r from-primary/5 to-primary/10'
+                        }
+                      `}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className={`
+                              relative flex items-center justify-center h-12 w-12 rounded-full
+                              ${index === 0 ? 'bg-yellow-200 text-yellow-800' : 
+                               index === 1 ? 'bg-gray-100 text-gray-800' : 
+                               index === 2 ? 'bg-amber-200 text-amber-900' : 
+                               'bg-white/80 text-gray-700'}
+                              text-xl font-bold shadow-inner
+                            `}>
+                              {index + 1}
+                              {getRankIcon(index)}
+                            </div>
+                            
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className={`
+                                  font-bold text-lg
+                                  ${index === 0 ? 'text-yellow-900' : 
+                                   index === 1 ? 'text-gray-800' : 
+                                   index === 2 ? 'text-amber-50' : 
+                                   'text-primary'}
+                                `}>
                                   {user.username}
-                                  {user.is_anonymous && (
-                                    <span className="text-xs bg-primary/10 px-1.5 py-0.5 rounded-full text-primary/70">
-                                      anonymous
-                                    </span>
-                                  )}
-                                  <motion.span 
-                                    className={`text-xs ml-2 px-1.5 py-0.5 rounded-full ${
-                                      user.tier === 'Platinum' ? 'bg-gray-600 text-white' :
-                                      user.tier === 'Gold' ? 'bg-yellow-500 text-yellow-950' :
-                                      user.tier === 'Silver' ? 'bg-gray-400 text-gray-900' :
-                                      'bg-amber-700 text-amber-50'
-                                    }`}
-                                    whileHover={{ scale: 1.05 }}
-                                  >
-                                    {user.tier}
-                                  </motion.span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right font-semibold">
-                                <motion.div
-                                  whileHover={{ scale: 1.05 }}
-                                  className={`inline-block ${
-                                    index === 0 ? 'bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-950' :
-                                    index === 1 ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-900' :
-                                    index === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-800 text-amber-50' :
-                                    'bg-primary/10 text-primary'
-                                  } px-2 py-1 rounded-lg`}
-                                >
-                                  {user.points}
-                                  <span className="text-xs ml-1 opacity-80">pts</span>
-                                </motion.div>
-                              </TableCell>
-                            </motion.tr>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </motion.div>
-                </div>
-
-                {/* Mobile View */}
-                <motion.div 
-                  className="sm:hidden space-y-3"
-                  variants={container}
-                  initial="hidden"
-                  animate="show"
-                >
-                  {leaderboard?.map((user, index) => {
-                    const medal = getMedalStyles(index);
-                    return (
-                      <motion.div 
-                        key={index}
-                        variants={item}
-                        className={`flex items-center justify-between p-3 rounded-xl border ${medal.border} ${medal.shadow} backdrop-blur-sm w-full`}
-                        whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-sm font-bold relative`}>
-                            {index + 1}
-                            {index < 3 && (
-                              <motion.div
-                                className="absolute -top-1 -right-1"
-                                animate={{ 
-                                  rotate: [0, 10, -10, 0],
-                                  scale: [1, 1.1, 1]
-                                }}
-                                transition={{ 
-                                  duration: 2,
-                                  repeat: Infinity,
-                                  repeatType: "reverse"
-                                }}
+                                </h3>
+                                {user.is_anonymous && (
+                                  <span className={`
+                                    text-xs px-1.5 py-0.5 rounded-full 
+                                    ${index < 3 ? 'bg-white/30 text-gray-800' : 'bg-primary/10 text-primary/70'}
+                                  `}>
+                                    anonymous
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <motion.div 
+                                whileHover={{ scale: 1.05 }}
+                                className={`inline-block text-xs rounded-full px-2 py-0.5 mt-1.5 ${getTierColor(user.tier)}`}
                               >
-                                {medal.icon}
+                                {user.tier}
+                              </motion.div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col items-end">
+                            <motion.div 
+                              whileHover={{ scale: 1.1 }}
+                              className={`
+                                flex items-center gap-1 px-3 py-1.5 rounded-full font-bold
+                                ${index === 0 ? 'bg-yellow-200 text-yellow-800' : 
+                                 index === 1 ? 'bg-gray-100 text-gray-800' : 
+                                 index === 2 ? 'bg-amber-200 text-amber-900' : 
+                                 'bg-white/80 text-gray-700'}
+                              `}
+                            >
+                              {index < 3 && (
+                                <Flame 
+                                  className={`h-4 w-4 ${
+                                    index === 0 ? 'text-amber-600' : 
+                                    index === 1 ? 'text-gray-500' : 
+                                    'text-amber-700'
+                                  }`} 
+                                />
+                              )}
+                              <span>{user.points}</span>
+                              <span className="text-xs opacity-80">pts</span>
+                            </motion.div>
+                            
+                            {index === 0 && (
+                              <motion.div 
+                                className="flex items-center gap-1 text-xs mt-1 text-yellow-800"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.5 }}
+                              >
+                                <ArrowUp className="h-3 w-3" />
+                                <span>Leader</span>
                               </motion.div>
                             )}
                           </div>
-                          <div>
-                            <div className="font-bold text-sm flex items-center gap-1">
-                              {user.username}
-                              {user.is_anonymous && (
-                                <motion.span 
-                                  className="text-xs bg-primary/10 px-1 py-0.5 rounded-full text-primary/70"
-                                  initial={{ scale: 0.8 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{ duration: 0.2 }}
-                                >
-                                  anon
-                                </motion.span>
-                              )}
-                            </div>
-                            <motion.div 
-                              className={`text-xs rounded-full px-1.5 py-0.5 inline-block mt-1 ${
-                                user.tier === 'Platinum' ? 'bg-gray-600 text-white' :
-                                user.tier === 'Gold' ? 'bg-yellow-500 text-yellow-950' :
-                                user.tier === 'Silver' ? 'bg-gray-400 text-gray-900' :
-                                'bg-amber-700 text-amber-50'
-                              }`}
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              {user.tier}
-                            </motion.div>
-                          </div>
                         </div>
-                        <motion.div 
-                          className={`font-bold text-base px-2 py-1 rounded-lg ${
-                            index === 0 ? 'bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-950' :
-                            index === 1 ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-900' :
-                            index === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-800 text-amber-50' :
-                            'bg-primary/10 text-primary'
-                          }`}
-                          whileHover={{ scale: 1.05 }}
-                        >
-                          {user.points} 
-                          <span className="text-xs ml-1 opacity-80">pts</span>
-                        </motion.div>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ))}
                 
                 {(!leaderboard || leaderboard.length === 0) && (
                   <ScrollTransform effect="fade" direction="up" className="text-center py-12">
@@ -350,7 +318,7 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                     </div>
                   </ScrollTransform>
                 )}
-              </div>
+              </motion.div>
             )}
           </SheetContent>
         </Sheet>
