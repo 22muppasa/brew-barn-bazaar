@@ -56,21 +56,21 @@ export const useAddToCart = () => {
           .select("*")
           .eq("user_id", session.user.id)
           .eq("product_name", productName)
-          .eq("size", size || "medium")
-          .single();
+          // Use type assertion to avoid deep instantiation error
+          .eq("size", size || "medium") as any;
         
         if (queryError && queryError.code !== 'PGRST116') { // PGRST116 means no rows returned
           throw queryError;
         }
 
-        if (existingItem) {
+        if (existingItem?.[0]) {
           // Update existing item quantity
           const { error } = await supabase
             .from("cart_items")
             .update({
-              quantity: existingItem.quantity + quantity
+              quantity: existingItem[0].quantity + quantity
             })
-            .eq("id", existingItem.id);
+            .eq("id", existingItem[0].id);
 
           if (error) throw error;
         } else {
@@ -95,13 +95,15 @@ export const useAddToCart = () => {
           setValue("isGuest", "true");
         }
         
-        // Add item to guest cart using typed parameters that match the GuestCartItem interface
-        addToGuestCart({
+        // Add item to guest cart with explicitly typed parameters
+        const cartItem: Omit<GuestCartItem, "id"> = {
           productName,
           price,
           quantity,
-          size
-        });
+          size: size || "medium"
+        };
+        
+        addToGuestCart(cartItem);
         
         // Return a resolved result for guest flow
         return { success: true, guest: true };
