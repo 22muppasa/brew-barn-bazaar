@@ -1,3 +1,4 @@
+
 import { motion, useAnimation } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -16,11 +17,6 @@ const Header = () => {
       setValue("isGuest", "true");
     }
   }, [session, isGuest, setValue]);
-
-  const continueAsGuest = () => {
-    setValue("isGuest", "true");
-    window.location.href = "/menu";
-  };
 
   return (
     <motion.header 
@@ -79,25 +75,15 @@ const Header = () => {
             </Button>
           </Link>
           {!session ? (
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link to="/auth">
-                <Button 
-                  size="lg"
-                  variant="secondary"
-                  className="hover:bg-secondary/90 shadow-lg"
-                >
-                  Join for Rewards
-                </Button>
-              </Link>
+            <Link to="/auth">
               <Button 
                 size="lg"
-                variant="outline"
-                className="text-white border-white hover:bg-white/20 shadow-lg backdrop-blur-sm"
-                onClick={continueAsGuest}
+                variant="secondary"
+                className="hover:bg-secondary/90 shadow-lg"
               >
-                Continue as Guest
+                Join for Rewards
               </Button>
-            </div>
+            </Link>
           ) : (
             <Link to={session ? "/rewards" : "/cart"}>
               <Button 

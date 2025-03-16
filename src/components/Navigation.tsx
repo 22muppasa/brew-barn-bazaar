@@ -50,9 +50,6 @@ const Navigation = () => {
     }
   };
 
-  // We can remove this function since we're auto-enabling guest mode
-  // const continueAsGuest = () => {...}
-
   return (
     <>
       {/* Mobile Navigation - Only visible on small screens */}
@@ -112,7 +109,6 @@ const Navigation = () => {
             >
               {session ? "Logout" : isGuest ? "Sign In" : "Login"}
             </Button>
-            {/* Remove the "Continue as Guest" button since we're auto-applying that now */}
           </div>
         </div>
       </motion.nav>

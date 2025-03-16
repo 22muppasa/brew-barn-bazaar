@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Home, Utensils, ShoppingBag, Award, User } from "lucide-react";
@@ -36,13 +37,6 @@ const HamburgerMenu = () => {
     } else {
       navigate("/auth");
     }
-    setIsOpen(false);
-  };
-
-  const continueAsGuest = () => {
-    setValue("isGuest", "true");
-    toast.success("Continuing as guest");
-    navigate("/menu");
     setIsOpen(false);
   };
 
