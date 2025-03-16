@@ -76,13 +76,9 @@ const Navigation = () => {
             ))}
           </div>
           
-          {/* Center Logo */}
+          {/* Center Brand Name instead of Logo */}
           <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
-            <img 
-              src="/lovable-uploads/723df456-96c1-42e2-9fa8-c0a9a1b3a8bd.png" 
-              alt="Brew Barn Logo" 
-              className="h-20" // Increased logo size from h-16 to h-20
-            />
+            <h1 className="font-tan-ashford text-4xl text-white tracking-wider">THE BREW BARN</h1>
           </Link>
           
           {/* Right Menu Items */}
@@ -149,11 +145,7 @@ const Navigation = () => {
             className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-gradient-to-b from-accent/95 to-primary/90 px-6 py-24 backdrop-blur-sm md:hidden"
           >
             <div className="absolute top-6 left-6">
-              <img 
-                src="/lovable-uploads/723df456-96c1-42e2-9fa8-c0a9a1b3a8bd.png" 
-                alt="Brew Barn Logo" 
-                className="h-16" // Increased logo size from h-12 to h-16 in mobile menu
-              />
+              <h1 className="font-tan-ashford text-3xl text-white tracking-wider">THE BREW BARN</h1>
             </div>
             <nav className="flex flex-col items-center space-y-8">
               {[...leftMenuItems, ...rightMenuItems].map((item) => (
