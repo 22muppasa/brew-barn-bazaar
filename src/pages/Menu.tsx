@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -31,7 +30,6 @@ const Menu = () => {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { getValue } = useLocalStorage();
-  const isGuest = getValue("isGuest") === "true";
   const { addToCart } = useGuestCart();
   
   // Pagination state
@@ -39,7 +37,6 @@ const Menu = () => {
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Adjust items per page based on screen size
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
@@ -136,33 +133,35 @@ const Menu = () => {
     },
   });
 
-  const addToCartHandler = async (item: any) => {
+  const addToCartHandler = (item: any) => {
+    console.log("Menu: Adding item to cart:", item.name);
+    
     if (session) {
-      const { error } = await supabase
+      supabase
         .from('cart_items')
         .insert({
           user_id: session.user.id,
           product_name: item.name,
           quantity: 1,
           price: item.price,
+        })
+        .then(({ error }) => {
+          if (error) {
+            console.error("Error adding to database cart:", error);
+            toast.error("Failed to add item to cart");
+            return;
+          }
+          toast.success("Added to cart!");
         });
-
-      if (error) {
-        toast.error("Failed to add item to cart");
-        return;
-      }
-    } else if (isGuest) {
+    } else {
+      console.log("Adding to guest cart from Menu:", { productName: item.name, price: item.price, quantity: 1 });
       addToCart({
         productName: item.name,
         price: item.price,
         quantity: 1
       });
-    } else {
-      toast.error("Please login or continue as guest to add items to cart");
-      return;
+      toast.success("Added to cart!");
     }
-
-    toast.success("Added to cart!");
   };
 
   if (isLoading) {
@@ -175,7 +174,6 @@ const Menu = () => {
 
   const categories = ["all", ...new Set(menuItems?.map((item: any) => item.category))];
   
-  // Filter items based on both category and search query
   const filteredItems = menuItems?.filter((item: any) => {
     const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
     const matchesSearch = searchQuery === "" || 
@@ -185,7 +183,6 @@ const Menu = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // Pagination logic
   const totalPages = Math.ceil((filteredItems?.length || 0) / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -193,7 +190,6 @@ const Menu = () => {
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
-    // Scroll to top of menu section
     const menuSection = document.getElementById('menu-section');
     if (menuSection) {
       menuSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -279,7 +275,7 @@ const Menu = () => {
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
-                    setCurrentPage(1); // Reset to first page on search
+                    setCurrentPage(1);
                   }}
                   className="pl-10 w-full"
                 />
@@ -293,7 +289,7 @@ const Menu = () => {
                       variant={selectedCategory === category ? "default" : "outline"}
                       onClick={() => {
                         setSelectedCategory(category);
-                        setCurrentPage(1); // Reset to first page on category change
+                        setCurrentPage(1);
                       }}
                       className="flex-shrink-0 whitespace-nowrap justify-start text-left capitalize text-xs sm:text-sm py-1.5 h-auto"
                       size="sm"
@@ -415,7 +411,6 @@ const Menu = () => {
                           
                           {Array.from({ length: totalPages }).map((_, index) => {
                             const pageNumber = index + 1;
-                            // Show first page, last page, current page, and pages around current
                             if (
                               pageNumber === 1 ||
                               pageNumber === totalPages ||
@@ -437,7 +432,6 @@ const Menu = () => {
                               );
                             }
                             
-                            // Show ellipsis if there's a gap
                             if (
                               (pageNumber === currentPage - 2 && pageNumber > 1) ||
                               (pageNumber === currentPage + 2 && pageNumber < totalPages)

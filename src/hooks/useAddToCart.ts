@@ -61,36 +61,41 @@ export const useAddToCart = () => {
           });
 
         if (error) throw error;
-      } else if (isGuest) {
-        // For guest users, use local storage
-        console.log("Adding to guest cart:", { productName, price, quantity });
+        return { success: true };
+      } else {
+        // Non-logged in users are automatically in guest mode
+        console.log("Adding to guest cart as non-logged in user:", { productName, price, quantity });
+        
+        // Force guest mode to be true
+        if (getValue("isGuest") !== "true") {
+          setValue("isGuest", "true");
+          console.log("Guest mode auto-enabled during cart add");
+        }
+        
+        // Add item to guest cart
         addToGuestCart({
           productName,
           price,
           quantity
         });
         
-        // Return a resolved promise for guest flow
-        return Promise.resolve();
-      } else {
-        console.error("User is neither logged in nor in guest mode");
-        throw new Error("Must be logged in or continue as guest");
+        // Return a resolved result for guest flow
+        return { success: true, guest: true };
       }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       if (session) {
         queryClient.invalidateQueries({ queryKey: ["cart-items"] });
       }
+      
+      // Log success for debugging
+      console.log("Successfully added to cart:", result);
+      
       toast.success("Added to cart!");
     },
     onError: (error: Error) => {
       console.error("Add to cart error:", error);
-      
-      if (error.message === "Must be logged in or continue as guest") {
-        toast.error("Please login or continue as guest to add items to cart");
-      } else {
-        toast.error("Failed to add to cart");
-      }
+      toast.error("Failed to add to cart");
     },
   });
 

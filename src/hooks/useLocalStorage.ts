@@ -55,62 +55,98 @@ export const useLocalStorage = () => {
   return { setValue, getValue, removeValue, clearStorage, ensureGuestMode };
 };
 
+export interface GuestCartItem {
+  id: string;
+  productName: string;
+  price: number;
+  quantity: number;
+}
+
 export const useGuestCart = () => {
   const { getValue, setValue } = useLocalStorage();
   const [cart, setCart] = useState<GuestCartItem[]>([]);
 
   // Load cart from localStorage on initial render
   useEffect(() => {
-    const savedCart = getValue('guestCart');
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-        console.log("Loaded guest cart from storage:", savedCart);
-      } catch (e) {
-        console.error('Failed to parse guest cart', e);
+    try {
+      const savedCart = getValue('guestCart');
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        setCart(parsedCart);
+        console.log("Loaded guest cart from storage:", parsedCart);
+      } else {
+        // Initialize empty cart if none exists
         setValue('guestCart', JSON.stringify([]));
+        console.log("Initialized empty guest cart");
       }
-    } else {
-      // Initialize empty cart if none exists
+    } catch (e) {
+      console.error('Failed to parse guest cart', e);
       setValue('guestCart', JSON.stringify([]));
-      console.log("Initialized empty guest cart");
     }
   }, []);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    setValue('guestCart', JSON.stringify(cart));
-    console.log("Updated guest cart in storage:", cart);
+    try {
+      setValue('guestCart', JSON.stringify(cart));
+      console.log("Updated guest cart in storage:", cart);
+    } catch (e) {
+      console.error('Failed to save guest cart', e);
+    }
   }, [cart]);
 
   const addToCart = (item: Omit<GuestCartItem, 'id'>) => {
     console.log("Adding item to guest cart:", item);
     
-    setCart(prevCart => {
-      const existingItemIndex = prevCart.findIndex(
-        cartItem => cartItem.productName === item.productName
-      );
+    // Force immediate update instead of relying on state updates
+    const currentCart = getValue('guestCart');
+    let cartArray: GuestCartItem[] = [];
+    
+    try {
+      cartArray = currentCart ? JSON.parse(currentCart) : [];
+    } catch (e) {
+      console.error('Failed to parse current cart', e);
+      cartArray = [];
+    }
+    
+    const existingItemIndex = cartArray.findIndex(
+      cartItem => cartItem.productName === item.productName
+    );
 
-      if (existingItemIndex >= 0) {
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex].quantity += item.quantity;
-        console.log("Updated existing item in guest cart:", updatedCart);
-        return updatedCart;
-      } else {
-        const newItem = { ...item, id: Date.now().toString() };
-        const newCart = [...prevCart, newItem];
-        console.log("Added new item to guest cart:", newItem);
-        return newCart;
-      }
-    });
+    let updatedCart: GuestCartItem[];
+    
+    if (existingItemIndex >= 0) {
+      updatedCart = [...cartArray];
+      updatedCart[existingItemIndex].quantity += item.quantity;
+      console.log("Updated existing item in guest cart:", updatedCart);
+    } else {
+      const newItem = { ...item, id: Date.now().toString() };
+      updatedCart = [...cartArray, newItem];
+      console.log("Added new item to guest cart:", newItem, "Updated cart:", updatedCart);
+    }
+    
+    // Directly update localStorage first
+    setValue('guestCart', JSON.stringify(updatedCart));
+    
+    // Then update state
+    setCart(updatedCart);
   };
 
   const removeFromCart = (itemId: string) => {
-    setCart(prevCart => {
-      const newCart = prevCart.filter(item => item.id !== itemId);
-      setValue('guestCart', JSON.stringify(newCart)); // Save immediately
-      return newCart;
-    });
+    // Get current cart from localStorage to ensure we have the latest
+    const currentCart = getValue('guestCart');
+    let cartArray: GuestCartItem[] = [];
+    
+    try {
+      cartArray = currentCart ? JSON.parse(currentCart) : [];
+    } catch (e) {
+      console.error('Failed to parse current cart for removal', e);
+      return;
+    }
+    
+    const newCart = cartArray.filter(item => item.id !== itemId);
+    setValue('guestCart', JSON.stringify(newCart));
+    setCart(newCart);
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {
@@ -119,13 +155,22 @@ export const useGuestCart = () => {
       return;
     }
     
-    setCart(prevCart => {
-      const newCart = prevCart.map(item => 
-        item.id === itemId ? { ...item, quantity } : item
-      );
-      setValue('guestCart', JSON.stringify(newCart)); // Save immediately
-      return newCart;
-    });
+    // Get current cart from localStorage to ensure we have the latest
+    const currentCart = getValue('guestCart');
+    let cartArray: GuestCartItem[] = [];
+    
+    try {
+      cartArray = currentCart ? JSON.parse(currentCart) : [];
+    } catch (e) {
+      console.error('Failed to parse current cart for quantity update', e);
+      return;
+    }
+    
+    const newCart = cartArray.map(item => 
+      item.id === itemId ? { ...item, quantity } : item
+    );
+    setValue('guestCart', JSON.stringify(newCart));
+    setCart(newCart);
   };
 
   const clearCart = () => {
@@ -134,11 +179,33 @@ export const useGuestCart = () => {
   };
 
   const getCartTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    // Get current cart from localStorage to ensure we have the latest
+    const currentCart = getValue('guestCart');
+    let cartArray: GuestCartItem[] = [];
+    
+    try {
+      cartArray = currentCart ? JSON.parse(currentCart) : [];
+    } catch (e) {
+      console.error('Failed to parse current cart for total calculation', e);
+      return 0;
+    }
+    
+    return cartArray.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const getCartCount = () => {
-    return cart.reduce((count, item) => count + item.quantity, 0);
+    // Get current cart from localStorage to ensure we have the latest
+    const currentCart = getValue('guestCart');
+    let cartArray: GuestCartItem[] = [];
+    
+    try {
+      cartArray = currentCart ? JSON.parse(currentCart) : [];
+    } catch (e) {
+      console.error('Failed to parse current cart for count calculation', e);
+      return 0;
+    }
+    
+    return cartArray.reduce((count, item) => count + item.quantity, 0);
   };
 
   return {
@@ -151,10 +218,3 @@ export const useGuestCart = () => {
     getCartCount
   };
 };
-
-export interface GuestCartItem {
-  id: string;
-  productName: string;
-  price: number;
-  quantity: number;
-}

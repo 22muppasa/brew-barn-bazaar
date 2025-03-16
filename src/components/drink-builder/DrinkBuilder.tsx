@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,7 +23,6 @@ const DrinkBuilder = () => {
   const [isIced, setIsIced] = useState(false);
   const addToCart = useAddToCart();
   const { getValue } = useLocalStorage();
-  const isGuest = getValue("isGuest") === "true";
 
   const { data: savedDrinks } = useQuery({
     queryKey: ["custom-drinks"],
@@ -83,12 +81,13 @@ const DrinkBuilder = () => {
     },
   });
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
+    console.log("Adding custom drink to cart");
     const basePrice = 4.99;
     const addonPrice = selectedAddons.length * 0.75;
     const totalPrice = basePrice + addonPrice;
     
-    await addToCart({
+    addToCart({
       productName: drinkName || "Custom Drink",
       price: totalPrice,
       quantity: 1
@@ -162,7 +161,6 @@ const DrinkBuilder = () => {
                 className="w-full"
                 variant="secondary"
                 onClick={handleAddToCart}
-                disabled={!session && !isGuest}
               >
                 Add to Cart
               </Button>
