@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -23,6 +24,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useAddToCart } from "@/hooks/useAddToCart";
+import { useMenuWithRatings } from "@/hooks/useMenuWithRatings";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 
 const Menu = () => {
   const session = useSession();
@@ -37,6 +41,7 @@ const Menu = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!session && getValue("isGuest") !== "true") {
@@ -60,57 +65,7 @@ const Menu = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const { data: menuItems, isLoading } = useQuery({
-    queryKey: ['menu-items'],
-    queryFn: async () => {
-      const winterSpecials = [
-        {
-          name: "Peppermint Mocha",
-          price: 5.99,
-          image_url: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd",
-          category: "Seasonal",
-          description: "A festive blend of rich chocolate and cool peppermint"
-        },
-        {
-          name: "Hot Chocolate Supreme",
-          price: 4.99,
-          image_url: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed",
-          category: "Seasonal",
-          description: "Luxurious hot chocolate topped with whipped cream"
-        },
-        {
-          name: "Gingerbread Latte",
-          price: 5.49,
-          image_url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd",
-          category: "Seasonal",
-          description: "Warm spiced latte with gingerbread flavoring"
-        }
-      ];
-
-      for (const item of winterSpecials) {
-        const { data: existing } = await supabase
-          .from('menu_items')
-          .select()
-          .eq('name', item.name)
-          .limit(1);
-
-        if (!existing?.length) {
-          await supabase
-            .from('menu_items')
-            .insert(item);
-        }
-      }
-
-      const { data, error } = await supabase
-        .from('menu_items')
-        .select('*')
-        .neq('category', 'Seasonal')
-        .order('category');
-      
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: menuItems, isLoading } = useMenuWithRatings(selectedCategory === "all" ? undefined : selectedCategory);
 
   const { data: productRatings } = useQuery({
     queryKey: ['product-ratings'],
@@ -144,13 +99,31 @@ const Menu = () => {
     },
   });
 
+  const handleSizeChange = (itemId: string, size: string) => {
+    setSelectedSizes(prev => ({
+      ...prev,
+      [itemId]: size
+    }));
+  };
+
+  const getItemPrice = (item: any) => {
+    const selectedSize = selectedSizes[item.id] || 'medium';
+    return item.size_options?.[selectedSize]?.price || item.price;
+  };
+
   const addToCartHandler = (item: any) => {
-    console.log("Menu: Adding item to cart:", item.name);
+    const selectedSize = selectedSizes[item.id] || 'medium';
+    const price = item.size_options?.[selectedSize]?.price || item.price;
+    const volume = item.size_options?.[selectedSize]?.volume;
+    const displayName = `${item.name} (${selectedSize} - ${volume} mL)`;
+    
+    console.log("Menu: Adding item to cart:", displayName);
     
     addToCart({
-      productName: item.name,
-      price: item.price,
-      quantity: 1
+      productName: displayName,
+      price: price,
+      quantity: 1,
+      size: selectedSize
     });
   };
 
@@ -165,12 +138,11 @@ const Menu = () => {
   const categories = ["all", ...new Set(menuItems?.map((item: any) => item.category))];
   
   const filteredItems = menuItems?.filter((item: any) => {
-    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
     const matchesSearch = searchQuery === "" || 
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
 
   const totalPages = Math.ceil((filteredItems?.length || 0) / itemsPerPage);
@@ -366,8 +338,44 @@ const Menu = () => {
                           </div>
                           
                           <p className="text-muted-foreground mb-3 sm:mb-4 text-xs sm:text-sm line-clamp-2">{item.description}</p>
+                          
+                          {item.size_options && (
+                            <div className="mb-3">
+                              <RadioGroup 
+                                value={selectedSizes[item.id] || 'medium'} 
+                                onValueChange={(value) => handleSizeChange(item.id, value)}
+                                className="flex gap-2 justify-between"
+                              >
+                                {item.size_options.small && (
+                                  <div className="flex items-center space-x-1 flex-1">
+                                    <RadioGroupItem value="small" id={`${item.id}-small`} className="size-3" />
+                                    <Label htmlFor={`${item.id}-small`} className="text-xs">
+                                      S ({item.size_options.small.volume} mL)
+                                    </Label>
+                                  </div>
+                                )}
+                                {item.size_options.medium && (
+                                  <div className="flex items-center space-x-1 flex-1">
+                                    <RadioGroupItem value="medium" id={`${item.id}-medium`} className="size-3" />
+                                    <Label htmlFor={`${item.id}-medium`} className="text-xs">
+                                      M ({item.size_options.medium.volume} mL)
+                                    </Label>
+                                  </div>
+                                )}
+                                {item.size_options.large && (
+                                  <div className="flex items-center space-x-1 flex-1">
+                                    <RadioGroupItem value="large" id={`${item.id}-large`} className="size-3" />
+                                    <Label htmlFor={`${item.id}-large`} className="text-xs">
+                                      L ({item.size_options.large.volume} mL)
+                                    </Label>
+                                  </div>
+                                )}
+                              </RadioGroup>
+                            </div>
+                          )}
+                          
                           <div className="flex justify-between items-center gap-2">
-                            <span className="text-sm sm:text-base font-bold">${item.price.toFixed(2)}</span>
+                            <span className="text-sm sm:text-base font-bold">${getItemPrice(item).toFixed(2)}</span>
                             <Button 
                               onClick={() => addToCartHandler(item)}
                               size="sm"

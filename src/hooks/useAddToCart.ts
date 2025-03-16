@@ -9,6 +9,7 @@ interface AddToCartParams {
   productName: string;
   price: number;
   quantity: number;
+  size?: string;
 }
 
 export const useAddToCart = () => {
@@ -25,7 +26,7 @@ export const useAddToCart = () => {
   const { addToCart: addToGuestCart } = useGuestCart();
 
   const mutation = useMutation({
-    mutationFn: async ({ productName, price, quantity }: AddToCartParams) => {
+    mutationFn: async ({ productName, price, quantity, size }: AddToCartParams) => {
       if (session?.user?.id) {
         // Check if profile is complete
         const { data: profile, error: profileError } = await supabase
@@ -49,12 +50,13 @@ export const useAddToCart = () => {
           );
         }
 
-        // For authenticated users, check if item already exists in cart
+        // For authenticated users, check if item already exists in cart with the same size
         const { data: existingItem, error: queryError } = await supabase
           .from("cart_items")
           .select("*")
           .eq("user_id", session.user.id)
           .eq("product_name", productName)
+          .eq("size", size || "medium")
           .single();
         
         if (queryError && queryError.code !== 'PGRST116') { // PGRST116 means no rows returned
@@ -80,6 +82,7 @@ export const useAddToCart = () => {
               product_name: productName,
               quantity,
               price,
+              size: size || "medium",
             });
   
           if (error) throw error;
@@ -96,7 +99,8 @@ export const useAddToCart = () => {
         addToGuestCart({
           productName,
           price,
-          quantity
+          quantity,
+          size
         });
         
         // Return a resolved result for guest flow

@@ -6,6 +6,7 @@ export type CartItem = {
   product_name: string;
   quantity: number;
   user_id: string | null;
+  size?: string;
 }
 
 export type MenuItem = {
@@ -16,6 +17,11 @@ export type MenuItem = {
   category: string;
   image_url: string | null;
   created_at: string;
+  size_options?: {
+    small?: { price: number; volume: number };
+    medium?: { price: number; volume: number };
+    large?: { price: number; volume: number };
+  };
 }
 
 export type Order = {
@@ -33,6 +39,7 @@ export type OrderItem = {
   quantity: number;
   price: number;
   created_at: string;
+  size?: string;
 }
 
 export type Profile = {
