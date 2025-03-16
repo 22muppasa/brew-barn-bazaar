@@ -50,16 +50,18 @@ export const useAddToCart = () => {
         }
 
         // For authenticated users, check if item already exists in cart
-        const { data: existingItem, error: queryError } = await supabase
+        const { data: cartItems, error: queryError } = await supabase
           .from("cart_items")
           .select("*")
           .eq("user_id", session.user.id)
-          .eq("product_name", productName)
-          .single();
+          .eq("product_name", productName);
         
-        if (queryError && queryError.code !== 'PGRST116') { // PGRST116 means no rows returned
+        if (queryError) {
           throw queryError;
         }
+
+        // Check if there are any cart items
+        const existingItem = cartItems && cartItems.length > 0 ? cartItems[0] : null;
 
         if (existingItem) {
           // Update existing item quantity
