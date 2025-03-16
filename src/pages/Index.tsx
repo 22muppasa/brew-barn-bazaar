@@ -62,13 +62,26 @@ const Index = () => {
     transition: { duration: 0.5 }
   };
 
+  const scrollTransform = {
+    initial: { opacity: 0, y: 100 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-100px" },
+    transition: { duration: 0.8, ease: "easeOut" }
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
       <FeaturedMenu />
 
       {/* Rewards Section */}
-      <section className="section-padding bg-muted">
+      <motion.section 
+        className="section-padding bg-muted"
+        variants={scrollTransform}
+        initial="initial"
+        whileInView="whileInView"
+        viewport={scrollTransform.viewport}
+      >
         <div className="container">
           <motion.div 
             className="grid gap-12 lg:grid-cols-2 lg:items-center"
@@ -91,19 +104,28 @@ const Index = () => {
                 {session ? "View Rewards" : "Join Now"}
               </Button>
             </div>
-            <div className="relative">
-              <img 
+            <div className="relative overflow-hidden rounded-lg">
+              <motion.img 
                 src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085"
                 alt="Rewards"
                 className="rounded-lg shadow-lg"
+                whileInView={{ scale: 1.05 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+                viewport={{ once: true, margin: "-100px" }}
               />
             </div>
           </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Social Media Section */}
-      <section className="section-padding bg-background">
+      <motion.section 
+        className="section-padding bg-background"
+        variants={scrollTransform}
+        initial="initial"
+        whileInView="whileInView"
+        viewport={scrollTransform.viewport}
+      >
         <div className="container text-center">
           <motion.div
             initial="initial"
@@ -128,10 +150,16 @@ const Index = () => {
             </div>
           </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Newsletter Section */}
-      <section className="section-padding bg-accent text-white">
+      <motion.section 
+        className="section-padding bg-accent text-white"
+        variants={scrollTransform}
+        initial="initial"
+        whileInView="whileInView"
+        viewport={scrollTransform.viewport}
+      >
         <div className="container">
           <motion.div 
             className="mx-auto max-w-2xl text-center"
@@ -140,7 +168,7 @@ const Index = () => {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="mb-6 text-4xl font-bold">Stay Updated</h2>
+            <h2 className="mb-6 text-4xl font-bold text-white">Stay Updated</h2>
             <p className="mb-8 text-white/90">
               Subscribe to our newsletter for exclusive offers and updates
             </p>
@@ -164,7 +192,7 @@ const Index = () => {
             </form>
           </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Scroll To Top Button */}
       <ScrollToTop />

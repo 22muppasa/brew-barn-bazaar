@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -12,13 +13,15 @@ import HamburgerMenu from "@/components/HamburgerMenu";
 import VirtualBarista from "@/components/VirtualBarista";
 import ProductReviews from "@/components/ProductReviews";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Star } from "lucide-react";
+import { Search, Star } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const Menu = () => {
   const session = useSession();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showDrinkBuilder, setShowDrinkBuilder] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { getValue } = useLocalStorage();
   const isGuest = getValue("isGuest") === "true";
   const { addToCart } = useGuestCart();
@@ -140,9 +143,16 @@ const Menu = () => {
   }
 
   const categories = ["all", ...new Set(menuItems?.map((item: any) => item.category))];
-  const filteredItems = selectedCategory === "all" 
-    ? menuItems 
-    : menuItems?.filter((item: any) => item.category === selectedCategory);
+  
+  // Filter items based on both category and search query
+  const filteredItems = menuItems?.filter((item: any) => {
+    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
+    const matchesSearch = searchQuery === "" || 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -198,90 +208,121 @@ const Menu = () => {
           <DrinkBuilder />
         ) : (
           <div className="flex flex-col md:flex-row gap-6">
-            <ScrollArea className="w-full md:w-48 md:flex-shrink-0 mb-6 md:mb-0">
-              <div className="flex md:flex-col gap-2 pb-4 md:pb-0">
-                {categories.map((category) => (
-                  <Button
-                    key={category}
-                    variant={selectedCategory === category ? "default" : "outline"}
-                    onClick={() => setSelectedCategory(category)}
-                    className="flex-shrink-0 whitespace-nowrap justify-start text-left capitalize"
-                  >
-                    {category === "all" ? "All Items" : category}
-                  </Button>
-                ))}
+            <div className="w-full mb-6">
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  type="text"
+                  placeholder="Search drinks and treats..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-full"
+                />
               </div>
-              <ScrollBar orientation="horizontal" className="md:hidden" />
-            </ScrollArea>
+              
+              <ScrollArea className="w-full md:w-48 md:flex-shrink-0 mb-6 md:mb-0">
+                <div className="flex md:flex-col gap-2 pb-4 md:pb-0">
+                  {categories.map((category) => (
+                    <Button
+                      key={category}
+                      variant={selectedCategory === category ? "default" : "outline"}
+                      onClick={() => setSelectedCategory(category)}
+                      className="flex-shrink-0 whitespace-nowrap justify-start text-left capitalize"
+                    >
+                      {category === "all" ? "All Items" : category}
+                    </Button>
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" className="md:hidden" />
+              </ScrollArea>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {filteredItems?.map((item: any) => (
-                <motion.div
-                  key={item.id}
-                  className="bg-card rounded-lg shadow-lg overflow-hidden h-full border border-muted hover:shadow-xl transition-all duration-300"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  whileHover={{ scale: 1.02 }}
-                  layout
-                >
-                  <div className="relative h-40 sm:h-48 overflow-hidden">
-                    <img 
-                      src={item.image_url} 
-                      alt={item.name}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1497636577773-f1231844b336';
-                      }}
-                    />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg sm:text-xl font-semibold">{item.name}</h3>
-                      
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button 
-                            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
-                            onClick={() => setSelectedProduct(item.name)}
-                          >
-                            <div className="flex items-center gap-1">
-                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                              <span>
-                                {productRatings?.[item.name]?.avg 
-                                  ? productRatings[item.name].avg.toFixed(1) 
-                                  : "-"}
-                              </span>
-                              <span className="text-xs">
-                                ({productRatings?.[item.name]?.count || 0})
-                              </span>
-                            </div>
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-lg">
-                          <DialogHeader>
-                            <DialogTitle>{item.name} Reviews</DialogTitle>
-                          </DialogHeader>
-                          {selectedProduct === item.name && (
-                            <ProductReviews productName={item.name} />
-                          )}
-                        </DialogContent>
-                      </Dialog>
+              {filteredItems?.length === 0 ? (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-muted-foreground mb-2">No items found matching your search.</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory("all");
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                </div>
+              ) : (
+                filteredItems?.map((item: any) => (
+                  <motion.div
+                    key={item.id}
+                    className="bg-card rounded-lg shadow-lg overflow-hidden h-full border border-muted hover:shadow-xl transition-all duration-300"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    whileHover={{ scale: 1.02 }}
+                    layout
+                  >
+                    <div className="relative h-40 sm:h-48 overflow-hidden">
+                      <img 
+                        src={item.name === "Cherry Blossom Latte" 
+                          ? "https://i.ibb.co/cK1xgwSj/DALL-E-2025-03-15-23-06-58-A-beautifully-crafted-cherry-blossom-latte-in-a-ceramic-cup-The-latte-has.webp" 
+                          : item.image_url} 
+                        alt={item.name}
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1497636577773-f1231844b336';
+                        }}
+                      />
                     </div>
                     
-                    <p className="text-muted-foreground mb-4 text-sm sm:text-base">{item.description}</p>
-                    <div className="flex justify-between items-center gap-2">
-                      <span className="text-base sm:text-lg font-bold">${item.price.toFixed(2)}</span>
-                      <Button 
-                        onClick={() => addToCartHandler(item)}
-                        size="sm"
-                        className="transition-all duration-300 hover:scale-105"
-                      >
-                        Add to Cart
-                      </Button>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg sm:text-xl font-semibold">{item.name}</h3>
+                        
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button 
+                              className="flex items-center text-sm text-muted-foreground hover:text-foreground"
+                              onClick={() => setSelectedProduct(item.name)}
+                            >
+                              <div className="flex items-center gap-1">
+                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                <span>
+                                  {productRatings?.[item.name]?.avg 
+                                    ? productRatings[item.name].avg.toFixed(1) 
+                                    : "-"}
+                                </span>
+                                <span className="text-xs">
+                                  ({productRatings?.[item.name]?.count || 0})
+                                </span>
+                              </div>
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-lg">
+                            <DialogHeader>
+                              <DialogTitle>{item.name} Reviews</DialogTitle>
+                            </DialogHeader>
+                            {selectedProduct === item.name && (
+                              <ProductReviews productName={item.name} />
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      
+                      <p className="text-muted-foreground mb-4 text-sm sm:text-base">{item.description}</p>
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-base sm:text-lg font-bold">${item.price.toFixed(2)}</span>
+                        <Button 
+                          onClick={() => addToCartHandler(item)}
+                          size="sm"
+                          className="transition-all duration-300 hover:scale-105"
+                        >
+                          Add to Cart
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              )}
             </div>
           </div>
         )}
