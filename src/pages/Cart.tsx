@@ -384,8 +384,8 @@ const Cart = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8">
               <div className="space-y-4">
                 {items.map((item: any) => (
                   <motion.div
@@ -463,7 +463,7 @@ const Cart = () => {
               </div>
             </div>
             
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-4">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
