@@ -17,6 +17,7 @@ interface DiscountCode {
   code: string;
   percentage: number;
   expiry: Date;
+  productType?: string; // Optional field to specify which product type the discount applies to
 }
 
 const Cart = () => {
@@ -33,7 +34,7 @@ const Cart = () => {
     getCartTotal: getGuestCartTotal
   } = useGuestCart();
   const [checkoutMode, setCheckoutMode] = useState(false);
-  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number} | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, percentage: number, productType?: string} | null>(null);
   const [availableDiscounts, setAvailableDiscounts] = useState<DiscountCode[]>([]);
 
   // Query for authenticated user cart
@@ -60,7 +61,7 @@ const Cart = () => {
         const parsedCodes = JSON.parse(storedCodes);
         const validCodes = parsedCodes
           .filter((code: {expiry: string}) => new Date(code.expiry) > new Date())
-          .map((code: {expiry: string, code: string, percentage: number}) => ({
+          .map((code: {expiry: string, code: string, percentage: number, productType?: string}) => ({
             ...code,
             expiry: new Date(code.expiry)
           }));
@@ -208,8 +209,33 @@ const Cart = () => {
 
   const calculateDiscount = () => {
     if (!appliedDiscount) return 0;
-    const subtotal = calculateSubtotal();
-    return (subtotal * appliedDiscount.percentage) / 100;
+    
+    const items = session ? cartItems : guestCart;
+    
+    // If the discount is product-specific, only apply it to matching items
+    if (appliedDiscount.productType) {
+      // Find all items that match the product type (check if product name contains the product type)
+      const eligibleItems = items?.filter((item: any) => 
+        (item.product_name || item.productName)
+          .toLowerCase()
+          .includes(appliedDiscount.productType!.toLowerCase())
+      );
+      
+      if (eligibleItems.length === 0) {
+        // If no eligible items found, return 0 discount
+        return 0;
+      }
+      
+      // Calculate subtotal for only the eligible items
+      const eligibleSubtotal = eligibleItems.reduce((sum: number, item: any) => 
+        sum + (item.price * item.quantity), 0) || 0;
+        
+      return (eligibleSubtotal * appliedDiscount.percentage) / 100;
+    } else {
+      // If no product type specified, apply discount to entire cart
+      const subtotal = calculateSubtotal();
+      return (subtotal * appliedDiscount.percentage) / 100;
+    }
   };
 
   const calculateTotal = () => {
@@ -218,9 +244,15 @@ const Cart = () => {
     return subtotal - discount;
   };
 
-  const applyDiscount = (code: string, percentage: number) => {
-    setAppliedDiscount({ code, percentage });
-    toast.success(`Applied discount: ${code}`);
+  const applyDiscount = (code: string, percentage: number, productType?: string) => {
+    setAppliedDiscount({ code, percentage, productType });
+    
+    // Generate a message based on whether it's a general or product-specific discount
+    const discountMessage = productType 
+      ? `Applied ${percentage}% discount on ${productType} items: ${code}`
+      : `Applied discount: ${code}`;
+      
+    toast.success(discountMessage);
   };
 
   const removeDiscount = () => {
@@ -234,6 +266,16 @@ const Cart = () => {
       day: 'numeric', 
       year: 'numeric' 
     }).format(date);
+  };
+
+  // Determine if a product-specific discount has eligible items in the cart
+  const hasEligibleItems = (productType: string) => {
+    const items = session ? cartItems : guestCart;
+    return items?.some((item: any) => 
+      (item.product_name || item.productName)
+        .toLowerCase()
+        .includes(productType.toLowerCase())
+    );
   };
 
   if (isLoading && session) {
@@ -364,6 +406,17 @@ const Cart = () => {
                     <div className="w-full md:w-auto mb-3 md:mb-0">
                       <h3 className="font-semibold">{item.product_name || item.productName}</h3>
                       <p className="text-muted-foreground">${item.price} each</p>
+                      
+                      {/* Show discount badge if this item is eligible for the applied product-specific discount */}
+                      {appliedDiscount?.productType && 
+                       (item.product_name || item.productName)
+                         .toLowerCase()
+                         .includes(appliedDiscount.productType.toLowerCase()) && (
+                        <span className="inline-flex items-center px-2 py-1 mt-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {appliedDiscount.percentage}% off
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                       <div className="flex items-center gap-2">
@@ -436,27 +489,43 @@ const Cart = () => {
                       <Tag className="h-3 w-3" /> Available Discounts
                     </h3>
                     <div className="space-y-2 max-h-28 overflow-y-auto pr-1 mb-3">
-                      {availableDiscounts.map((discount) => (
-                        <div 
-                          key={discount.code} 
-                          className="bg-secondary/20 p-2 rounded-md text-xs flex justify-between items-center"
-                        >
-                          <div>
-                            <div className="font-mono font-medium">{discount.code}</div>
-                            <div className="text-muted-foreground text-xs">
-                              {discount.percentage}% off • expires {formatExpiryDate(discount.expiry)}
-                            </div>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            className="text-xs h-7"
-                            onClick={() => applyDiscount(discount.code, discount.percentage)}
+                      {availableDiscounts.map((discount) => {
+                        // Check if product-specific discount has eligible items
+                        const isEligible = discount.productType ? 
+                          hasEligibleItems(discount.productType) : true;
+                          
+                        return (
+                          <div 
+                            key={discount.code} 
+                            className={`p-2 rounded-md text-xs flex justify-between items-center ${
+                              isEligible 
+                                ? "bg-secondary/20" 
+                                : "bg-gray-100 opacity-60"
+                            }`}
                           >
-                            Apply
-                          </Button>
-                        </div>
-                      ))}
+                            <div>
+                              <div className="font-mono font-medium">{discount.code}</div>
+                              <div className="text-muted-foreground text-xs">
+                                {discount.percentage}% off {discount.productType ? `on ${discount.productType}` : ''} • expires {formatExpiryDate(discount.expiry)}
+                              </div>
+                              {!isEligible && discount.productType && (
+                                <div className="text-red-500 text-xs mt-1">
+                                  No eligible {discount.productType} items in cart
+                                </div>
+                              )}
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="secondary"
+                              className="text-xs h-7"
+                              disabled={!isEligible}
+                              onClick={() => applyDiscount(discount.code, discount.percentage, discount.productType)}
+                            >
+                              Apply
+                            </Button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -470,6 +539,11 @@ const Cart = () => {
                           <Tag className="h-3 w-3" /> Applied Discount
                         </h3>
                         <div className="font-mono text-xs text-green-600 mt-1">{appliedDiscount.code}</div>
+                        {appliedDiscount.productType && (
+                          <div className="text-xs text-green-700">
+                            {appliedDiscount.percentage}% off on {appliedDiscount.productType} items
+                          </div>
+                        )}
                       </div>
                       <Button 
                         size="sm" 
@@ -492,7 +566,10 @@ const Cart = () => {
                   
                   {appliedDiscount && (
                     <div className="flex justify-between text-green-600">
-                      <span>Discount ({appliedDiscount.percentage}%)</span>
+                      <span>
+                        Discount ({appliedDiscount.percentage}%
+                        {appliedDiscount.productType ? ` on ${appliedDiscount.productType}` : ''})
+                      </span>
                       <span>-${discount.toFixed(2)}</span>
                     </div>
                   )}
@@ -533,3 +610,4 @@ const Cart = () => {
 };
 
 export default Cart;
+

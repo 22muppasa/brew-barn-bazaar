@@ -17,6 +17,7 @@ interface Message {
   discountCode?: string;
   discountPercentage?: number;
   expiryDate?: Date;
+  productType?: string; // Add product type for product-specific discounts
 }
 
 // Special deals that can be shown as notification messages
@@ -25,7 +26,8 @@ const specialDeals = [
     content: "🌟 Weekend Special! 20% off all Lattes this weekend.",
     discountCode: "LATTE20",
     discountPercentage: 20,
-    expiryDays: 3
+    expiryDays: 3,
+    productType: "Latte" // Add product type for this discount
   },
   {
     content: "☕ Morning Boost! 15% off any drink before 10am.",
@@ -37,7 +39,8 @@ const specialDeals = [
     content: "🎉 Happy Hour! Buy one get one free on all Cold Brews from 2-4pm.",
     discountCode: "BOGO24",
     discountPercentage: 50,
-    expiryDays: 2
+    expiryDays: 2,
+    productType: "Cold Brew" // Add product type for this discount
   }
 ];
 
@@ -48,7 +51,7 @@ const VirtualBarista = () => {
     { role: 'assistant', content: 'Hi there! I\'m Lisa, your virtual barista. Ask me anything about our menu, or tell me what you\'re in the mood for. I can also offer personalized discounts!' }
   ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeCodes, setActiveCodes] = useState<{code: string, percentage: number, expiry: Date}[]>([]);
+  const [activeCodes, setActiveCodes] = useState<{code: string, percentage: number, expiry: Date, productType?: string}[]>([]);
   const [chatInitialized, setChatInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const session = useSession();
@@ -85,7 +88,7 @@ const VirtualBarista = () => {
         const parsedCodes = JSON.parse(savedCodes);
         const validCodes = parsedCodes.filter((code: {expiry: string}) => 
           new Date(code.expiry) > new Date()
-        ).map((code: {expiry: string, code: string, percentage: number}) => ({
+        ).map((code: {expiry: string, code: string, percentage: number, productType?: string}) => ({
           ...code,
           expiry: new Date(code.expiry)
         }));
@@ -152,7 +155,8 @@ const VirtualBarista = () => {
             content: randomDeal.content,
             discountCode: randomDeal.discountCode,
             discountPercentage: randomDeal.discountPercentage,
-            expiryDate
+            expiryDate,
+            productType: randomDeal.productType
           }
         ]);
         
@@ -161,7 +165,8 @@ const VirtualBarista = () => {
           {
             code: randomDeal.discountCode,
             percentage: randomDeal.discountPercentage,
-            expiry: expiryDate
+            expiry: expiryDate,
+            productType: randomDeal.productType
           }
         ]);
         
@@ -197,7 +202,8 @@ const VirtualBarista = () => {
           activeCodes: activeCodes.map(code => ({
             code: code.code,
             percentage: code.percentage,
-            expiry: code.expiry.toISOString()
+            expiry: code.expiry.toISOString(),
+            productType: code.productType
           })),
           chatHistory
         }
@@ -215,16 +221,26 @@ const VirtualBarista = () => {
           expiryDate.setDate(expiryDate.getDate() + (data.expiryDays || 7));
           newMessage.expiryDate = expiryDate;
           
+          // Check if this is a product-specific discount
+          if (data.productType) {
+            newMessage.productType = data.productType;
+          }
+          
           setActiveCodes(prev => [
             ...prev, 
             {
               code: data.discountCode,
               percentage: data.discountPercentage,
-              expiry: expiryDate
+              expiry: expiryDate,
+              productType: data.productType
             }
           ]);
           
-          toast.success(`New discount code added: ${data.discountCode}`);
+          const discountMessage = data.productType 
+            ? `New ${data.discountPercentage}% discount on ${data.productType} items: ${data.discountCode}`
+            : `New discount code added: ${data.discountCode}`;
+            
+          toast.success(discountMessage);
         }
         
         setMessages(prev => [...prev, newMessage]);
@@ -257,15 +273,21 @@ const VirtualBarista = () => {
     toast.success(`Copied ${code} to clipboard!`);
   };
 
-  const applyDiscountToCart = (code: string, percentage: number) => {
+  const applyDiscountToCart = (code: string, percentage: number, productType?: string) => {
     // Store the selected discount in localStorage for use at checkout
     localStorage.setItem('selectedDiscount', JSON.stringify({
       code,
-      percentage
+      percentage,
+      productType
     }));
     
+    // Generate appropriate message
+    const discountMessage = productType 
+      ? `Discount code ${code} for ${productType} items will be applied at checkout!`
+      : `Discount code ${code} will be applied at checkout!`;
+    
     // Navigate to cart and close the chat
-    toast.success(`Discount code ${code} will be applied at checkout!`);
+    toast.success(discountMessage);
     navigate('/cart');
     setOpen(false);
   };
@@ -367,12 +389,17 @@ const VirtualBarista = () => {
                                           onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
                                         >
                                           {message.discountCode}
+                                          {message.productType && (
+                                            <span className="text-xs bg-amber-200 px-1 rounded">
+                                              {message.productType} only
+                                            </span>
+                                          )}
                                         </div>
                                         <Button 
                                           variant="secondary" 
                                           size="sm"
                                           onClick={() => message.discountCode && message.discountPercentage && 
-                                            applyDiscountToCart(message.discountCode, message.discountPercentage)}
+                                            applyDiscountToCart(message.discountCode, message.discountPercentage, message.productType)}
                                         >
                                           Use at checkout
                                         </Button>
@@ -402,13 +429,18 @@ const VirtualBarista = () => {
                                       onClick={() => message.discountCode && copyDiscountCode(message.discountCode)}
                                     >
                                       {message.discountCode}
+                                      {message.productType && (
+                                        <span className="text-xs bg-gray-200 ml-1 px-1 rounded">
+                                          {message.productType} only
+                                        </span>
+                                      )}
                                     </div>
                                     <Button 
                                       variant="secondary" 
                                       size="sm"
                                       className="text-xs"
                                       onClick={() => message.discountCode && message.discountPercentage && 
-                                        applyDiscountToCart(message.discountCode, message.discountPercentage)}
+                                        applyDiscountToCart(message.discountCode, message.discountPercentage, message.productType)}
                                     >
                                       Use at checkout
                                     </Button>
@@ -416,6 +448,11 @@ const VirtualBarista = () => {
                                   <p className="text-xs mt-1 text-gray-500">
                                     Valid until: {formatExpiryDate(message.expiryDate)}
                                   </p>
+                                  {message.productType && (
+                                    <p className="text-xs mt-1 text-blue-600">
+                                      Only valid for {message.productType} items
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </CardContent>
@@ -469,3 +506,4 @@ const VirtualBarista = () => {
 };
 
 export default VirtualBarista;
+

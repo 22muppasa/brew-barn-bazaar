@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
@@ -44,8 +43,18 @@ When you DO decide to offer a discount code:
 - Add a unique code they can use at checkout (e.g., BREW15LATTE)
 - Mention the expiration (valid for one week)
 
+PRODUCT-SPECIFIC DISCOUNTS - IMPORTANT:
+- When offering discounts for specific types of products (e.g., "Latte", "Cold Brew", "Espresso"), make it clear in your response that the discount only applies to those specific products
+- Always mention the product type the discount applies to, such as "This 15% discount applies only to Lattes"
+- Create product-specific discount codes that clearly indicate the product type (e.g., LATTE15, COLDBREW20)
+- When generating product-specific discounts, focus on:
+  1. Products the customer frequently purchases (from order history)
+  2. Products the customer is currently asking about
+  3. Seasonal specials or featured items
+
 When a user asks about available discounts, make sure to:
 - Check if they have active discount codes and provide that information
+- Clarify which products each discount applies to (if product-specific)
 - Provide information on any currently running promotions
 - Only generate a new discount code if appropriate based on the scenarios above
 
@@ -162,6 +171,7 @@ serve(async (req) => {
     let orderHistoryPrompt = '';
     let shouldOfferDiscount = false;
     let discountReason = '';
+    let favoriteProductType = '';
     
     if (orderHistory.length > 0) {
       orderHistoryPrompt = `\nThis customer has the following order history:\n`;
@@ -191,18 +201,39 @@ serve(async (req) => {
       
       if (favoriteItems.length > 0) {
         orderHistoryPrompt += `\nThe customer's favorite items appear to be: ${favoriteItems.join(', ')}.\n`;
+        
+        // Extract product type from favorite item for potential product-specific discount
+        const favoriteProduct = favoriteItems[0].split(' ')[0];
+        // Extract generic product type (e.g., Latte, Cold Brew, Espresso)
+        const productTypes = ['Latte', 'Cold Brew', 'Espresso', 'Tea', 'Mocha', 'Cappuccino', 'Americano', 'Macchiato'];
+        for (const type of productTypes) {
+          if (favoriteProduct.includes(type)) {
+            favoriteProductType = type;
+            break;
+          }
+        }
       }
       
       // Determine if we should offer a discount based on purchase patterns
       if (daysSinceLastOrder && daysSinceLastOrder >= 3) {
         shouldOfferDiscount = true;
-        discountReason = `IMPORTANT: This customer hasn't ordered in ${daysSinceLastOrder} days. Offer them a special discount of 20-25% on their favorite item to encourage them to return.`;
+        // If they have a favorite product type, offer product-specific discount
+        if (favoriteProductType) {
+          discountReason = `IMPORTANT: This customer hasn't ordered in ${daysSinceLastOrder} days. Offer them a special product-specific discount of 20-25% on ${favoriteProductType} items to encourage them to return.`;
+        } else {
+          discountReason = `IMPORTANT: This customer hasn't ordered in ${daysSinceLastOrder} days. Offer them a special discount of 20-25% to encourage them to return.`;
+        }
       } else if (orderHistory.length >= 5) {
         // Loyalty discount - but make it occasional (approximately 1 in 5 interactions)
         const shouldOfferLoyaltyDiscount = Math.random() < 0.2;
         if (shouldOfferLoyaltyDiscount) {
           shouldOfferDiscount = true;
-          discountReason = `IMPORTANT: This is a loyal customer with ${orderHistory.length} orders. Consider offering them a special loyalty discount of 10-15%.`;
+          // If they have a favorite product type, offer product-specific discount
+          if (favoriteProductType) {
+            discountReason = `IMPORTANT: This is a loyal customer with ${orderHistory.length} orders. Consider offering them a special product-specific loyalty discount of 10-15% on ${favoriteProductType} items.`;
+          } else {
+            discountReason = `IMPORTANT: This is a loyal customer with ${orderHistory.length} orders. Consider offering them a special loyalty discount of 10-15%.`;
+          }
         }
       }
       
@@ -239,6 +270,18 @@ serve(async (req) => {
       shouldOfferDiscount = true;
     }
 
+    // Check if the user is asking about a specific product type
+    // This could be used to create product-specific discounts
+    const productTypes = ['Latte', 'Cold Brew', 'Espresso', 'Tea', 'Mocha', 'Cappuccino', 'Americano', 'Macchiato'];
+    let mentionedProductType = '';
+    
+    for (const type of productTypes) {
+      if (message.toLowerCase().includes(type.toLowerCase())) {
+        mentionedProductType = type;
+        break;
+      }
+    }
+
     // Add user profile information if available
     let userProfilePrompt = '';
     if (userProfile) {
@@ -252,7 +295,7 @@ serve(async (req) => {
       activeCodesPrompt = `\n\nThe customer currently has the following active discount codes:\n`;
       activeCodes.forEach(code => {
         const expiryDate = new Date(code.expiry);
-        activeCodesPrompt += `- ${code.code}: ${code.percentage}% off, valid until ${expiryDate.toLocaleDateString()}\n`;
+        activeCodesPrompt += `- ${code.code}: ${code.percentage}% off${code.productType ? ` on ${code.productType} items` : ''}, valid until ${expiryDate.toLocaleDateString()}\n`;
       });
       
       // If user asks about their discount codes, make sure to provide this information
@@ -265,6 +308,13 @@ serve(async (req) => {
     let discountContextPrompt = '';
     if (shouldOfferDiscount) {
       discountContextPrompt = `\nIMPORTANT CONTEXT: In your response, you should consider offering the user a discount code.`;
+      
+      // If they're asking about a specific product or have a favorite product, suggest a product-specific discount
+      if (mentionedProductType || favoriteProductType) {
+        const productType = mentionedProductType || favoriteProductType;
+        discountContextPrompt += ` Consider offering a product-specific discount for ${productType} items.`;
+      }
+      
       if (discountReason) {
         discountContextPrompt += ` ${discountReason}`;
       }
@@ -280,6 +330,12 @@ serve(async (req) => {
 
     console.log('Sending request to OpenAI with full context');
     console.log('Should offer discount:', shouldOfferDiscount);
+    if (mentionedProductType) {
+      console.log('User mentioned product type:', mentionedProductType);
+    }
+    if (favoriteProductType) {
+      console.log('User\'s favorite product type:', favoriteProductType);
+    }
 
     const messages = [
       { 
@@ -344,7 +400,43 @@ serve(async (req) => {
           responseData.discountCode = potentialCode;
           responseData.discountPercentage = percentage;
           responseData.expiryDays = 7; // Default to 1 week validity
-          console.log(`Detected new discount code: ${potentialCode} for ${percentage}% off`);
+          
+          // Check if this is a product-specific discount
+          // Look for patterns like "discount on [product]" or "[product] discount"
+          const productSpecificRegex = new RegExp(`(discount|off)\\s+(on|for)\\s+(?:all\\s+)?([\\w\\s]+?)\\s+(items|drinks|products|orders)`, 'i');
+          const productMatch = reply.match(productSpecificRegex);
+          
+          if (productMatch && productMatch[3]) {
+            let extractedProductType = productMatch[3].trim();
+            
+            // Check if the extracted text contains a known product type
+            for (const knownType of productTypes) {
+              if (extractedProductType.toLowerCase().includes(knownType.toLowerCase())) {
+                responseData.productType = knownType;
+                console.log(`Detected product-specific discount for ${knownType}`);
+                break;
+              }
+            }
+            
+            // If we couldn't match a known type but have a product mentioned, use it
+            if (!responseData.productType && extractedProductType) {
+              // Keep just the first 15 chars max to avoid long descriptions
+              responseData.productType = extractedProductType.substring(0, 15);
+              console.log(`Using custom product type: ${responseData.productType}`);
+            }
+          }
+          // Also check discount code itself for product types (e.g., LATTE15)
+          else if (!responseData.productType) {
+            for (const knownType of productTypes) {
+              if (potentialCode.includes(knownType.toUpperCase())) {
+                responseData.productType = knownType;
+                console.log(`Detected product type from code: ${knownType}`);
+                break;
+              }
+            }
+          }
+          
+          console.log(`Detected new discount code: ${potentialCode} for ${percentage}% off${responseData.productType ? ` on ${responseData.productType}` : ''}`);
         }
       }
     }

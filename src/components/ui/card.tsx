@@ -5,17 +5,24 @@ import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-2xl border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
+  React.HTMLAttributes<HTMLDivElement> & { rounded?: "default" | "lg" | "full" }
+>(({ className, rounded = "default", ...props }, ref) => {
+  const roundedClass = 
+    rounded === "lg" ? "rounded-3xl" : 
+    rounded === "full" ? "rounded-[2rem]" : 
+    "rounded-2xl";
+    
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        `${roundedClass} border bg-card text-card-foreground shadow-sm`,
+        className
+      )}
+      {...props}
+    />
+  );
+})
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<
@@ -78,3 +85,4 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = "CardFooter"
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
