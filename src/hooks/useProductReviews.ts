@@ -1,9 +1,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
+import { toast } from "sonner";
 
 export const useProductReviews = (productName: string) => {
   const session = useSession();
@@ -22,7 +21,12 @@ export const useProductReviews = (productName: string) => {
         .eq('product_name', productName)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching reviews:", error);
+        throw error;
+      }
+      
+      console.log(`Fetched ${data?.length || 0} reviews for ${productName}`);
       return data || [];
     },
   });
@@ -88,6 +92,7 @@ export const useProductReviews = (productName: string) => {
           .update({
             rating,
             comment,
+            updated_at: new Date().toISOString(),
           })
           .eq('id', userReview.id);
         
@@ -112,6 +117,8 @@ export const useProductReviews = (productName: string) => {
       toast.success(message);
       queryClient.invalidateQueries({ queryKey: ['product-reviews', productName] });
       queryClient.invalidateQueries({ queryKey: ['user-review', productName, session?.user?.id] });
+      // Also invalidate product ratings to update the average rating display
+      queryClient.invalidateQueries({ queryKey: ['product-ratings'] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to submit review");
@@ -135,6 +142,8 @@ export const useProductReviews = (productName: string) => {
       toast.success(message);
       queryClient.invalidateQueries({ queryKey: ['product-reviews', productName] });
       queryClient.invalidateQueries({ queryKey: ['user-review', productName, session?.user?.id] });
+      // Also invalidate product ratings to update the average rating display
+      queryClient.invalidateQueries({ queryKey: ['product-ratings'] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to delete review");

@@ -7,21 +7,34 @@ export const useMenuWithRatings = (category?: string) => {
     queryKey: ['menu-items-with-ratings', category],
     queryFn: async () => {
       // Get all menu items
-      const { data: menuItems, error: menuError } = await supabase
+      const menuQueryBuilder = supabase
         .from('menu_items')
         .select('*')
-        .order('created_at')
-        .eq('category', category || '')
-        .is('category', category ? null : null);
+        .order('created_at');
+      
+      // Apply category filter if provided
+      if (category) {
+        menuQueryBuilder.eq('category', category);
+      }
+      
+      const { data: menuItems, error: menuError } = await menuQueryBuilder;
 
-      if (menuError) throw menuError;
+      if (menuError) {
+        console.error("Error fetching menu items:", menuError);
+        throw menuError;
+      }
 
       // Get all ratings
       const { data: reviews, error: reviewsError } = await supabase
         .from('product_reviews')
         .select('product_name, rating');
 
-      if (reviewsError) throw reviewsError;
+      if (reviewsError) {
+        console.error("Error fetching product reviews:", reviewsError);
+        throw reviewsError;
+      }
+
+      console.log(`Fetched ${reviews?.length || 0} total reviews`);
 
       // Process ratings by product
       const ratingsByProduct = reviews?.reduce((acc: Record<string, { total: number, count: number }>, review) => {
