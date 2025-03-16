@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Instagram, Facebook, X, Youtube } from "lucide-react";
+import { Instagram, Facebook, X } from "lucide-react";
 import ScrollToTop from "@/components/ScrollToTop";
 import Header from "@/components/Header";
 import FeaturedMenu from "@/components/FeaturedMenu";
@@ -149,31 +149,11 @@ const Index = () => {
               <Button variant="ghost" size="icon">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="h-6 w-6"
-                >
-                  <path d="M9 22V10l8-4v12l-8 4z" />
-                  <path d="m17 13-8 4" />
-                  <path d="M12 7.5V3a7 7 0 1 0 7 7v4" />
-                </svg>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
+                  viewBox="0 0 448 512" 
                   fill="currentColor" 
                   className="h-6 w-6"
                 >
-                  <path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" />
+                  <path d="M448 209.9a210.1 210.1 0 0 1 -122.8-39.3V349.4A162.6 162.6 0 1 1 185 188.3V278.2a74.6 74.6 0 1 0 52.2 71.2V0l88 0a121.2 121.2 0 0 0 1.9 22.2h0A122.2 122.2 0 0 0 381 102.4a121.4 121.4 0 0 0 67 20.1z"/>
                 </svg>
               </Button>
             </div>
