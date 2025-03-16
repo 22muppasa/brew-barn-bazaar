@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Instagram, Facebook, Twitter } from "lucide-react";
+import { Instagram, Facebook, X } from "lucide-react";
 import ScrollToTop from "@/components/ScrollToTop";
 import Header from "@/components/Header";
 import FeaturedMenu from "@/components/FeaturedMenu";
@@ -145,7 +145,24 @@ const Index = () => {
                 <Facebook className="h-6 w-6" />
               </Button>
               <Button variant="ghost" size="icon">
-                <Twitter className="h-6 w-6" />
+                <X className="h-6 w-6" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="h-6 w-6"
+                >
+                  <path d="M9 12a5.92 5.92 0 0 0 4.11 5.653A6.019 6.019 0 0 0 21 12c0-3.314-2.686-6-6-6-1.4 0-2.685.483-3.71 1.287C9.954 8.346 9 10.064 9 12Z" />
+                  <path d="M9 12c0 3.314-2.686 6-6 6 3.314 0 6-2.686 6-6Zm0 0c0-3.314-2.686-6-6-6 3.314 0 6 2.686 6 6Z" />
+                </svg>
               </Button>
             </div>
           </motion.div>
