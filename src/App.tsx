@@ -14,6 +14,7 @@ import Cart from "./pages/Cart";
 import Rewards from "./pages/Rewards";
 import Profile from "./pages/Profile";
 import VirtualBarista from "./components/VirtualBarista";
+import Navigation from "./components/Navigation";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <Navigation />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />

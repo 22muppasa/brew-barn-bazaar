@@ -17,9 +17,12 @@ const Navigation = () => {
   const { getValue } = useLocalStorage();
   const isGuest = getValue("isGuest") === "true";
 
-  const menuItems = [
+  const leftMenuItems = [
     { title: "Home", href: "/" },
     { title: "Menu", href: "/menu" },
+  ];
+
+  const rightMenuItems = [
     ...(session ? [
       { title: "Profile", href: "/profile" },
       { title: "Rewards", href: "/rewards" }
@@ -59,8 +62,9 @@ const Navigation = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center justify-between px-6 py-4 backdrop-blur-md bg-white/10">
-          <div className="flex items-center space-x-6">
-            {menuItems.map((item) => (
+          {/* Left Menu Items */}
+          <div className="flex items-center space-x-8">
+            {leftMenuItems.map((item) => (
               <Link
                 key={item.title}
                 to={item.href}
@@ -72,12 +76,28 @@ const Navigation = () => {
             ))}
           </div>
           
-          <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-2">
-            <Coffee className="h-8 w-8 text-white" />
-            <span className="text-xl font-semibold text-white">Brew Barn</span>
+          {/* Center Logo */}
+          <Link to="/" className="absolute left-1/2 transform -translate-x-1/2 flex items-center">
+            <img 
+              src="/lovable-uploads/723df456-96c1-42e2-9fa8-c0a9a1b3a8bd.png" 
+              alt="Brew Barn Logo" 
+              className="h-16"
+            />
           </Link>
           
-          <div className="flex items-center space-x-4">
+          {/* Right Menu Items */}
+          <div className="flex items-center space-x-6">
+            {rightMenuItems.map((item) => (
+              <Link
+                key={item.title}
+                to={item.href}
+                className="text-lg font-medium text-white transition-colors hover:text-primary relative group"
+              >
+                <span>{item.title}</span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+            ))}
+            
             {(session || isGuest) && <CartIcon />}
             <Button 
               variant="secondary"
@@ -129,10 +149,14 @@ const Navigation = () => {
             className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-gradient-to-b from-accent/95 to-primary/90 px-6 py-24 backdrop-blur-sm md:hidden"
           >
             <div className="absolute top-6 left-6">
-              <Coffee className="h-8 w-8 text-white" />
+              <img 
+                src="/lovable-uploads/723df456-96c1-42e2-9fa8-c0a9a1b3a8bd.png" 
+                alt="Brew Barn Logo" 
+                className="h-12"
+              />
             </div>
             <nav className="flex flex-col items-center space-y-8">
-              {menuItems.map((item) => (
+              {[...leftMenuItems, ...rightMenuItems].map((item) => (
                 <Link
                   key={item.title}
                   to={item.href}
