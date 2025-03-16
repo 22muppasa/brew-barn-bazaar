@@ -70,7 +70,7 @@ const Navigation = () => {
               <Link
                 key={item.title}
                 to={item.href}
-                className="nav-link"
+                className="nav-link group"
               >
                 <span>{item.title}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
@@ -93,7 +93,7 @@ const Navigation = () => {
               <Link
                 key={item.title}
                 to={item.href}
-                className="nav-link"
+                className="nav-link group"
               >
                 <span>{item.title}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>

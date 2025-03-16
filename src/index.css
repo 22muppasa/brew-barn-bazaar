@@ -116,7 +116,7 @@
   }
   
   .nav-link {
-    @apply text-base lg:text-lg font-medium text-foreground transition-colors hover:text-primary relative group;
+    @apply text-base lg:text-lg font-medium text-foreground transition-colors hover:text-primary relative;
     font-family: 'Aloja', sans-serif;
     text-transform: lowercase;
   }
