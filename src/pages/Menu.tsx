@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -32,9 +31,8 @@ const Menu = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { getValue, setValue } = useLocalStorage();
   const { addToCart } = useGuestCart();
-  const isGuest = getValue("isGuest") === "true"; // Properly define isGuest variable
-  
-  // Pagination state
+  const isGuest = getValue("isGuest") === "true";
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const [showFilters, setShowFilters] = useState(false);
@@ -55,7 +53,7 @@ const Menu = () => {
       }
     };
 
-    handleResize(); // Set initial value
+    handleResize();
     window.addEventListener('resize', handleResize);
     
     return () => window.removeEventListener('resize', handleResize);
@@ -388,11 +386,9 @@ const Menu = () => {
                               </DialogTrigger>
                               <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
                                 <DialogHeader>
-                                  <DialogTitle>{selectedProduct} Reviews</DialogTitle>
+                                  <DialogTitle>{item.name} Reviews</DialogTitle>
                                 </DialogHeader>
-                                {selectedProduct && (
-                                  <ProductReviews productName={selectedProduct} />
-                                )}
+                                <ProductReviews productName={item.name} />
                               </DialogContent>
                             </Dialog>
                           </div>
@@ -490,3 +486,4 @@ const Menu = () => {
 };
 
 export default Menu;
+

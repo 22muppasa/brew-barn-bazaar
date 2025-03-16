@@ -12,22 +12,45 @@ export const useProductReviews = (productName: string) => {
   const { data: reviews, isLoading: isLoadingReviews } = useQuery({
     queryKey: ['product-reviews', productName],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select(`
-          *,
-          profiles (full_name, email)
-        `)
-        .eq('product_name', productName)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
+      try {
+        // First get the reviews
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('product_reviews')
+          .select('*')
+          .eq('product_name', productName)
+          .order('created_at', { ascending: false });
+        
+        if (reviewsError) throw reviewsError;
+        
+        // Then get the user profiles separately
+        const userIds = reviewsData.map(review => review.user_id);
+        
+        let profilesData = [];
+        if (userIds.length > 0) {
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', userIds);
+          
+          if (profilesError) throw profilesError;
+          profilesData = profiles || [];
+        }
+        
+        // Combine the data
+        const reviewsWithProfiles = reviewsData.map(review => {
+          const profile = profilesData.find(p => p.id === review.user_id);
+          return {
+            ...review,
+            profiles: profile || { full_name: 'Anonymous', email: '' }
+          };
+        });
+        
+        console.log(`Fetched ${reviewsWithProfiles.length} reviews for ${productName}`);
+        return reviewsWithProfiles;
+      } catch (error) {
         console.error("Error fetching reviews:", error);
         throw error;
       }
-      
-      console.log(`Fetched ${data?.length || 0} reviews for ${productName}`);
-      return data || [];
     },
   });
   

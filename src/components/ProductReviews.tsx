@@ -38,6 +38,9 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
     canEditReview
   } = useProductReviews(productName);
 
+  console.log("ProductReviews rendering for:", productName);
+  console.log("Reviews data:", reviews);
+
   // Start editing user's review
   const handleEditReview = () => {
     if (userReview) {
@@ -173,56 +176,56 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
 
       <div className="space-y-4">
         <AnimatePresence>
-          {reviews?.map((review: any) => (
-            <motion.div
-              key={review.id}
-              className="border rounded-lg p-4 bg-card"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <Avatar>
-                    <AvatarFallback>
-                      {review.profiles?.full_name?.[0] || review.profiles?.email?.[0] || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">
-                      {review.profiles?.full_name || "Anonymous"}
-                    </p>
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <StarIcon
-                          key={star}
-                          className={cn(
-                            "h-4 w-4",
-                            star <= review.rating
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300"
-                          )}
-                        />
-                      ))}
+          {reviews && reviews.length > 0 ? (
+            reviews.map((review: any) => (
+              <motion.div
+                key={review.id}
+                className="border rounded-lg p-4 bg-card"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <Avatar>
+                      <AvatarFallback>
+                        {review.profiles?.full_name?.[0] || review.profiles?.email?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">
+                        {review.profiles?.full_name || "Anonymous"}
+                      </p>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <StarIcon
+                            key={star}
+                            className={cn(
+                              "h-4 w-4",
+                              star <= review.rating
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300"
+                            )}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(review.created_at), "MMM d, yyyy")}
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {format(new Date(review.created_at), "MMM d, yyyy")}
-                </span>
-              </div>
-              {review.comment && (
-                <p className="mt-2 text-sm">{review.comment}</p>
-              )}
-            </motion.div>
-          ))}
+                {review.comment && (
+                  <p className="mt-2 text-sm">{review.comment}</p>
+                )}
+              </motion.div>
+            ))
+          ) : (
+            <p className="text-center text-muted-foreground py-4">
+              No reviews yet. Be the first to review this product!
+            </p>
+          )}
         </AnimatePresence>
-        
-        {reviews?.length === 0 && (
-          <p className="text-center text-muted-foreground py-4">
-            No reviews yet. Be the first to review this product!
-          </p>
-        )}
       </div>
     </div>
   );
