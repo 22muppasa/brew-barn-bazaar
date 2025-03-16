@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Trophy } from "lucide-react";
+import { Crown, Medal, Sparkles, Star, Trophy } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,10 +68,34 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
   };
 
   const getMedalStyles = (index: number) => {
-    if (index === 0) return { bg: "bg-gradient-to-br from-yellow-300 to-yellow-500", text: "text-yellow-950", border: "border-yellow-400", shadow: "shadow-lg shadow-yellow-500/20" };
-    if (index === 1) return { bg: "bg-gradient-to-br from-gray-300 to-gray-400", text: "text-gray-950", border: "border-gray-300", shadow: "shadow-md shadow-gray-500/20" };
-    if (index === 2) return { bg: "bg-gradient-to-br from-amber-600 to-amber-800", text: "text-amber-50", border: "border-amber-700", shadow: "shadow-md shadow-amber-700/20" };
-    return { bg: "bg-gradient-to-br from-primary/5 to-primary/10", text: "text-primary-foreground", border: "border-primary/10", shadow: "shadow-sm" };
+    if (index === 0) return { 
+      bg: "bg-gradient-to-br from-yellow-300 to-yellow-500", 
+      text: "text-yellow-950", 
+      border: "border-yellow-400", 
+      shadow: "shadow-lg shadow-yellow-500/20",
+      icon: <Crown className="h-4 w-4 text-yellow-600" />
+    };
+    if (index === 1) return { 
+      bg: "bg-gradient-to-br from-gray-300 to-gray-400", 
+      text: "text-gray-950", 
+      border: "border-gray-300", 
+      shadow: "shadow-md shadow-gray-500/20",
+      icon: <Medal className="h-4 w-4 text-gray-600" />
+    };
+    if (index === 2) return { 
+      bg: "bg-gradient-to-br from-amber-600 to-amber-800", 
+      text: "text-amber-50", 
+      border: "border-amber-700", 
+      shadow: "shadow-md shadow-amber-700/20",
+      icon: <Medal className="h-4 w-4 text-amber-300" />
+    };
+    return { 
+      bg: "bg-gradient-to-br from-primary/5 to-primary/10", 
+      text: "text-primary-foreground", 
+      border: "border-primary/10", 
+      shadow: "shadow-sm",
+      icon: <Star className="h-3 w-3 text-primary/60" />
+    };
   };
 
   return (
@@ -99,15 +123,33 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
           </SheetTrigger>
           <SheetContent className="bg-gradient-to-b from-background to-background/95 border-l-primary/20 overflow-y-auto sm:max-w-lg w-full">
             <SheetHeader>
-              <SheetTitle className="text-center text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary">
+              <SheetTitle className="text-center mb-6">
                 <motion.div
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.6, type: "spring" }}
                   className="flex items-center justify-center gap-2"
                 >
-                  <Trophy className="h-7 w-7 text-yellow-500" />
-                  <span>Rewards Leaderboard</span>
+                  <div className="relative">
+                    <Trophy className="h-8 w-8 text-yellow-500" />
+                    <motion.div
+                      className="absolute -top-1 -right-1"
+                      animate={{ 
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 5, -5, 0]
+                      }}
+                      transition={{ 
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatType: "reverse"
+                      }}
+                    >
+                      <Sparkles className="h-4 w-4 text-yellow-300" />
+                    </motion.div>
+                  </div>
+                  <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600">
+                    Rewards Leaderboard
+                  </div>
                 </motion.div>
               </SheetTitle>
             </SheetHeader>
@@ -131,46 +173,92 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
               <div className="mt-4 pb-8">
                 {/* Desktop and Tablet View */}
                 <div className="hidden sm:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">Rank</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead className="text-right">Points</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {leaderboard?.map((user, index) => {
-                        const medal = getMedalStyles(index);
-                        return (
-                          <TableRow key={index} className="hover:bg-primary/5">
-                            <TableCell className="font-medium">
-                              <div className={`h-8 w-8 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-sm font-bold`}>
-                                {index + 1}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="font-medium flex items-center gap-1">
-                                {user.username}
-                                {user.is_anonymous && (
-                                  <span className="text-xs bg-primary/10 px-1.5 py-0.5 rounded-full text-primary/70">
-                                    anonymous
-                                  </span>
-                                )}
-                                <span className="text-xs text-muted-foreground ml-2 bg-primary/5 px-1.5 py-0.5 rounded-full">
-                                  {user.tier}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {user.points}
-                              <span className="text-xs ml-1 text-primary/80">pts</span>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gradient-to-r from-primary/5 to-primary/10">
+                          <TableHead className="w-12">Rank</TableHead>
+                          <TableHead>User</TableHead>
+                          <TableHead className="text-right">Points</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {leaderboard?.map((user, index) => {
+                          const medal = getMedalStyles(index);
+                          return (
+                            <motion.tr
+                              key={index}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              className={`hover:bg-primary/5 ${index < 3 ? 'border-l-4 ' + medal.border : ''}`}
+                            >
+                              <TableCell className="font-medium">
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-sm font-bold relative`}>
+                                  {index + 1}
+                                  {index < 3 && (
+                                    <motion.div
+                                      className="absolute -top-1 -right-1"
+                                      animate={{ 
+                                        rotate: [0, 10, -10, 0],
+                                        scale: [1, 1.1, 1]
+                                      }}
+                                      transition={{ 
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        repeatType: "reverse"
+                                      }}
+                                    >
+                                      {medal.icon}
+                                    </motion.div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="font-medium flex items-center gap-1">
+                                  {user.username}
+                                  {user.is_anonymous && (
+                                    <span className="text-xs bg-primary/10 px-1.5 py-0.5 rounded-full text-primary/70">
+                                      anonymous
+                                    </span>
+                                  )}
+                                  <motion.span 
+                                    className={`text-xs ml-2 px-1.5 py-0.5 rounded-full ${
+                                      user.tier === 'Platinum' ? 'bg-gray-600 text-white' :
+                                      user.tier === 'Gold' ? 'bg-yellow-500 text-yellow-950' :
+                                      user.tier === 'Silver' ? 'bg-gray-400 text-gray-900' :
+                                      'bg-amber-700 text-amber-50'
+                                    }`}
+                                    whileHover={{ scale: 1.05 }}
+                                  >
+                                    {user.tier}
+                                  </motion.span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right font-semibold">
+                                <motion.div
+                                  whileHover={{ scale: 1.05 }}
+                                  className={`inline-block ${
+                                    index === 0 ? 'bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-950' :
+                                    index === 1 ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-900' :
+                                    index === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-800 text-amber-50' :
+                                    'bg-primary/10 text-primary'
+                                  } px-2 py-1 rounded-lg`}
+                                >
+                                  {user.points}
+                                  <span className="text-xs ml-1 opacity-80">pts</span>
+                                </motion.div>
+                              </TableCell>
+                            </motion.tr>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </motion.div>
                 </div>
 
                 {/* Mobile View */}
@@ -190,8 +278,24 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                         whileHover={{ y: -2, transition: { duration: 0.2 } }}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-sm font-bold`}>
+                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${medal.bg} ${medal.text} text-sm font-bold relative`}>
                             {index + 1}
+                            {index < 3 && (
+                              <motion.div
+                                className="absolute -top-1 -right-1"
+                                animate={{ 
+                                  rotate: [0, 10, -10, 0],
+                                  scale: [1, 1.1, 1]
+                                }}
+                                transition={{ 
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  repeatType: "reverse"
+                                }}
+                              >
+                                {medal.icon}
+                              </motion.div>
+                            )}
                           </div>
                           <div>
                             <div className="font-bold text-sm flex items-center gap-1">
@@ -207,15 +311,30 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                                 </motion.span>
                               )}
                             </div>
-                            <div className="text-xs text-muted-foreground rounded-full px-1.5 py-0.5 bg-primary/5 inline-block mt-1">{user.tier}</div>
+                            <motion.div 
+                              className={`text-xs rounded-full px-1.5 py-0.5 inline-block mt-1 ${
+                                user.tier === 'Platinum' ? 'bg-gray-600 text-white' :
+                                user.tier === 'Gold' ? 'bg-yellow-500 text-yellow-950' :
+                                user.tier === 'Silver' ? 'bg-gray-400 text-gray-900' :
+                                'bg-amber-700 text-amber-50'
+                              }`}
+                              whileHover={{ scale: 1.05 }}
+                            >
+                              {user.tier}
+                            </motion.div>
                           </div>
                         </div>
                         <motion.div 
-                          className="font-bold text-base bg-primary/10 px-2 py-1 rounded-lg"
+                          className={`font-bold text-base px-2 py-1 rounded-lg ${
+                            index === 0 ? 'bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-950' :
+                            index === 1 ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-900' :
+                            index === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-800 text-amber-50' :
+                            'bg-primary/10 text-primary'
+                          }`}
                           whileHover={{ scale: 1.05 }}
                         >
                           {user.points} 
-                          <span className="text-xs ml-1 text-primary/80">pts</span>
+                          <span className="text-xs ml-1 opacity-80">pts</span>
                         </motion.div>
                       </motion.div>
                     );
