@@ -41,7 +41,7 @@ const FeaturedMenu = () => {
       {
         title: "Cherry Blossom Latte",
         price: "5.99",
-        image: "https://images.unsplash.com/photo-1586195831814-c0a6f6310b40",
+        image: "https://i.ibb.co/cK1xgwSj/DALL-E-2025-03-15-23-06-58-A-beautifully-crafted-cherry-blossom-latte-in-a-ceramic-cup-The-latte-has.webp",
         category: "Seasonal"
       },
       {
