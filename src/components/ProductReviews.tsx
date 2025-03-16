@@ -1,9 +1,6 @@
 
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StarIcon } from "lucide-react";
@@ -11,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
+import { useProductReviews } from "@/hooks/useProductReviews";
 
 interface ProductReviewsProps {
   productName: string;
@@ -18,150 +16,27 @@ interface ProductReviewsProps {
 
 const ProductReviews = ({ productName }: ProductReviewsProps) => {
   const session = useSession();
-  const queryClient = useQueryClient();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
-  // Get reviews for this product
-  const { data: reviews, isLoading: isLoadingReviews } = useQuery({
-    queryKey: ['product-reviews', productName],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select(`
-          *,
-          profiles (full_name, email)
-        `)
-        .eq('product_name', productName)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Check if user has purchased this product
-  const { data: hasPurchased, isLoading: isCheckingPurchase } = useQuery({
-    queryKey: ['has-purchased', productName, session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) return false;
-      
-      // First get all the user's order IDs
-      const { data: orders, error: orderError } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('user_id', session.user.id);
-      
-      if (orderError) throw orderError;
-      const orderIds = orders?.map(order => order.id) || [];
-      
-      if (orderIds.length === 0) return false;
-      
-      // Then check if any of those orders contain this product
-      const { data, error } = await supabase
-        .from('order_items')
-        .select('*')
-        .eq('product_name', productName)
-        .in('order_id', orderIds);
-      
-      if (error) throw error;
-      return data && data.length > 0;
-    },
-    enabled: !!session?.user?.id,
-  });
-
-  // Check if user has already reviewed this product
-  const { data: userReview, isLoading: isCheckingReview } = useQuery({
-    queryKey: ['user-review', productName, session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select('*')
-        .eq('product_name', productName)
-        .eq('user_id', session.user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
-    },
-    enabled: !!session?.user?.id,
-  });
-
-  // Submit a review
-  const submitReviewMutation = useMutation({
-    mutationFn: async () => {
-      if (!session?.user?.id) throw new Error("You must be logged in to leave a review");
-      if (rating === 0) throw new Error("Please select a rating");
-      
-      if (userReview) {
-        // Update existing review
-        const { error } = await supabase
-          .from('product_reviews')
-          .update({
-            rating,
-            comment,
-          })
-          .eq('id', userReview.id);
-        
-        if (error) throw error;
-        return "Review updated successfully";
-      } else {
-        // Create new review
-        const { error } = await supabase
-          .from('product_reviews')
-          .insert({
-            user_id: session.user.id,
-            product_name: productName,
-            rating,
-            comment,
-          });
-        
-        if (error) throw error;
-        return "Review submitted successfully";
-      }
-    },
-    onSuccess: (message) => {
-      toast.success(message);
-      setComment("");
-      setRating(0);
-      setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['product-reviews', productName] });
-      queryClient.invalidateQueries({ queryKey: ['user-review', productName, session?.user?.id] });
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to submit review");
-    }
-  });
-
-  // Delete a review
-  const deleteReviewMutation = useMutation({
-    mutationFn: async () => {
-      if (!userReview || !session?.user?.id) throw new Error("No review to delete");
-      
-      const { error } = await supabase
-        .from('product_reviews')
-        .delete()
-        .eq('id', userReview.id);
-      
-      if (error) throw error;
-      return "Review deleted successfully";
-    },
-    onSuccess: (message) => {
-      toast.success(message);
-      setComment("");
-      setRating(0);
-      setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['product-reviews', productName] });
-      queryClient.invalidateQueries({ queryKey: ['user-review', productName, session?.user?.id] });
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to delete review");
-    }
-  });
+  const {
+    reviews,
+    isLoadingReviews,
+    hasPurchased,
+    isCheckingPurchase,
+    userReview,
+    isCheckingReview,
+    submitReview,
+    isSubmittingReview,
+    deleteReview,
+    isDeletingReview,
+    averageRating,
+    reviewCount,
+    canReview,
+    canEditReview
+  } = useProductReviews(productName);
 
   // Start editing user's review
   const handleEditReview = () => {
@@ -171,11 +46,6 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
       setIsEditing(true);
     }
   };
-
-  // Calculate average rating
-  const averageRating = reviews && reviews.length > 0
-    ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
-    : 0;
 
   // Format the average rating to one decimal place
   const formattedRating = averageRating.toFixed(1);
@@ -208,7 +78,7 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
             ))}
           </div>
           <span className="font-medium">{formattedRating}</span>
-          <span className="text-muted-foreground">({reviews?.length || 0} reviews)</span>
+          <span className="text-muted-foreground">({reviewCount} reviews)</span>
         </div>
       </div>
 
@@ -238,14 +108,14 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
                 <Button 
                   size="sm" 
                   variant="destructive" 
-                  onClick={() => deleteReviewMutation.mutate()}
-                  disabled={deleteReviewMutation.isPending}
+                  onClick={() => deleteReview()}
+                  disabled={isDeletingReview}
                 >
                   Delete Review
                 </Button>
               </div>
             </div>
-          ) : hasPurchased || userReview ? (
+          ) : canReview || canEditReview ? (
             <div className="space-y-4">
               <p className="font-medium">
                 {userReview ? "Edit Your Review" : "Write a Review"}
@@ -274,8 +144,8 @@ const ProductReviews = ({ productName }: ProductReviewsProps) => {
               />
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => submitReviewMutation.mutate()}
-                  disabled={submitReviewMutation.isPending || rating === 0}
+                  onClick={() => submitReview({ rating, comment })}
+                  disabled={isSubmittingReview || rating === 0}
                 >
                   {userReview ? "Update Review" : "Submit Review"}
                 </Button>

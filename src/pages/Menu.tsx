@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -119,7 +120,12 @@ const Menu = () => {
         .from('product_reviews')
         .select('product_name, rating');
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching product ratings:", error);
+        throw error;
+      }
+      
+      console.log(`Fetched ${data?.length || 0} ratings for product_ratings query`);
       
       const ratingMap: Record<string, { avg: number; count: number }> = {};
       data.forEach(review => {
@@ -380,12 +386,12 @@ const Menu = () => {
                                   </div>
                                 </button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-lg">
+                              <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
                                 <DialogHeader>
-                                  <DialogTitle>{item.name} Reviews</DialogTitle>
+                                  <DialogTitle>{selectedProduct} Reviews</DialogTitle>
                                 </DialogHeader>
-                                {selectedProduct === item.name && (
-                                  <ProductReviews productName={item.name} />
+                                {selectedProduct && (
+                                  <ProductReviews productName={selectedProduct} />
                                 )}
                               </DialogContent>
                             </Dialog>
