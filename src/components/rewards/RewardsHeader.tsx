@@ -97,7 +97,7 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
               </motion.div>
             </Button>
           </SheetTrigger>
-          <SheetContent className="bg-gradient-to-b from-background to-background/95 border-l-primary/20 overflow-y-auto sm:max-w-md w-full">
+          <SheetContent className="bg-gradient-to-b from-background to-background/95 border-l-primary/20 overflow-y-auto sm:max-w-lg w-full">
             <SheetHeader>
               <SheetTitle className="text-center text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary">
                 <motion.div
@@ -186,7 +186,7 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                       <motion.div 
                         key={index}
                         variants={item}
-                        className={`flex items-center justify-between p-3 rounded-xl border ${medal.border} ${medal.shadow} backdrop-blur-sm`}
+                        className={`flex items-center justify-between p-3 rounded-xl border ${medal.border} ${medal.shadow} backdrop-blur-sm w-full`}
                         whileHover={{ y: -2, transition: { duration: 0.2 } }}
                       >
                         <div className="flex items-center gap-3">
