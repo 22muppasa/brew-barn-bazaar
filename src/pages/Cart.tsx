@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,7 +54,6 @@ const Cart = () => {
     staleTime: 10000,
   });
 
-  // First, define the calculation functions
   const calculateSubtotal = () => {
     const items = session ? cartItems : guestCart;
     return items?.reduce((sum: number, item: any) => 
@@ -94,7 +92,6 @@ const Cart = () => {
     return subtotal - discount;
   };
 
-  // Then use the functions
   const items = session ? cartItems || [] : guestCart || [];
   const subtotal = calculateSubtotal();
   const discount = calculateDiscount();
@@ -242,44 +239,6 @@ const Cart = () => {
 
   const convertToAccount = () => {
     navigate('/auth');
-  };
-
-  const calculateSubtotal = () => {
-    const items = session ? cartItems : guestCart;
-    return items?.reduce((sum: number, item: any) => 
-      sum + (item.price * item.quantity), 0) || 0;
-  };
-
-  const calculateDiscount = () => {
-    if (!appliedDiscount) return 0;
-    
-    const items = session ? cartItems : guestCart;
-    
-    if (appliedDiscount.productType) {
-      const eligibleItems = items?.filter((item: any) => 
-        (item.product_name || item.productName)
-          .toLowerCase()
-          .includes(appliedDiscount.productType!.toLowerCase())
-      );
-      
-      if (eligibleItems.length === 0) {
-        return 0;
-      }
-      
-      const eligibleSubtotal = eligibleItems.reduce((sum: number, item: any) => 
-        sum + (item.price * item.quantity), 0) || 0;
-        
-      return (eligibleSubtotal * appliedDiscount.percentage) / 100;
-    } else {
-      const subtotal = calculateSubtotal();
-      return (subtotal * appliedDiscount.percentage) / 100;
-    }
-  };
-
-  const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
-    const discount = calculateDiscount();
-    return subtotal - discount;
   };
 
   const applyDiscount = (code: string, percentage: number, productType?: string) => {
