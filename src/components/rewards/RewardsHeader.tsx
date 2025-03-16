@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
@@ -20,6 +21,7 @@ interface LeaderboardUser {
   username: string;
   points: number;
   tier: string;
+  is_anonymous: boolean;
 }
 
 const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps) => {
@@ -30,17 +32,21 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rewards')
-        .select('points, tier, profiles(full_name)')
+        .select('points, tier, user_id, profiles(full_name, show_on_leaderboard)')
         .order('points', { ascending: false })
         .limit(10);
       
       if (error) throw error;
       
-      return data.map((item: any) => ({
-        username: item.profiles?.full_name || 'Anonymous User',
-        points: item.points,
-        tier: item.tier
-      }));
+      return data.map((item: any) => {
+        const showOnLeaderboard = item.profiles?.show_on_leaderboard !== false;
+        return {
+          username: showOnLeaderboard ? (item.profiles?.full_name || 'Anonymous User') : 'Anonymous User',
+          points: item.points,
+          tier: item.tier,
+          is_anonymous: !showOnLeaderboard
+        };
+      });
     },
   });
 
@@ -134,7 +140,19 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                           {index + 1}
                         </div>
                         <div>
-                          <div className="font-bold text-base">{user.username}</div>
+                          <div className="font-bold text-base flex items-center gap-1">
+                            {user.username}
+                            {user.is_anonymous && (
+                              <motion.span 
+                                className="text-xs bg-primary/10 px-1.5 py-0.5 rounded-full text-primary/70"
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                anonymous
+                              </motion.span>
+                            )}
+                          </div>
                           <div className="text-xs text-muted-foreground rounded-full px-2 py-0.5 bg-primary/5 inline-block mt-1">{user.tier}</div>
                         </div>
                       </div>

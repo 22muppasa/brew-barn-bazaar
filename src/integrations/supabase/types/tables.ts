@@ -47,6 +47,7 @@ export type Profile = {
   zip_code: string | null;
   birthdate: string | null;
   favorite_product: string | null;
+  show_on_leaderboard: boolean | null;
 }
 
 export type Reward = {

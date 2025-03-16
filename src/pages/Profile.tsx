@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 import { 
   Pencil, 
   Star, 
@@ -21,7 +21,8 @@ import {
   Gift,
   Coffee,
   Check,
-  X
+  X,
+  Trophy
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,22 +97,44 @@ const ProfilePage = () => {
         state: profile?.state || "",
         zip_code: profile?.zip_code || "",
         birthdate: profile?.birthdate || "",
-        favorite_product: profile?.favorite_product || ""
+        favorite_product: profile?.favorite_product || "",
+        show_on_leaderboard: profile?.show_on_leaderboard ?? true
       });
       setIsEditing(true);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setEditedProfile((prev: any) => ({
       ...prev,
       [field]: value
     }));
   };
 
+  const handleLeaderboardToggle = async (checked: boolean) => {
+    if (!isEditing) {
+      try {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ 
+            show_on_leaderboard: checked 
+          })
+          .eq("id", session?.user?.id);
+        
+        if (error) throw error;
+        
+        toast.success(checked ? "Your name will now be visible on the leaderboard" : "Your name will be anonymous on the leaderboard");
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+      } catch (error: any) {
+        toast.error(error.message || "An error occurred while updating your preferences");
+      }
+    } else {
+      handleInputChange('show_on_leaderboard', checked);
+    }
+  };
+
   const handleSaveProfile = async () => {
     try {
-      // Update auth user metadata
       const { error: authError } = await supabase.auth.updateUser({
         data: { 
           address: editedProfile.address,
@@ -121,13 +144,13 @@ const ProfilePage = () => {
           phone_number: editedProfile.phone_number,
           birthdate: editedProfile.birthdate,
           favorite_product: editedProfile.favorite_product,
-          profile_completed: true
+          profile_completed: true,
+          show_on_leaderboard: editedProfile.show_on_leaderboard
         }
       });
       
       if (authError) throw authError;
       
-      // Update profiles table
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ 
@@ -138,7 +161,8 @@ const ProfilePage = () => {
           state: editedProfile.state,
           zip_code: editedProfile.zip_code,
           birthdate: editedProfile.birthdate,
-          favorite_product: editedProfile.favorite_product
+          favorite_product: editedProfile.favorite_product,
+          show_on_leaderboard: editedProfile.show_on_leaderboard
         })
         .eq("id", session?.user?.id);
       
@@ -331,6 +355,34 @@ const ProfilePage = () => {
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <p><span className="font-medium">Member Since:</span> {new Date(profile?.created_at).toLocaleDateString()}</p>
                 </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-border">
+              <h3 className="text-lg font-medium mb-2">Privacy Preferences</h3>
+              <div className="flex items-center justify-between bg-primary/5 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Show name on rewards leaderboard</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isEditing || profile?.show_on_leaderboard !== false ? 
+                        "Your name will be visible to others on the rewards leaderboard" : 
+                        "You'll appear as 'Anonymous User' on the rewards leaderboard"}
+                    </p>
+                  </div>
+                </div>
+                {isEditing ? (
+                  <Switch 
+                    checked={editedProfile?.show_on_leaderboard ?? true} 
+                    onCheckedChange={(checked) => handleInputChange('show_on_leaderboard', checked)}
+                  />
+                ) : (
+                  <Switch 
+                    checked={profile?.show_on_leaderboard !== false} 
+                    onCheckedChange={handleLeaderboardToggle}
+                  />
+                )}
               </div>
             </div>
             
