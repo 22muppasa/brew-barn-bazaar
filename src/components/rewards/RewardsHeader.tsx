@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
@@ -293,7 +292,7 @@ const RewardsHeader = ({ tier, points, nextTier, progress }: RewardsHeaderProps)
                             
                             {index === 0 && (
                               <motion.div 
-                                className="flex items-center gap-1 text-xs mt-1 text-yellow-800"
+                                className="flex items-center gap-1 text-xs mt-1 text-yellow-800 mr-1"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.5 }}
