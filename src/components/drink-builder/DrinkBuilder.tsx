@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import DrinkPreview from "./DrinkPreview";
 import DrinkOptions from "./DrinkOptions";
 import SavedDrinks from "./SavedDrinks";
 import { useAddToCart } from "@/hooks/useAddToCart";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const DrinkBuilder = () => {
   const session = useSession();
@@ -21,6 +23,8 @@ const DrinkBuilder = () => {
   const [drinkName, setDrinkName] = useState("");
   const [isIced, setIsIced] = useState(false);
   const addToCart = useAddToCart();
+  const { getValue } = useLocalStorage();
+  const isGuest = getValue("isGuest") === "true";
 
   const { data: savedDrinks } = useQuery({
     queryKey: ["custom-drinks"],
@@ -158,7 +162,7 @@ const DrinkBuilder = () => {
                 className="w-full"
                 variant="secondary"
                 onClick={handleAddToCart}
-                disabled={!session}
+                disabled={!session && !isGuest}
               >
                 Add to Cart
               </Button>

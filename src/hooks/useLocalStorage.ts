@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export const useLocalStorage = () => {
@@ -76,13 +77,19 @@ export const useGuestCart = () => {
         updatedCart[existingItemIndex].quantity += item.quantity;
         return updatedCart;
       } else {
-        return [...prevCart, { ...item, id: Date.now().toString() }];
+        const newCart = [...prevCart, { ...item, id: Date.now().toString() }];
+        setValue('guestCart', JSON.stringify(newCart)); // Save immediately
+        return newCart;
       }
     });
   };
 
   const removeFromCart = (itemId: string) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== itemId));
+    setCart(prevCart => {
+      const newCart = prevCart.filter(item => item.id !== itemId);
+      setValue('guestCart', JSON.stringify(newCart)); // Save immediately
+      return newCart;
+    });
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {
@@ -91,14 +98,17 @@ export const useGuestCart = () => {
       return;
     }
     
-    setCart(prevCart => 
-      prevCart.map(item => 
+    setCart(prevCart => {
+      const newCart = prevCart.map(item => 
         item.id === itemId ? { ...item, quantity } : item
-      )
-    );
+      );
+      setValue('guestCart', JSON.stringify(newCart)); // Save immediately
+      return newCart;
+    });
   };
 
   const clearCart = () => {
+    setValue('guestCart', JSON.stringify([]));
     setCart([]);
   };
 

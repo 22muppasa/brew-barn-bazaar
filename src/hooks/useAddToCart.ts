@@ -72,6 +72,8 @@ export const useAddToCart = () => {
       toast.success("Added to cart!");
     },
     onError: (error: Error) => {
+      console.error("Add to cart error:", error);
+      
       if (error.message === "Must be logged in or continue as guest") {
         toast.error("Please login or continue as guest to add items to cart");
       } else {
