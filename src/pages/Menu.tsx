@@ -22,6 +22,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useAddToCart } from "@/hooks/useAddToCart";
 
 const Menu = () => {
   const session = useSession();
@@ -30,8 +31,8 @@ const Menu = () => {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { getValue, setValue } = useLocalStorage();
-  const { addToCart } = useGuestCart();
   const isGuest = getValue("isGuest") === "true";
+  const addToCart = useAddToCart();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
@@ -146,40 +147,11 @@ const Menu = () => {
   const addToCartHandler = (item: any) => {
     console.log("Menu: Adding item to cart:", item.name);
     
-    if (session) {
-      supabase
-        .from('cart_items')
-        .insert({
-          user_id: session.user.id,
-          product_name: item.name,
-          quantity: 1,
-          price: item.price,
-        })
-        .then(({ error }) => {
-          if (error) {
-            console.error("Error adding to database cart:", error);
-            toast.error("Failed to add item to cart");
-            return;
-          }
-          toast.success("Added to cart!");
-        });
-    } else {
-      console.log("Adding to guest cart from Menu:", { productName: item.name, price: item.price, quantity: 1 });
-      
-      if (getValue("isGuest") !== "true") {
-        setValue("isGuest", "true");
-      }
-      
-      addToCart({
-        productName: item.name,
-        price: item.price,
-        quantity: 1
-      });
-      
-      window.dispatchEvent(new Event('guestCartUpdated'));
-      
-      toast.success("Added to cart!");
-    }
+    addToCart({
+      productName: item.name,
+      price: item.price,
+      quantity: 1
+    });
   };
 
   if (isLoading) {
@@ -486,4 +458,3 @@ const Menu = () => {
 };
 
 export default Menu;
-

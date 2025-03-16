@@ -50,17 +50,41 @@ export const useAddToCart = () => {
           );
         }
 
-        // For authenticated users, use Supabase
-        const { error } = await supabase
+        // For authenticated users, check if item already exists in cart
+        const { data: existingItem, error: queryError } = await supabase
           .from("cart_items")
-          .insert({
-            user_id: session.user.id,
-            product_name: productName,
-            quantity,
-            price,
-          });
+          .select("*")
+          .eq("user_id", session.user.id)
+          .eq("product_name", productName)
+          .single();
+        
+        if (queryError && queryError.code !== 'PGRST116') { // PGRST116 means no rows returned
+          throw queryError;
+        }
 
-        if (error) throw error;
+        if (existingItem) {
+          // Update existing item quantity
+          const { error } = await supabase
+            .from("cart_items")
+            .update({
+              quantity: existingItem.quantity + quantity
+            })
+            .eq("id", existingItem.id);
+
+          if (error) throw error;
+        } else {
+          // Add new item to cart
+          const { error } = await supabase
+            .from("cart_items")
+            .insert({
+              user_id: session.user.id,
+              product_name: productName,
+              quantity,
+              price,
+            });
+  
+          if (error) throw error;
+        }
         return { success: true };
       } else {
         // Non-logged in users are automatically in guest mode
