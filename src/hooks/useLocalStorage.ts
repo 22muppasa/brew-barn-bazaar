@@ -43,6 +43,15 @@ export const useLocalStorage = () => {
     return false; // No change needed
   };
 
+  // Initialize guest mode automatically for non-logged in users
+  useEffect(() => {
+    // Auto-enable guest mode for non-logged in users
+    if (getValue("isGuest") !== "true") {
+      setValue("isGuest", "true");
+      console.log("Guest mode automatically enabled");
+    }
+  }, []);
+
   return { setValue, getValue, removeValue, clearStorage, ensureGuestMode };
 };
 
@@ -50,23 +59,33 @@ export const useGuestCart = () => {
   const { getValue, setValue } = useLocalStorage();
   const [cart, setCart] = useState<GuestCartItem[]>([]);
 
+  // Load cart from localStorage on initial render
   useEffect(() => {
     const savedCart = getValue('guestCart');
     if (savedCart) {
       try {
         setCart(JSON.parse(savedCart));
+        console.log("Loaded guest cart from storage:", savedCart);
       } catch (e) {
         console.error('Failed to parse guest cart', e);
         setValue('guestCart', JSON.stringify([]));
       }
+    } else {
+      // Initialize empty cart if none exists
+      setValue('guestCart', JSON.stringify([]));
+      console.log("Initialized empty guest cart");
     }
   }, []);
 
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
     setValue('guestCart', JSON.stringify(cart));
+    console.log("Updated guest cart in storage:", cart);
   }, [cart]);
 
   const addToCart = (item: Omit<GuestCartItem, 'id'>) => {
+    console.log("Adding item to guest cart:", item);
+    
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(
         cartItem => cartItem.productName === item.productName
@@ -75,10 +94,12 @@ export const useGuestCart = () => {
       if (existingItemIndex >= 0) {
         const updatedCart = [...prevCart];
         updatedCart[existingItemIndex].quantity += item.quantity;
+        console.log("Updated existing item in guest cart:", updatedCart);
         return updatedCart;
       } else {
-        const newCart = [...prevCart, { ...item, id: Date.now().toString() }];
-        setValue('guestCart', JSON.stringify(newCart)); // Save immediately
+        const newItem = { ...item, id: Date.now().toString() };
+        const newCart = [...prevCart, newItem];
+        console.log("Added new item to guest cart:", newItem);
         return newCart;
       }
     });

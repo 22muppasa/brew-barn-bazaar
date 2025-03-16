@@ -14,7 +14,14 @@ interface AddToCartParams {
 export const useAddToCart = () => {
   const session = useSession();
   const queryClient = useQueryClient();
-  const { getValue } = useLocalStorage();
+  const { getValue, setValue } = useLocalStorage();
+  
+  // Auto-enable guest mode for non-logged in users
+  if (!session && getValue("isGuest") !== "true") {
+    setValue("isGuest", "true");
+    console.log("Guest mode auto-enabled in useAddToCart");
+  }
+  
   const isGuest = getValue("isGuest") === "true";
   const { addToCart: addToGuestCart } = useGuestCart();
 
@@ -56,12 +63,17 @@ export const useAddToCart = () => {
         if (error) throw error;
       } else if (isGuest) {
         // For guest users, use local storage
+        console.log("Adding to guest cart:", { productName, price, quantity });
         addToGuestCart({
           productName,
           price,
           quantity
         });
+        
+        // Return a resolved promise for guest flow
+        return Promise.resolve();
       } else {
+        console.error("User is neither logged in nor in guest mode");
         throw new Error("Must be logged in or continue as guest");
       }
     },
