@@ -252,6 +252,7 @@ export type Database = {
           full_name: string | null
           id: string
           phone_number: string | null
+          show_on_leaderboard: boolean | null
           state: string | null
           zip_code: string | null
         }
@@ -265,6 +266,7 @@ export type Database = {
           full_name?: string | null
           id: string
           phone_number?: string | null
+          show_on_leaderboard?: boolean | null
           state?: string | null
           zip_code?: string | null
         }
@@ -278,6 +280,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone_number?: string | null
+          show_on_leaderboard?: boolean | null
           state?: string | null
           zip_code?: string | null
         }
