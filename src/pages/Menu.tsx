@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -30,7 +29,7 @@ const Menu = () => {
   const [showDrinkBuilder, setShowDrinkBuilder] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const { getValue } = useLocalStorage();
+  const { getValue, setValue } = useLocalStorage();
   const { addToCart } = useGuestCart();
   const isGuest = getValue("isGuest") === "true"; // Properly define isGuest variable
   
@@ -40,6 +39,11 @@ const Menu = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
+    if (!session && getValue("isGuest") !== "true") {
+      setValue("isGuest", "true");
+      console.log("Guest mode enabled in Menu component");
+    }
+
     const handleResize = () => {
       if (window.innerWidth < 640) {
         setItemsPerPage(4);
@@ -157,11 +161,19 @@ const Menu = () => {
         });
     } else {
       console.log("Adding to guest cart from Menu:", { productName: item.name, price: item.price, quantity: 1 });
+      
+      if (getValue("isGuest") !== "true") {
+        setValue("isGuest", "true");
+      }
+      
       addToCart({
         productName: item.name,
         price: item.price,
         quantity: 1
       });
+      
+      window.dispatchEvent(new Event('guestCartUpdated'));
+      
       toast.success("Added to cart!");
     }
   };

@@ -33,7 +33,6 @@ const CartIcon = () => {
 
   // Update guest cart count whenever localStorage changes
   useEffect(() => {
-    // Initial count
     if (!session) {
       const updateCartCount = () => {
         const count = getCartCount();
@@ -44,21 +43,24 @@ const CartIcon = () => {
       // Update immediately
       updateCartCount();
       
-      // Set up storage event listener
+      // Set up storage event listener for cross-tab communication
       const handleStorageChange = (e: StorageEvent) => {
         if (e.key === 'guestCart') {
           updateCartCount();
         }
       };
       
-      window.addEventListener('storage', handleStorageChange);
+      // Set up custom event listener for same-tab updates
+      const handleCustomEvent = () => {
+        console.log("Guest cart updated event received");
+        updateCartCount();
+      };
       
-      // Custom event for same-tab updates
-      const handleCustomEvent = () => updateCartCount();
+      window.addEventListener('storage', handleStorageChange);
       window.addEventListener('guestCartUpdated', handleCustomEvent);
       
-      // Check every second for updates
-      const interval = setInterval(updateCartCount, 1000);
+      // Check periodically for updates
+      const interval = setInterval(updateCartCount, 500);
       
       return () => {
         window.removeEventListener('storage', handleStorageChange);
