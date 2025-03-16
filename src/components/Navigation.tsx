@@ -61,7 +61,7 @@ const Navigation = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex items-center justify-between px-6 py-4 backdrop-blur-md bg-white/10">
+        <div className="flex items-center justify-between px-6 py-4 backdrop-blur-sm bg-transparent">
           {/* Left Menu Items */}
           <div className="flex items-center space-x-8">
             {leftMenuItems.map((item) => (
@@ -81,7 +81,7 @@ const Navigation = () => {
             <img 
               src="/lovable-uploads/723df456-96c1-42e2-9fa8-c0a9a1b3a8bd.png" 
               alt="Brew Barn Logo" 
-              className="h-16"
+              className="h-20" // Increased logo size from h-16 to h-20
             />
           </Link>
           
@@ -152,7 +152,7 @@ const Navigation = () => {
               <img 
                 src="/lovable-uploads/723df456-96c1-42e2-9fa8-c0a9a1b3a8bd.png" 
                 alt="Brew Barn Logo" 
-                className="h-12"
+                className="h-16" // Increased logo size from h-12 to h-16 in mobile menu
               />
             </div>
             <nav className="flex flex-col items-center space-y-8">
