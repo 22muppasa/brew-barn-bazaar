@@ -112,7 +112,7 @@ const HamburgerMenu = () => {
                   <Link
                     key={item.name}
                     to={item.path}
-                    className={`text-xl font-bold transition-colors hover:text-primary flex items-center gap-3 w-full font-lora ${
+                    className={`text-xl font-bold transition-colors hover:text-primary flex items-center gap-3 w-full font-abril-fatface ${
                       location.pathname === item.path ? "text-primary" : "text-foreground"
                     }`}
                     onClick={() => setIsOpen(false)}

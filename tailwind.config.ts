@@ -20,7 +20,7 @@ const config = {
       fontFamily: {
         'tan-ashford': ['TAN Ashford', 'serif'],
         'barriecito': ['Barriecito', 'cursive'],
-        'lora': ['Lora', 'serif'],
+        'abril-fatface': ['Abril Fatface', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
