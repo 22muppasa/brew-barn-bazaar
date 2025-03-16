@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { MenuItem } from "@/integrations/supabase/types/tables";
 
 export const useMenuWithRatings = (category?: string) => {
   return useQuery({
@@ -47,7 +48,7 @@ export const useMenuWithRatings = (category?: string) => {
       }, {}) || {};
 
       // Add ratings and size options to menu items
-      const menuWithRatings = menuItems?.map(item => {
+      const menuWithRatings = menuItems?.map((item: any) => {
         const ratings = ratingsByProduct[item.name] || { total: 0, count: 0 };
         const averageRating = ratings.count > 0 ? ratings.total / ratings.count : 0;
         

@@ -75,6 +75,7 @@ export interface GuestCartItem {
   productName: string;
   price: number;
   quantity: number;
+  size?: string;
 }
 
 export const useGuestCart = () => {
@@ -130,7 +131,7 @@ export const useGuestCart = () => {
     
     // Check if item already exists in cart
     const existingItemIndex = currentCart.findIndex(
-      cartItem => cartItem.productName === item.productName
+      cartItem => cartItem.productName === item.productName && cartItem.size === item.size
     );
 
     let updatedCart: GuestCartItem[];
