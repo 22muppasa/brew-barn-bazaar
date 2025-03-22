@@ -372,8 +372,8 @@ const ProfilePage = () => {
               </div>
             )}
             
-            {/* Edit Profile Button moved to the bottom */}
-            <div className="mt-6 flex justify-center">
+            {/* Edit Profile Button moved to the bottom right */}
+            <div className="mt-6 flex justify-end">
               {isEditing ? (
                 <div className="flex gap-2">
                   <Button 
