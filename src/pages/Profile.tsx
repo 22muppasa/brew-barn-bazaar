@@ -203,38 +203,6 @@ const ProfilePage = () => {
           >
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-semibold mb-4">Account Information</h2>
-              {isEditing ? (
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex items-center gap-1"
-                    onClick={handleEditToggle}
-                  >
-                    <X className="h-4 w-4" />
-                    Cancel
-                  </Button>
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="flex items-center gap-1"
-                    onClick={handleSaveProfile}
-                  >
-                    <Check className="h-4 w-4" />
-                    Save
-                  </Button>
-                </div>
-              ) : (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={handleEditToggle}
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </Button>
-              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -403,6 +371,42 @@ const ProfilePage = () => {
                 </Button>
               </div>
             )}
+            
+            {/* Edit Profile Button moved to the bottom */}
+            <div className="mt-6 flex justify-center">
+              {isEditing ? (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-1"
+                    onClick={handleEditToggle}
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="flex items-center gap-1"
+                    onClick={handleSaveProfile}
+                  >
+                    <Check className="h-4 w-4" />
+                    Save
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="flex items-center gap-1 px-4"
+                  onClick={handleEditToggle}
+                >
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
           </motion.div>
 
           <motion.div
