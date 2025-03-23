@@ -55,13 +55,7 @@ const HamburgerMenu = () => {
   return (
     <>
       <div className="fixed left-4 top-4 z-50 flex items-center gap-4 md:hidden">
-        <Link to="/" className="flex items-center">
-          <img 
-            src="/lovable-uploads/faac9400-50f9-4072-b473-b9879c90fb87.png" 
-            alt="The Brew Barn Logo" 
-            className="h-10 sm:h-12"
-          />
-        </Link>
+        {/* Logo image removed from here */}
       </div>
       
       <div className="fixed right-4 top-4 z-50 flex items-center gap-2 md:hidden">
