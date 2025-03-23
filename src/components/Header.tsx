@@ -39,7 +39,7 @@ const Header = () => {
           width: "100%",
           height: "100%",
         }}
-        src="https://player.vimeo.com/video/1068518691?h=ba5b0f3e9c&badge=0&autopause=0&player_id=0&app_id=58479&background=1&autoplay=1&muted=1"
+        src="https://player.vimeo.com/video/1068518691?h=ba5b0f3e9c&badge=0&autopause=0&player_id=0&app_id=58479&background=1&autoplay=1&muted=1&loop=0"
         frameBorder="0"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
         allowFullScreen
