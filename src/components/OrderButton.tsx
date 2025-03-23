@@ -34,7 +34,7 @@ const OrderButton = () => {
         <Link to="/menu">
           <Button 
             size="pill"
-            className="bg-primary text-white hover:bg-primary/90 shadow-lg rounded-full px-6"
+            className="bg-primary text-white hover:bg-primary/90 shadow-lg rounded-full px-8 py-6 text-base"
           >
             Order Now
           </Button>
