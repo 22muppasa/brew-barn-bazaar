@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Barriecito&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
@@ -132,6 +133,24 @@
   
   .menu-item-card {
     @apply flex flex-col h-full bg-white rounded-lg shadow-sm overflow-hidden border border-border hover:shadow-md transition-all duration-200;
+  }
+  
+  /* Video background styling */
+  .video-background {
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 120%;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  
+  /* Mobile-specific video scaling */
+  @media (max-width: 768px) {
+    .video-background {
+      width: 200%;
+      height: 200%;
+      transform: translate(-50%, -50%) scale(2);
+    }
   }
 }
 
