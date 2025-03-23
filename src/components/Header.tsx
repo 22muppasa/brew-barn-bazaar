@@ -48,53 +48,19 @@ const Header = () => {
       />
       <HamburgerMenu />
       <motion.div 
-        className="relative z-10 text-center px-4"
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.8 }}
+        className="absolute bottom-8 right-8 z-20"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.5 }}
       >
-        <h1 className="mb-6 text-5xl sm:text-7xl font-bold text-white md:text-8xl lg:text-9xl text-shadow-lg">
-          The Brew Barn
-        </h1>
-        <p className="mb-8 text-xl text-white/90">
-          Artisanal coffee & community
-        </p>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-        >
-          <Link to="/menu">
-            <Button 
-              size="lg"
-              className="bg-primary text-white hover:bg-primary/90 shadow-lg"
-            >
-              Explore Menu
-            </Button>
-          </Link>
-          {!session ? (
-            <Link to="/auth">
-              <Button 
-                size="lg"
-                variant="secondary"
-                className="hover:bg-secondary/90 shadow-lg"
-              >
-                Join for Rewards
-              </Button>
-            </Link>
-          ) : (
-            <Link to={session ? "/rewards" : "/cart"}>
-              <Button 
-                size="lg"
-                variant="secondary"
-                className="hover:bg-secondary/90 shadow-lg"
-              >
-                {session ? "View Rewards" : "View Cart"}
-              </Button>
-            </Link>
-          )}
-        </motion.div>
+        <Link to="/menu">
+          <Button 
+            size="lg"
+            className="bg-primary text-white hover:bg-primary/90 shadow-lg"
+          >
+            Order Now
+          </Button>
+        </Link>
       </motion.div>
       <motion.div 
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
