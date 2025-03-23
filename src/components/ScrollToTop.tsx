@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp } from "lucide-react";
@@ -33,7 +34,7 @@ const ScrollToTop = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-8 right-8 z-50"
+          className="fixed bottom-6 right-6 z-50"
         >
           <Button
             variant="secondary"

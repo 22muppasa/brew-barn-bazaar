@@ -23,7 +23,7 @@ const OrderButton = () => {
   return (
     <AnimatePresence>
       <motion.div 
-        className={`fixed right-6 bottom-6 z-50 ${scrollToTopVisible ? 'right-20' : 'right-6'}`}
+        className={`fixed ${scrollToTopVisible ? 'right-20' : 'right-6'} bottom-6 z-50`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -33,8 +33,8 @@ const OrderButton = () => {
       >
         <Link to="/menu">
           <Button 
-            size="lg"
-            className="bg-primary text-white hover:bg-primary/90 shadow-lg"
+            size="pill"
+            className="bg-primary text-white hover:bg-primary/90 shadow-lg rounded-full px-6"
           >
             Order Now
           </Button>
