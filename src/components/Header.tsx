@@ -1,7 +1,5 @@
 
 import { motion, useAnimation } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import HamburgerMenu from "./HamburgerMenu";
@@ -47,21 +45,6 @@ const Header = () => {
         allowFullScreen
       />
       <HamburgerMenu />
-      <motion.div 
-        className="absolute bottom-8 right-8 z-20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 0.5 }}
-      >
-        <Link to="/menu">
-          <Button 
-            size="lg"
-            className="bg-primary text-white hover:bg-primary/90 shadow-lg"
-          >
-            Order Now
-          </Button>
-        </Link>
-      </motion.div>
       <motion.div 
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0 }}
