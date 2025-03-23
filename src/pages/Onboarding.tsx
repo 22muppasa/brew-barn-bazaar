@@ -1,6 +1,6 @@
+
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import HamburgerMenu from "@/components/HamburgerMenu";
@@ -19,7 +19,9 @@ import {
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Check, Coffee } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Coffee, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -38,6 +40,8 @@ const OnboardingPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showValidationError, setShowValidationError] = useState(false);
+  const { toast } = useToast();
   const totalSteps = 4;
   
   const form = useForm<ProfileFormValues>({
@@ -51,7 +55,8 @@ const OnboardingPage = () => {
       phoneNumber: "",
       birthdate: "",
       favoriteProduct: ""
-    }
+    },
+    mode: "onChange" // Validate on change for more responsive feedback
   });
 
   useEffect(() => {
@@ -65,13 +70,64 @@ const OnboardingPage = () => {
     checkSession();
   }, [navigate]);
 
+  // Check if the current step is valid before proceeding
+  const validateCurrentStep = (): boolean => {
+    let isValid = false;
+    
+    switch (currentStep) {
+      case 1:
+        // Validate fullName and phoneNumber fields
+        isValid = form.getFieldState("fullName").invalid === false && 
+                 form.getFieldState("phoneNumber").invalid === false &&
+                 !!form.getValues("fullName") &&
+                 !!form.getValues("phoneNumber");
+        break;
+      case 2:
+        // Validate address, city, state, and zipCode fields
+        isValid = form.getFieldState("address").invalid === false && 
+                 form.getFieldState("city").invalid === false &&
+                 form.getFieldState("state").invalid === false &&
+                 form.getFieldState("zipCode").invalid === false &&
+                 !!form.getValues("address") &&
+                 !!form.getValues("city") &&
+                 !!form.getValues("state") &&
+                 !!form.getValues("zipCode");
+        break;
+      case 3:
+        // Optional fields, so always valid
+        isValid = true;
+        break;
+      case 4:
+        // Review page is always valid
+        isValid = true;
+        break;
+      default:
+        isValid = false;
+    }
+    
+    return isValid;
+  };
+
   const nextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
+    const isValid = validateCurrentStep();
+    
+    if (isValid) {
+      setShowValidationError(false);
+      if (currentStep < totalSteps) {
+        setCurrentStep(currentStep + 1);
+      }
+    } else {
+      setShowValidationError(true);
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill out all required fields correctly before proceeding.",
+      });
     }
   };
 
   const prevStep = () => {
+    setShowValidationError(false);
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
@@ -120,11 +176,19 @@ const OnboardingPage = () => {
       // Simulate a delay for the loading animation
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      toast.success("Profile information saved!");
+      toast({
+        title: "Success!",
+        description: "Profile information saved successfully.",
+        variant: "default"
+      });
       navigate("/");
     } catch (error: any) {
       setIsSubmitting(false);
-      toast.error(error.message || "An error occurred while saving your profile");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "An error occurred while saving your profile"
+      });
     }
   };
 
@@ -139,6 +203,15 @@ const OnboardingPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 px-8">
+              {showValidationError && (
+                <Alert variant="destructive" className="mb-6">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                    Please fill out all required fields correctly before proceeding.
+                  </AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-6">
                 <FormField
                   control={form.control}
@@ -189,6 +262,15 @@ const OnboardingPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 px-8">
+              {showValidationError && (
+                <Alert variant="destructive" className="mb-6">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                    Please fill out all required fields correctly before proceeding.
+                  </AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-6">
                 <FormField
                   control={form.control}
