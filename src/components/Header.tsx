@@ -34,13 +34,12 @@ const Header = () => {
         <rect width="100%" height="100%" filter="url(#grain)"></rect>
       </svg>
       <iframe 
-        className="absolute"
+        className="absolute w-full h-full"
         style={{
-          top: "50%",
-          left: "50%",
-          width: "120%",
-          height: "120%",
-          transform: "translate(-50%, -50%) scale(1.2)",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
         }}
         src="https://player.vimeo.com/video/1068513623?h=11147670f8&badge=0&autopause=0&player_id=0&app_id=58479&background=1&autoplay=1&loop=1&muted=1"
         frameBorder="0"
