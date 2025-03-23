@@ -20,7 +20,7 @@ const Header = () => {
 
   return (
     <motion.header 
-      className="relative flex h-screen items-center justify-center overflow-hidden"
+      className="relative flex h-screen items-center justify-center overflow-hidden bg-black"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
