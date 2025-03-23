@@ -151,6 +151,11 @@
       height: 200%;
       transform: translate(-50%, -50%) scale(2);
     }
+    
+    /* Make cart icon white on mobile */
+    .ShoppingCart {
+      @apply text-white;
+    }
   }
 }
 
