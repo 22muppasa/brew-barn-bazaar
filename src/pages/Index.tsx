@@ -1,13 +1,12 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Instagram, Facebook, X } from "lucide-react";
+import { Instagram, X } from "lucide-react";
 import ScrollToTop from "@/components/ScrollToTop";
 import Header from "@/components/Header";
 import FeaturedMenu from "@/components/FeaturedMenu";
-import VirtualBarista from "@/components/VirtualBarista";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -140,9 +139,6 @@ const Index = () => {
                   <Instagram className="h-6 w-6" />
                 </Button>
               </a>
-              <Button variant="ghost" size="icon">
-                <Facebook className="h-6 w-6" />
-              </Button>
               <Button variant="ghost" size="icon">
                 <X className="h-6 w-6" />
               </Button>
