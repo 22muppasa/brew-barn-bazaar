@@ -34,8 +34,8 @@ const Header = () => {
         <rect width="100%" height="100%" filter="url(#grain)"></rect>
       </svg>
       <iframe 
-        className="absolute video-background"
-        src="https://player.vimeo.com/video/1062622357?h=616a82d686&badge=0&autopause=0&player_id=0&app_id=58479&loop=0"
+        className="absolute video-background object-cover"
+        src="https://player.vimeo.com/video/1062622357?h=616a82d686&badge=0&autopause=0&player_id=0&app_id=58479&loop=1&autoplay=1&background=1&muted=1"
         frameBorder="0"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
         allowFullScreen
