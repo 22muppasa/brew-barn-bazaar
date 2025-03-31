@@ -150,8 +150,24 @@
   /* Mobile-specific video scaling */
   @media (max-width: 768px) {
     .video-background {
-      width: 250%;
-      height: 250%;
+      width: 320%;
+      height: 320%;
+    }
+  }
+  
+  /* Small screen video scaling */
+  @media (max-width: 480px) {
+    .video-background {
+      width: 400%;
+      height: 400%;
+    }
+  }
+  
+  /* Medium screen video scaling */
+  @media (min-width: 769px) and (max-width: 1439px) {
+    .video-background {
+      width: 180%;
+      height: 180%;
     }
   }
   
