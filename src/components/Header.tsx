@@ -35,7 +35,7 @@ const Header = () => {
       </svg>
       <iframe 
         className="absolute video-background object-cover"
-        src="https://player.vimeo.com/video/1062622357?h=616a82d686&badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1&background=1&muted=1"
+        src="https://player.vimeo.com/video/1062622357?h=616a82d686&badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1&background=1&muted=1&loop=0"
         frameBorder="0"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
         allowFullScreen
