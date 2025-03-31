@@ -170,6 +170,14 @@
     }
   }
   
+  /* iPad Pro and similar devices (1024x1366) */
+  @media (min-width: 1024px) and (max-width: 1366px) and (min-height: 1024px) {
+    .video-background {
+      width: 250%;
+      height: 250%;
+    }
+  }
+  
   /* Medium screen video scaling */
   @media (min-width: 869px) and (max-width: 1440px) {
     .video-background {
