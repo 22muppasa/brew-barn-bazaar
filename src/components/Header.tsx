@@ -1,21 +1,64 @@
-
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import HamburgerMenu from "./HamburgerMenu";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const Header = () => {
   const session = useSession();
   const { getValue, setValue } = useLocalStorage();
   const isGuest = getValue("isGuest") === "true";
+  const videoRef = useRef<HTMLIFrameElement>(null);
+  const loopCountRef = useRef(0);
   
   useEffect(() => {
     if (!session && !isGuest) {
       setValue("isGuest", "true");
     }
+
+    // Setup message listener for Vimeo Player API
+    const handleMessage = (event: MessageEvent) => {
+      // Check if the message is from Vimeo
+      if (event.origin !== "https://player.vimeo.com") return;
+      
+      try {
+        const data = JSON.parse(event.data);
+        
+        // When video ends, increment loop count
+        if (data.event === "ended") {
+          loopCountRef.current += 1;
+          
+          // If we've looped 3 times, pause the video
+          if (loopCountRef.current >= 3 && videoRef.current) {
+            // Use Vimeo Player API to pause
+            const iframe = videoRef.current;
+            const player = {
+              origin: window.location.origin,
+              method: "pause"
+            };
+            iframe.contentWindow?.postMessage(JSON.stringify(player), "https://player.vimeo.com");
+          } else if (videoRef.current && loopCountRef.current < 3) {
+            // Otherwise play again
+            const iframe = videoRef.current;
+            const player = {
+              origin: window.location.origin,
+              method: "play"
+            };
+            iframe.contentWindow?.postMessage(JSON.stringify(player), "https://player.vimeo.com");
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing Vimeo message:", e);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
   }, [session, isGuest, setValue]);
 
   return (
@@ -34,8 +77,9 @@ const Header = () => {
         <rect width="100%" height="100%" filter="url(#grain)"></rect>
       </svg>
       <iframe 
+        ref={videoRef}
         className="absolute video-background object-cover"
-        src="https://player.vimeo.com/video/1062622357?h=616a82d686&badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1&background=1&muted=1&loop=3"
+        src="https://player.vimeo.com/video/1062622357?h=616a82d686&badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1&background=1&muted=1&loop=0&api=1"
         frameBorder="0"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
         allowFullScreen
