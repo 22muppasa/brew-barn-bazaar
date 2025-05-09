@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import TermsAndConditions from "@/components/TermsAndConditions";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsDialogOpen, setTermsDialogOpen] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -194,7 +196,14 @@ const AuthPage = () => {
                     htmlFor="terms"
                     className="text-sm text-muted-foreground"
                   >
-                    I agree to the Terms and Conditions and Privacy Policy
+                    I agree to the{" "}
+                    <button 
+                      type="button"
+                      className="text-primary underline hover:text-primary/80"
+                      onClick={() => setTermsDialogOpen(true)}
+                    >
+                      Terms and Conditions and Privacy Policy
+                    </button>
                   </Label>
                 </div>
                 
@@ -206,6 +215,12 @@ const AuthPage = () => {
           </div>
         </div>
       </motion.div>
+      
+      {/* Terms and Conditions Dialog */}
+      <TermsAndConditions 
+        open={termsDialogOpen} 
+        onOpenChange={setTermsDialogOpen} 
+      />
     </div>
   );
 };
